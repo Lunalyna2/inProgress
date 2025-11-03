@@ -76,14 +76,44 @@ const SignUpPage = () => {
   };
 
   // Handles form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (validate() && !rePasswordError) {
-      // All validations passed. Redirect to login page.
-      alert('Sign-up Successful! Redirecting to login page...'); // Temporary. Please replace with actual navigation logic.
+    const clientIsValid = validate();
+
+    if (clientIsValid && !rePasswordError) {
+      // All validations passed, now submit to backend.
+        try {
+            const response = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                // Successful sign-up
+                alert('Sign-up Successful! Redirecting to login page...');
+                console.log(responseData.message); // Temporary. Replace with actual redirection logic.
+            } else if (response.status === 400) {
+                // Validation errors from backend
+                console.error('Backend validation errors:', responseData.errors);
+                setErrors(responseData.errors);
+                alert('Sign-up failed due to validation errors. Please check your input.');
+            } else {
+                // Other server errors (500 Internal Server Error)
+                alert('An unexpected error occurred during sign-up.');
+            }
+
+        } catch (error) {
+            console.error('Error occurred during sign-up:', error);
+            alert('Could not connect to the server.');
+        }
     } else {
-      console.log('Validation failed. Errors:', errors);
+      console.log('Client-side validation failed.');
     }
   };
 
