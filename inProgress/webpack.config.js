@@ -20,10 +20,10 @@ module.exports = {
         },
       },
       {
-        test: /\.css$/, // Target files ending with .css
+        test: /\.css$/, 
         use: [
-          'style-loader', // Injects CSS into the DOM
-          'css-loader',   // Interprets @import and url() like import/require()
+          'style-loader', 
+          'css-loader',   
         ],
       },
     ],
