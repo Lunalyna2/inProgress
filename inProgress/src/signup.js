@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import './index.css';
 
-const SignUpPage = () => {
+// Component now accepts switchToLogin as a prop
+const SignUpPage = ({ switchToLogin }) => {
   // State for form inputs
   const [formData, setFormData] = useState({
     fullName: '',
@@ -28,15 +29,15 @@ const SignUpPage = () => {
       
       // Only show error if re-password is being typed and a password exists
       if (value.length > 0 && formData[otherPasswordField].length > 0) {
-         if (value !== formData[otherPasswordField]) {
+        if (value !== formData[otherPasswordField]) {
             setRePasswordError("Does not match password!");
-         } else {
+        } else {
             setRePasswordError(null); // Clear error if they match
-         }
+        }
       } else if (name === 'rePassword' && formData.password && value !== formData.password) {
-         setRePasswordError("Does not match password!");
+        setRePasswordError("Does not match password!");
       } else {
-         setRePasswordError(null);
+        setRePasswordError(null);
       }
     }
 
@@ -84,6 +85,7 @@ const SignUpPage = () => {
     if (clientIsValid && !rePasswordError) {
       // All validations passed, now submit to backend.
         try {
+            // Note: Updated URL path assumption: /api/signup
             const response = await fetch('http://localhost:5000/api/signup', {
                 method: 'POST',
                 headers: {
@@ -95,9 +97,9 @@ const SignUpPage = () => {
             const responseData = await response.json();
 
             if (response.ok) {
-                // Successful sign-up
+                // Successful sign-up - SWITCH TO LOGIN PAGE
                 alert('Sign-up Successful! Redirecting to login page...');
-                console.log(responseData.message); // Temporary. Replace with actual redirection logic.
+                switchToLogin(); // <--- Switches the view
             } else if (response.status === 400) {
                 // Validation errors from backend
                 console.error('Backend validation errors:', responseData.errors);
@@ -136,7 +138,8 @@ const SignUpPage = () => {
 
         <div className="login-prompt">
           <p>Already have an account?</p>
-          <button className="login-button">Login Here!</button>
+          {/* ADDED onClick handler to switch to login */}
+          <button className="login-button" onClick={switchToLogin}>Login Here!</button>
         </div>
       </div>
 
@@ -199,7 +202,7 @@ const SignUpPage = () => {
           />
           {/* Display real-time error or submit error */}
           {(rePasswordError || errors.rePassword) && (
-             <p className="error-message">{rePasswordError || errors.rePassword}</p>
+            <p className="error-message">{rePasswordError || errors.rePassword}</p>
           )}
 
           <button type="submit" className="get-started-button">Get Started</button>

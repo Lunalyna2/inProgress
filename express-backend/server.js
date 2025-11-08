@@ -5,11 +5,10 @@ const PORT = 5000;
 
 // Middleware
 app.use(express.json()); 
-app.use(cors({
-    origin: 'http://localhost:3000' 
-}));
+app.use(cors());
 
-// Validation Function duplicated logic from frontend 
+// --- VALIDATION FUNCTIONS ---
+
 const validateSignupData = (data) => {
     const errors = {};
     const { fullName, username, cpuEmail, password, rePassword } = data;
@@ -38,11 +37,51 @@ const validateSignupData = (data) => {
     };
 };
 
-// Routes
+const validateLoginDataSimple = (data) => {
+    const errors = {};
+    // Assuming frontend sends 'email' and 'password' fields
+    if (!data.email) {
+        errors.email = "Email is required.";
+    }
+    if (!data.password) {
+        errors.password = "Password is required.";
+    }
 
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors,
+    };
+};
+
+
+// --- ROUTES ---
+
+// SIGNUP ROUTE (Unchanged)
 app.post('/api/signup', (req, res) => {
     const data = req.body;
     const { isValid, errors } = validateSignupData(data);
+
+    if (!isValid) {
+        return res.status(400).json({ 
+            message: 'Validation failed.',
+            errors: errors 
+        });
+    }
+
+    // Temporary. Replace with actual DB logic later.
+    console.log('New user signed up (simulated):', { username: data.username, email: data.cpuEmail }); 
+
+    res.status(201).json({ 
+        message: 'Sign-up successful! Redirecting to login.',
+        user: { username: data.username, email: data.cpuEmail }
+    });
+});
+
+
+// LOGIN ROUTE (Simple Validation)
+app.post('/api/login', (req, res) => {
+    const data = req.body;
+    const { isValid, errors } = validateLoginDataSimple(data);
 
     if (!isValid) {
         // Validation failed: Send a 400 Bad Request status with the errors
@@ -52,19 +91,17 @@ app.post('/api/signup', (req, res) => {
         });
     }
 
-    // If validation passes, save user to database.
-    // Temporary. Replace with actual DB logic
-    console.log('New user signed up:', { username: data.username, email: data.cpuEmail }); 
+    // TEMPORARY LOGIC: Simulate successful login
+    console.log('Attempting login for (simulated):', data.email); 
 
-    // Respond with success message
-    res.status(201).json({ 
-        message: 'Sign-up successful! Redirecting to login.',
-        user: { username: data.username, email: data.cpuEmail }
+    res.status(200).json({ 
+        message: 'Login successful!',
+        token: 'temp_jwt_token_12345'
     });
 });
 
 
-// Server Start
+// --- SERVER START ---
 app.listen(PORT, () => {
     console.log(`Express server running on http://localhost:${PORT}`);
 });
