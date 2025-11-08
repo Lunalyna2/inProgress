@@ -9,11 +9,15 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
   },
+  // File extensions to resolve
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+  },
   // Rules for how Webpack should process different file types
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
