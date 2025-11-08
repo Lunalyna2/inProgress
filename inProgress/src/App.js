@@ -1,10 +1,11 @@
 import React from 'react';
-import SignUpPage from './SignUpPage'; // Import your new component
+import SignUpPage from './signup'; // Import your new component
+import LandingPage from './LandingPage';
 
 const App = () => {
   return (
     <div className="App">
-      <SignUpPage /> {/* Render SignUp Page */}
+      <LandingPage /> {/* Render SignUp Page */}
     </div>
   );
 };
