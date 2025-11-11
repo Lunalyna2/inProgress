@@ -1,0 +1,98 @@
+.folder-background {
+  background-color: #cde5f5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.folder-container {
+  position: relative;
+  width: 95vw;
+  max-width: 1280px;
+  height: 80vh;
+  margin-top: 7vh;
+  margin-right: 5vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.folder-tab {
+  background-color: white;
+  height: 40px;
+  width: 280px;
+  border-radius: 25px 25px 0 0;
+  position: absolute;
+  top: -80px;
+  left: 0px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem 1.5rem;
+  gap: 0.25rem;
+  transition: all 0.3s ease;
+}
+
+.folder-tab-title {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #2c2c2c;
+}
+
+.folder-tab-subtitle {
+  font-size: 1rem;
+  color: #666;
+}
+
+.folder-body {
+  background-color: white;
+  border-radius: 0px 25px 25px 25px;
+  width: 100%;
+  height: 100%;
+  padding: 3rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.placeholder {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .folder-container {
+    width: 90vw;
+    height: auto;
+  }
+
+  .folder-body {
+    border-radius: 48px;
+    padding: 2rem;
+  }
+
+  .folder-tab {
+    width: 180px;
+    height: 56px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .folder-tab-title {
+    font-size: 1rem;
+  }
+
+  .folder-tab-subtitle {
+    font-size: 0.8rem;
+  }
+}
