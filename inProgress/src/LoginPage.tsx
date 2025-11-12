@@ -10,14 +10,14 @@ interface LoginPageProps {
 // Define the shape of the form data state
 interface LoginFormData {
     username: string;
-    email: string;
+    cpuEmail: string;
     password: string;
 }
 
 // Define the shape of the errors state
 interface LoginErrors {
     username: string | null;
-    email: string | null;
+    cpuEmail: string | null;
     password: string | null;
 }
 
@@ -26,7 +26,7 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
     // State for form data
     const [formData, setFormData] = useState<LoginFormData>({
         username: '',
-        email: '',
+        cpuEmail: '',
         password: ''
     });
 
@@ -50,8 +50,8 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
         let newErrors: Partial<LoginErrors> = {};
         let isValid = true;
 
-        if (!formData.email.trim()) {
-            newErrors.email = "Email is required.";
+        if (!formData.cpuEmail.trim()) {
+            newErrors.cpuEmail = "Email is required.";
             isValid = false;
         }
         if (!formData.password.trim()) {
@@ -71,7 +71,7 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
 
         try {
             const payload = {
-                email: formData.email,
+                cpuEmail: formData.cpuEmail,
                 password: formData.password
             };
 
@@ -135,12 +135,12 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
                     <input
                         type="email"
                         placeholder="CPU email address"
-                        name="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={`form-input ${errors.email ? 'input-error' : ''}`}
+                        name="cpuEmail"
+                        value={formData.cpuEmail}
+                        onChange={(e) => handleInputChange('cpuEmail', e.target.value)}
+                        className={`form-input ${errors.cpuEmail ? 'input-error' : ''}`}
                     />
-                    {errors.email && <p className="error-message">{errors.email}</p>}
+                    {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
 
                     {/* Password */}
                     <input

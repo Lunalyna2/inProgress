@@ -7,9 +7,9 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "esnext",
+    "module": "commonjs",
     "target": "es2020",
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,    
@@ -18,6 +18,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "noEmit": true,
+    "rootDir": "./",
+    "outDir": "./dist",
     // "types": ["node"],
     // and npm install -D @types/node
 
@@ -46,5 +48,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }
