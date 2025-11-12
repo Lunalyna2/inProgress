@@ -3,7 +3,7 @@ import FolderBackground from "./layouts/FolderBackground";
 
 const FolderPage = () => {
   return (
-    <FolderBackground title="Tab Title Here!" subtitle="subtitle">
+    <FolderBackground>
       <p>Insert Contents here.</p>
     </FolderBackground>
   );
