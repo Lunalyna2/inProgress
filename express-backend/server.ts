@@ -31,6 +31,7 @@ pool.connect()
     .then(() => console.log("✅ Connected to PostgreSQL"))
     .catch((err: string) => console.error("❌ DB connection error ", err))
 
+
 // Interfaces
 interface SignUpFormData {
     fullName: string;

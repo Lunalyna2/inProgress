@@ -1,6 +1,6 @@
     import React, { useState } from 'react';
     import type { ChangeEvent, FormEvent } from 'react';
-    import './index.css';
+    import './signup.css';
 
     // Define Props Interface for SignUpPage
     interface SignUpPageProps {

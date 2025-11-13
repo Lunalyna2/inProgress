@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react'; 
 import './login.css';
+import ForgotPasswordModal from './forgotPasswordModal';
+
 
 // Define Props Interface for LoginPage
 interface LoginPageProps {
@@ -24,6 +26,7 @@ interface LoginErrors {
 // LoginPage Component
 function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
     // State for form data
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [formData, setFormData] = useState<LoginFormData>({
         username: '',
         cpuEmail: '',
@@ -155,7 +158,11 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
 
                     {/* Forgot Password */}
                     <div className="forgot-container">
-                        <button type="button" className="forgot-button">
+                        <button 
+                        type="button" 
+                        className="forgot-button"
+                        onClick={() => setShowForgotPassword(true)}
+                        >
                             Forgot your password?
                         </button>
                     </div>
@@ -165,6 +172,10 @@ function LoginPage({ switchToSignup }: LoginPageProps): React.JSX.Element {
                     </button>
                 </form>
             </div>
+            <ForgotPasswordModal
+                isOpen={showForgotPassword}
+                onClose={() => setShowForgotPassword(false)}
+            />
         </div>
     );
 }

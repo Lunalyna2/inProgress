@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "nodemailer": "^7.0.10",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
