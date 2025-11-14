@@ -1,6 +1,7 @@
 import React, { useState } from 'react'; 
 import SignUpPage from './SignUpPage'; 
 import LoginPage from './LoginPage'; 
+import flipBookProfile from './flipBookProfile';
 
 // Define a union type for the pages
 type Page = 'signup' | 'login';
