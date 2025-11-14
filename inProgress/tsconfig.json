@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "esnext",
     "target": "es2020",
-    "types": [],
+    "types": ["react", "react-dom"],
     // For nodejs:
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,    
