@@ -1,0 +1,77 @@
+.create-project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 700px;
+}
+
+.create-project-form label {
+  font-weight: 600;
+  color: #666666;
+}
+
+.create-project-form input,
+.create-project-form textarea {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.roles-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.roles-row input {
+  flex: 1;
+}
+
+.add-btn {
+  background: linear-gradient(to right, #4a90e2, #8e44ad);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  opacity: 0.9;
+}
+
+.role-list {
+  width: 100%;
+}
+
+.role-list ul {
+  padding-left: 1.2rem;
+}
+
+.submit-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.submit-btn {
+  background-color: #ff5c8a;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 200px;
+  text-align: center;
+}
+
+.submit-btn:hover {
+  background-color: #e14b76;
+}
