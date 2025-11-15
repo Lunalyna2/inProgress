@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.tsx",
-"scripts": {
-  "dev": "nodemon --watch \"./**/*.ts\" --exec \"ts-node\" server.ts"
-},
+  "scripts": {
+    "dev": "nodemon --watch \"./**/*.ts\" --exec \"ts-node\" server.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -28,7 +28,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "cross-env": "^7.0.3",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
