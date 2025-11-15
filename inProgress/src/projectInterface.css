@@ -1,0 +1,124 @@
+/* Base folder-like design */
+.project-folder {
+  width: 90%;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 25px;
+  background: #fff8e7;
+  border-radius: 12px;
+  border: 2px solid #d5c7a2;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Top Section */
+.header-box {
+  margin-bottom: 25px;
+}
+
+.title-input {
+  width: 100%;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  background: transparent;
+  margin-bottom: 10px;
+}
+
+.desc-input {
+  width: 100%;
+  min-height: 60px;
+  border: none;
+  background: transparent;
+  resize: none;
+  margin-bottom: 20px;
+}
+
+.info-line {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.info-line input {
+  flex: 1;
+  padding: 3px 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.collab-section button {
+  margin-top: 5px;
+  padding: 4px 10px;
+}
+
+.status-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.status-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+.status-indicator.orange {
+  background: orange;
+}
+
+.status-indicator.green {
+  background: green;
+}
+
+/* TASK BOX */
+.task-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fffef5;
+  border: 1px solid #d8cda9;
+  border-radius: 10px;
+}
+
+.assign-btn {
+  margin-bottom: 10px;
+  padding: 6px 15px;
+}
+
+.task-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.progress-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.progress-dot.done {
+  background: green;
+}
+
+/* REQUESTS */
+.request-box {
+  margin-top: 25px;
+  padding: 15px;
+  background: #faf4de;
+  border: 1px solid #cfbd95;
+  border-radius: 10px;
+}
+
+.req-placeholder {
+  opacity: 0.6;
+}

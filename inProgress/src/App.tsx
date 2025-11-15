@@ -1,8 +1,6 @@
-`import React, { useState } from 'react'; 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import FlipBookProfile from './flipBookProfile';
-import SignUpPage from './components/SignUpPage'; 
-import LoginPage from './components/LoginPage'; 
+import React, { useState } from 'react'; 
+import SignUpPage from './SignUpPage'; 
+import LoginPage from './LoginPage'; 
 
 // Define a union type for the pages
 type Page = 'signup' | 'login';
