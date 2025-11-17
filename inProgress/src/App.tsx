@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import FlipBookProfile from './flipBookProfile';
@@ -7,6 +8,25 @@ import LoginPage from './components/LoginPage';
 import CreateProject from './CreateProject';
 import FolderPage from './FolderPage';  
 import ResetPasswordPage from './components/ResetPasswordPage';
+=======
+import React, { useState } from 'react'; 
+import SignUpPage from './SignUpPage'; 
+import LoginPage from './LoginPage'; 
+import LandingPage from './LandingPage';
+import Dashboard from './Dashboard';
+
+// Define a union type for the pages
+type Page = 'signup' | 'login';
+
+// Define interfaces for the props expected by each page component
+export interface LoginPageProps {
+    switchToSignup: () => void;
+}
+
+export interface SignUpPageProps {
+    switchToLogin: () => void;
+}
+>>>>>>> Stashed changes
 
 const App: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false); // toggle between sign up / login
@@ -15,6 +35,7 @@ const App: React.FC = () => {
   const goToSignUp = () => setShowLogin(false);
 
   return (
+<<<<<<< Updated upstream
     <Router>
   <Routes>
     {/* Default landing route */}
@@ -49,6 +70,11 @@ const App: React.FC = () => {
   </Routes>
 </Router>
 
+=======
+    <div className="App">
+      <LandingPage/>
+    </div>
+>>>>>>> Stashed changes
   );
 };
 
