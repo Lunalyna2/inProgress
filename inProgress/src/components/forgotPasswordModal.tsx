@@ -1,72 +1,76 @@
+// forgotPasswordModal.tsx
 import { useState } from "react";
 
 interface ForgotPasswordModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
-    const [email, setEmail] = useState("");
-    const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-    if(!isOpen) return null;
+  if (!isOpen) return null;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-        try {
-            const response = await fetch("http://localhost:5000/api/forgot-password", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({email}),
-            });
+    try {
+      const response = await fetch("http://localhost:5000/api/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ cpuEmail: email }), // match backend
+      });
 
-            const data = await response.json();
+      const data: { message?: string; resetToken?: string } = await response.json();
 
-            if (response.ok) {
-                setMessage("✅ Password reset link sent! Check your email.");
-            } else {
-                setMessage(`❌ ${data.message || "Something went wrong."}`);
-            } 
-        } catch (error) {
-                console.error(error);
-                setMessage("⚠️ Network error. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (response.ok) {
+        setMessage("✅ Password reset link sent! Check your email.");
+        setEmail("");
+      } else {
+        setMessage(`❌ ${data.message || "Something went wrong."}`);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("⚠️ Network error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div style={styles.overlay}>
-            <div style={styles.modal}>
-                <h2>Forgot Password</h2>
-                <form onSubmit={handleSubmit}>
-                    <label>Email</label>
-                    <input 
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    style={styles.input}
-                    />
-                    <button type="submit" disabled={loading} style={styles.button}>
-                        {loading ? "Sending..." : "Send Reset Link"}
-                    </button>
-                </form>
-                {message && <p>{message}</p>}
-                <button onClick={onClose} style={styles.closeButton}>Close</button>
-            </div>
-        </div>
-    );
+  return (
+    <div style={styles.overlay}>
+      <div style={styles.modal}>
+        <h2>Forgot Password</h2>
+        <form onSubmit={handleSubmit}>
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={styles.input}
+          />
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
+        </form>
+        {message && <p>{message}</p>}
+        <button onClick={onClose} style={styles.closeButton}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    overlay: {
+  overlay: {
     position: "fixed",
     inset: 0,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -106,6 +110,6 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "6px",
     cursor: "pointer",
   },
-}
+};
 
 export default ForgotPasswordModal;
