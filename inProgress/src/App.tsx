@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import FlipBookProfile from './flipBookProfile';
@@ -8,10 +7,6 @@ import LoginPage from './components/LoginPage';
 import CreateProject from './CreateProject';
 import FolderPage from './FolderPage';  
 import ResetPasswordPage from './components/ResetPasswordPage';
-=======
-import React, { useState } from 'react'; 
-import SignUpPage from './SignUpPage'; 
-import LoginPage from './LoginPage'; 
 import LandingPage from './LandingPage';
 import Dashboard from './Dashboard';
 
@@ -26,7 +21,6 @@ export interface LoginPageProps {
 export interface SignUpPageProps {
     switchToLogin: () => void;
 }
->>>>>>> Stashed changes
 
 const App: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false); // toggle between sign up / login
@@ -35,47 +29,50 @@ const App: React.FC = () => {
   const goToSignUp = () => setShowLogin(false);
 
   return (
-<<<<<<< Updated upstream
-    <Router>
-  <Routes>
-    {/* Default landing route */}
-    <Route path="/" element={<Navigate to="/auth" replace />} />
+  <Router>
+    <Routes>
 
-    {/* Auth route: shows SignUp by default */}
-    <Route
-      path="/auth"
-      element={
-        showLogin ? (
-          <LoginPage switchToSignup={goToSignUp} />
-        ) : (
-          <SignUpPage switchToLogin={goToLogin} />
-        )
-      }
-    />
+      {/* Landing page */}
+      <Route path="/" element={<LandingPage />} />
 
-    {/* Reset Password Page */}
-    <Route path="/reset-password" element={<ResetPasswordPage />} />
+      {/* Auth route */}
+      <Route
+        path="/auth"
+        element={
+          showLogin ? (
+            <LoginPage switchToSignup={goToSignUp} />
+          ) : (
+            <SignUpPage switchToLogin={goToLogin} />
+          )
+        }
+      />
 
-    {/* FlipBook after successful login/signup */}
-    <Route path="/flipbook" element={<FlipBookProfile />} />
+      {/* Reset Password */}
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-    {/* Create Project Route */}
-    <Route path="/create-project" element={<CreateProject />} />
+      {/* FlipBook */}
+      <Route path="/flipbook" element={<FlipBookProfile />} />
 
-    {/* Folder Page Route */}
-    <Route path="/folders" element={<FolderPage />} />
+      {/* Create Project */}
+      <Route path="/create-project" element={<CreateProject />} />
 
-    {/* Catch-all: redirect unknown routes to auth */}
-    <Route path="*" element={<Navigate to="/auth" replace />} />
-  </Routes>
-</Router>
+      {/* Folder Page */}
+      <Route path="/folders" element={<FolderPage />} />
 
-=======
+      {/* Dashboard */}
+      <Route path="/dashboard" element={<Dashboard />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+
+    </Routes>
+  </Router>
+);
+
+
     <div className="App">
       <LandingPage/>
     </div>
->>>>>>> Stashed changes
-  );
 };
 
 export default App;
