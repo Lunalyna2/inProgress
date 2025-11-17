@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import './LandingPage.css';
 import Navbar from './Navbar';
 import { Users, Lightbulb, Target } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+
 
 const LandingPage: React.FC = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -9,6 +11,8 @@ const LandingPage: React.FC = () => {
   const scrollToAbout = () => {
     aboutRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const navigate = useNavigate();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -29,7 +33,7 @@ const LandingPage: React.FC = () => {
             inProgress is a platform where student ideas grow from concept to incubator-ready projects
             through the power of peer collaboration and feedback.
           </p>
-          <button className="join-btn" onClick={scrollToAbout}>
+          <button className="join-btn" onClick={() => navigate("/auth")}>
             Join Now
           </button>
         </div>
