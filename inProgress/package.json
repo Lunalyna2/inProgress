@@ -24,6 +24,7 @@
     "@babel/preset-react": "^7.28.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.0",
+    "@types/nodemailer": "^7.0.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/react-router-dom": "^5.3.3",
