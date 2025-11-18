@@ -55,6 +55,19 @@ interface ResetPasswordBody {
     rePassword: string;
 }
 
+interface CreateProjectRequestBody {
+    title: string;
+    description: string;
+    roles: string[];
+}
+
+// Interface for requests that have been processed by the auth middleware
+interface AuthenticatedRequest extends Request {
+    userId?: number;
+    username?: string;
+    email?: string;
+}
+
 // --- Nodemailer Transporter ---
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -64,6 +77,31 @@ const transporter = nodemailer.createTransport({
 
   },
 });
+
+// --- AUTHENTICATION MIDDLEWARE ---
+const authMiddleware = (req: AuthenticatedRequest, res: Response, next: () => void) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        // Verify the token
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; username: string; email: string };
+        
+        // Attach user info to the request object
+        req.userId = decoded.id;
+        req.username = decoded.username;
+        req.email = decoded.email;
+        
+        next(); // Proceed to the route handler
+    } catch (ex) {
+        console.error("JWT verification error:", ex);
+        res.status(403).json({ message: 'Invalid token.' });
+    }
+};
 
 
 // Validation for Signup
@@ -300,10 +338,81 @@ app.post("/api/reset-password", async (req: Request, res: Response) => {
     }
 });
 
+// Create Project Route
+app.post(
+    '/api/projects/create',
+    authMiddleware, // Ensure the user is authenticated
+    async (req: AuthenticatedRequest, res: Response) => {
+        const creatorId = req.userId; 
+        const { title, description, roles } = req.body as CreateProjectRequestBody;
 
+        if (!creatorId) {
+            // This case should ideally be caught by authMiddleware, but it's a safety check
+            return res.status(403).json({ message: 'Authorization required to create a project.' });
+        }
 
+        // Basic input validation
+        if (!title || !description || !roles || !Array.isArray(roles)) {
+            return res.status(400).json({ error: 'Missing or invalid project data (title, description, or roles).' });
+        }
 
+        const client = await pool.connect();
 
+        try {
+            // 1. Start a transaction (to ensure data consistency)
+            await client.query('BEGIN');
+
+            // 2. Insert the new project, linking it to the creator ID
+            const projectInsertQuery = `
+                INSERT INTO projects(title, description, creator_id) 
+                VALUES($1, $2, $3) 
+                RETURNING id, created_at
+            `;
+            const projectResult = await client.query(projectInsertQuery, [title, description, creatorId]);
+            const newProjectId = projectResult.rows[0].id; 
+            
+            // 3. Insert the roles (if any)
+            if (roles.length > 0) {
+                // Prepare values for bulk insertion: ($1, $2), ($3, $4), ...
+                // The parameters for the query are flattened: [project_id, role1, project_id, role2, ...]
+                const roleValues = roles
+                    .map((_, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
+                    .join(', ');
+                
+                const roleInsertQuery = `
+                    INSERT INTO project_roles(project_id, role_name)
+                    VALUES ${roleValues}
+                `;
+                
+                // Prepare parameters
+                const roleParams: (string | number)[] = roles.flatMap(role => [newProjectId, role]);
+
+                await client.query(roleInsertQuery, roleParams);
+            }
+
+            // 4. Commit the transaction
+            await client.query('COMMIT');
+
+            // Success response
+            res.status(201).json({ 
+                message: 'Project created successfully', 
+                projectId: newProjectId,
+                createdAt: projectResult.rows[0].created_at
+            });
+
+        } catch (error) {
+            // If any error occurs, rollback the transaction
+            await client.query('ROLLBACK');
+            console.error('❌ Database Error during project creation:', error);
+            res.status(500).json({ error: 'Failed to create project due to a server error.' });
+        } finally {
+            // Release the client back to the pool
+            client.release();
+        }
+    }
+);
+
+// Start the server
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 })
