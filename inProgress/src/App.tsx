@@ -10,6 +10,7 @@ import ResetPasswordPage from './components/ResetPasswordPage';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import ProjectInterface from './pages/projectInterface';
+import CreatedProjects from './pages/CreatedProjects';
 
 // Define a union type for the pages
 type Page = 'signup' | 'login';
@@ -47,6 +48,8 @@ const App: React.FC = () => {
           )
         }
       />
+     
+    
 
       {/* Reset Password */}
       <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -62,6 +65,9 @@ const App: React.FC = () => {
 
       {/* Dashboard */}
       <Route path="/dashboard" element={<Dashboard />} />
+
+      {/* Project Interface */}
+      <Route path="/" element={<CreatedProjects />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
