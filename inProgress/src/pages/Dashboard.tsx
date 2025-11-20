@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, type ReactNode } from 'react';
 import './Dashboard.css';
 import { Search, ArrowBigUp, MessageCircle } from 'lucide-react';
-import Navbar from './Navbar';
+import DashNavbar from './DashboardNavbar';
 
 
 
@@ -94,6 +94,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
+      <DashNavbar onProfileClick={function (): void {
+        throw new Error('Function not implemented.');
+      } } onHomeClick={function (): void {
+        throw new Error('Function not implemented.');
+      } } />
       
     
       <div className="dashboard-content">

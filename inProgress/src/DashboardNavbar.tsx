@@ -1,11 +1,12 @@
 import React from 'react';
+import { Link } from "react-router-dom";
 
 interface NavbarProps {
-  onAboutClick: () => void;
+  onProfileClick: () => void;
   onHomeClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onHomeClick }) => {
+const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
   return (
     <div className="top-container">
       <div className="logo-section">
@@ -14,11 +15,12 @@ const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onHomeClick }) => {
       </div>
 
       <div className="nav-links">
-        <a href="#home" onClick={onHomeClick} className="menu-link">Home</a>
-        <a href="#about" onClick={onAboutClick} className="menu-link">About</a>
+        <Link to="/dashboard" className="menu-link">Home</Link>
+        <Link to="/dashboard" className="menu-link">Profile</Link>
+
       </div>
     </div>
   );
 };
 
-export default Navbar;
+export default DashNavbar;
