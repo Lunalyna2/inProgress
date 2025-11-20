@@ -1,5 +1,5 @@
 import React from "react";
-import FolderBackground from "./layouts/FolderBackground";
+import FolderBackground from "../layouts/FolderBackground";
 
 // page component to display contents within a folder-style layout
 const FolderPage = () => {

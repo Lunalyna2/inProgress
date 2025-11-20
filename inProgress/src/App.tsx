@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import FlipBookProfile from './flipBookProfile';
+import FlipBookProfile from './pages/flipBookProfile';
 import SignUpPage from './components/SignUpPage';
 import ForgotPasswordModal from './components/forgotPasswordModal';
 import LoginPage from './components/LoginPage';
-import CreateProject from './CreateProject';
-import FolderPage from './FolderPage';  
+import CreateProject from './pages/CreateProject';
+import FolderPage from './pages/FolderPage';  
 import ResetPasswordPage from './components/ResetPasswordPage';
-import LandingPage from './LandingPage';
-import Dashboard from './Dashboard';
+import LandingPage from './pages/LandingPage';
+import Dashboard from './pages/Dashboard';
+import ProjectInterface from './pages/projectInterface';
 
 // Define a union type for the pages
 type Page = 'signup' | 'login';
