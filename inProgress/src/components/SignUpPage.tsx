@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react'; // ✅ type-only imports
+import type { ChangeEvent, FormEvent, FocusEvent } from 'react'; 
 import './signup.css';
 import { useNavigate } from "react-router-dom";
 
@@ -35,7 +35,19 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
     });
 
     const [errors, setErrors] = useState<Partial<SignUpFormErrors>>({});
-    const [rePasswordError, setRePasswordError] = useState<string | null>(null);
+    const [rePasswordError, setRePasswordError] = useState<string | null>(null);    
+    const [isRePasswordTouched, setIsRePasswordTouched] = useState(false); 
+
+    const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+        if (e.target.name === 'rePassword') {
+            setIsRePasswordTouched(true);
+            if (formData.password !== formData.rePassword) {
+                setRePasswordError("Does not match password!");
+            } else {
+                setRePasswordError(null);
+            }
+        }
+    };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -45,10 +57,25 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
 
+        // Re-password mismatch logic
+        if (name === 'rePassword') {
+            // Set touched to true immediately upon typing in rePassword
+            setIsRePasswordTouched(true);
+        }
+
         if (name === 'password' || name === 'rePassword') {
-            const otherPassword = name === 'password' ? formData.rePassword : formData.password;
-            if (value !== otherPassword) setRePasswordError("Does not match password!");
-            else setRePasswordError(null);
+            const newFormData = { ...formData, [name]: value };
+            const otherPassword = name === 'password' ? newFormData.rePassword : newFormData.password;
+
+            // ONLY show the error if the user is typing in rePassword 
+            // OR if rePassword has already been touched AND the passwords don't match.
+            if (name === 'rePassword' || isRePasswordTouched) {
+                if (value !== otherPassword) {
+                    setRePasswordError("Does not match password!");
+                } else {
+                    setRePasswordError(null);
+                }
+            }
         }
     };
 
@@ -71,6 +98,8 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
         if (formData.password !== formData.rePassword) {
             setRePasswordError("Does not match password!");
             isValid = false;
+        } else {
+            setRePasswordError(null);
         }
 
         setErrors(newErrors);
@@ -79,6 +108,9 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        // Set rePassword to touched on submit to ensure validation runs
+        setIsRePasswordTouched(true); 
+        
         if (!validate() || rePasswordError) return;
 
         try {
@@ -98,7 +130,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                 localStorage.setItem("name", data.user.fullname);
                 // Navigate directly to flipbook
                 navigate("/flipbook");
-              // Redirect after signup
             } else if (response.status === 400) {
                 setErrors(data.errors);
                 alert('Sign-up failed. Check input.');
@@ -192,6 +223,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                         name="rePassword"
                         value={formData.rePassword}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         required
                         className={`form-input ${rePasswordError ? 'input-error-special' : ''} ${errors.rePassword ? 'input-error' : ''}`}
                     />
