@@ -55,7 +55,14 @@ const App: React.FC = () => {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* FlipBook */}
-      <Route path="/flipbook" element={<FlipBookProfile />} />
+      <Route 
+        path="/flipbook" 
+        element={
+            <div className="full-page-view"> 
+                <FlipBookProfile />
+            </div>
+          } 
+      />
 
       {/* Create Project */}
       <Route path="/create-project" element={<CreateProject />} />

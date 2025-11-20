@@ -7,7 +7,22 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f0f2f5; 
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+    url('/public/assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Ensure full-page components fill the screen and disable Flex centering */
+.full-page-view {
+    display: block; 
+    width: 100vw; 
+    min-height: 100vh; 
+    background-color: white; 
+    margin: 0;
+    padding: 0;
 }
 
 /* Main Container */
