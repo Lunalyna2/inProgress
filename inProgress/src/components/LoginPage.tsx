@@ -72,16 +72,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
         localStorage.setItem("userId", data.user.id);
         localStorage.setItem("username", data.user.username);
         localStorage.setItem("email", data.user.email);
-        navigate("/flipbook");
 
-      } else if (response.status === 400) {
-        setErrors(data.errors);
-        alert('Login failed. Check your input.');
-      } else if (response.status === 401) {
-        alert('Invalid email or password.');
-      } else {
-        alert('Unexpected error occurred.');
-      }
+      // Check if profile exists
+      const profileRes = await fetch(`http://localhost:5000/profile/${data.user.id}`);
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json()
+          // If user has filled profile, go to dashboard
+          if (profileData.name || profileData.avatar) {
+            navigate("/dashboard")
+          } else {
+            navigate("/flipbook")
+          }
+        } else {
+          // If profile not found, redirect to flipbook
+          navigate("/flipbook")
+        }
+      } 
     } catch (error) {
       console.error('Login error:', error);
       alert('Could not connect to server.');
