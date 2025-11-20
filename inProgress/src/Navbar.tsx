@@ -17,7 +17,6 @@ const Navbar: React.FC<NavbarProps> = ({ onAboutClick, onHomeClick }) => {
         <a href="#home" onClick={onHomeClick} className="menu-link">Home</a>
         <a href="#about" onClick={onAboutClick} className="menu-link">About</a>
         <a href="#profile" className="menu-link">Profile</a>
-        <a href="#groups" className="menu-link">Groups</a>
       </div>
     </div>
   );
