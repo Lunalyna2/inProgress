@@ -17,6 +17,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
       <div className="nav-links">
         <Link to="/dashboard" className="menu-link">Home</Link>
         <Link to="/dashboard" className="menu-link">Profile</Link>
+        <Link to="/createdProjects" className="menu-link">Projects</Link>
 
       </div>
     </div>
