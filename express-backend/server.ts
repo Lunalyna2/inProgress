@@ -2,9 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
-const { Pool } = require("pg");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+import pool from "./pool";
+import profileRoutes from "./flipbookProfile";
+
 
 type Request = import("express").Request;
 type Response = import("express").Response;
@@ -20,14 +22,9 @@ const app = express()
 app.use(express.json());
 app.use(cors())
 
-// PostgreSQL connection
-const pool = new Pool({
-    user: process.env.PG_USER,
-    host: process.env.PG_HOST,
-    database: process.env.PG_DATABASE,
-    password: process.env.PG_PASSWORD,
-    port: Number(process.env.PG_PORT)
-});
+app.use("/profile", profileRoutes)
+
+
 
 // Test DB connection
 pool.connect()
@@ -161,13 +158,20 @@ app.post("/api/signup", async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const result = await pool.query(
-            "INSERT INTO users (fullname, username, email, password) VALUES ($1, $2, $3, $4) RETURNING username",
+            `INSERT INTO users (fullname, username, email, password) 
+            VALUES ($1, $2, $3, $4) 
+            RETURNING id, username, email, fullname`,
             [fullName, username, cpuEmail, hashedPassword]
         );
 
         res.status(201).json({
             message: 'Sign-up successful!',
-            username: result.rows[0].username,
+            user: {
+                id: result.rows[0].id,
+                username: result.rows[0].username,
+                email: result.rows[0].email,
+                fullname: result.rows[0].fullname
+            }
         });
     } catch (error: any) {
         console.error('❌ Error signing up:', error);

@@ -39,7 +39,6 @@ interface Message {
 const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zIndex }) => {
   const paperStyle: CSSProperties = { zIndex };
 
-  // ✅ Apply background image for pages (from public/assets)
   const pageBgStyle: CSSProperties = {
     backgroundImage: `url("/assets/page-bg.png")`,
     backgroundSize: "cover",
@@ -78,14 +77,14 @@ const FlipBookProfile: FC = () => {
   const [selectedPic, setSelectedPic] = useState<string | null>(null);
   const [savedPic, setSavedPic] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
 
+  // no edit-mode: flipbook is only initial setup
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
-    name: "Albert Einstein",
-    description: "I love to help other people achieve their dreams.",
-    course: "Engineering",
-    contactNo: "091223456789",
-    skill: "Problem Solving, Designer, Writer",
+    name: "",
+    description: "",
+    course: "",
+    contactNo: "",
+    skill: "",
   });
 
   const [profilePics] = useState<ProfilePic[]>([
@@ -96,7 +95,10 @@ const FlipBookProfile: FC = () => {
     { id: "avatar5", image: "/assets/characters/char5.png" },
   ]);
 
+  // Initialize name from signup (localStorage) and set initial avatar preview
   useEffect(() => {
+    const savedName = localStorage.getItem("name") || "";
+    setProfileInfo((prev) => ({ ...prev, name: savedName }));
     setSavedPic(profilePics[0]?.image || null);
   }, [profilePics]);
 
@@ -111,7 +113,7 @@ const FlipBookProfile: FC = () => {
       return;
     }
     setSavedPic(selectedPic);
-    setMessage({ text: "Profile picture saved successfully!", type: "success" });
+    setMessage({ text: "Avatar selected!", type: "success" });
   };
 
   const handleProfileInfoChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -119,12 +121,47 @@ const FlipBookProfile: FC = () => {
     setProfileInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveProfileInfo = () => {
-    setIsEditing(false);
-    setMessage({ text: "Profile details saved successfully!", type: "success" });
-  };
+  // Save profile (first-time insert OR update if exists) then redirect to dashboard
+  const saveProfile = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        setMessage({ text: "Missing user ID. Please sign up again.", type: "error" });
+        return;
+      }
 
-  const handleEditProfile = () => setIsEditing(true);
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          avatar: savedPic,
+          description: profileInfo.description,
+          course: profileInfo.course,
+          contact_no: profileInfo.contactNo,
+          skill: profileInfo.skill,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ text: data.message || "Failed to save profile", type: "error" });
+        return;
+      }
+
+      setMessage({ text: "Profile saved successfully! Redirecting...", type: "success" });
+
+      // small delay so user sees message (keeps UX consistent with your current UI)
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 900);
+    } catch (error) {
+      console.error(error);
+      setMessage({ text: "Network error saving profile", type: "error" });
+    }
+  };
 
   // --- Pages ---
   const pages: PageData[] = [
@@ -143,7 +180,7 @@ const FlipBookProfile: FC = () => {
             </div>
           </div>
           <button onClick={handleSavePic} className="save-btn">
-            Save
+            Save Avatar
           </button>
         </div>
       ),
@@ -185,30 +222,64 @@ const FlipBookProfile: FC = () => {
       frontContent: (
         <div className="page-content-wrapper page-3-right-wrapper">
           <h2 className="selection-title-small">About Myself</h2>
-          <form className="profile-form-right">
-            {["name", "description", "course", "contactNo", "skill"].map((field) => (
-              <div key={field}>
-                <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
-                <input
-                  type="text"
-                  name={field}
-                  value={(profileInfo as any)[field]}
-                  onChange={handleProfileInfoChange}
-                  disabled={!isEditing}
-                />
-              </div>
-            ))}
+          <form className="profile-form-right" onSubmit={(e) => e.preventDefault()}>
+            {/* Name is prefilled and NOT editable here */}
+            <div>
+              <label>Name:</label>
+              <input
+                type="text"
+                name="name"
+                value={profileInfo.name}
+                disabled
+              />
+            </div>
+
+            {/* The rest of the fields are editable for initial setup */}
+            <div>
+              <label>Description:</label>
+              <input
+                type="text"
+                name="description"
+                value={profileInfo.description}
+                onChange={handleProfileInfoChange}
+              />
+            </div>
+
+            <div>
+              <label>Course:</label>
+              <input
+                type="text"
+                name="course"
+                value={profileInfo.course}
+                onChange={handleProfileInfoChange}
+              />
+            </div>
+
+            <div>
+              <label>Contact No:</label>
+              <input
+                type="text"
+                name="contactNo"
+                value={profileInfo.contactNo}
+                onChange={handleProfileInfoChange}
+              />
+            </div>
+
+            <div>
+              <label>Skill:</label>
+              <input
+                type="text"
+                name="skill"
+                value={profileInfo.skill}
+                onChange={handleProfileInfoChange}
+              />
+            </div>
           </form>
+
           <div className="form-buttons">
-            {!isEditing ? (
-              <button onClick={handleEditProfile} className="save-info-btn">
-                Edit
-              </button>
-            ) : (
-              <button onClick={handleSaveProfileInfo} className="save-info-btn">
-                Save
-              </button>
-            )}
+            <button onClick={saveProfile} className="save-info-btn">
+              Save & Continue
+            </button>
           </div>
         </div>
       ),
@@ -216,7 +287,6 @@ const FlipBookProfile: FC = () => {
     },
   ];
 
-  // --- Background for the entire page ---
   const containerStyle: CSSProperties = {
     backgroundImage: `url("/assets/background.png")`,
     backgroundSize: "cover",

@@ -91,10 +91,19 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
             const data = await response.json();
 
             if (response.ok) {
-                navigate("/flipbook"); // Redirect after signup
+                // Save user info for flipbook
+                localStorage.setItem("userId", data.user.id);
+                localStorage.setItem("username", data.user.username);
+                localStorage.setItem("email", data.user.email);
+                localStorage.setItem("name", data.user.fullname);
+                // Navigate directly to flipbook
+                navigate("/flipbook");
+              // Redirect after signup
             } else if (response.status === 400) {
                 setErrors(data.errors);
                 alert('Sign-up failed. Check input.');
+            } else if (response.status === 409) {
+                alert('User with this email already exists.')
             } else {
                 alert('Unexpected error occurred.');
             }
