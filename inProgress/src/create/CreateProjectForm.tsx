@@ -1,74 +1,126 @@
 import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import "./CreateProjectForm.css";
 
-// component: form to create a project with title, description, and collaborator roles
+// interfaces
+
+interface ProjectData {
+  title: string;
+  description: string;
+  roles: string[];
+}
+
+interface InputProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  type?: string;
+  rows?: number;
+  required?: boolean;
+}
+
+// reusable input component
+
+const InputField: React.FC<InputProps> = ({
+  id,
+  label,
+  value,
+  onChange,
+  type = "text",
+  rows,
+  required = true,
+}) => (
+  <>
+    <label htmlFor={id}></label>
+    {rows ? (
+      <textarea
+        id={id}
+        value={value}
+        onChange={onChange}
+        rows={rows}
+        required={required}
+      />
+    ) : (
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+        required={required}
+      />
+    )}
+  </>
+);
+
+// main form component
 const CreateProjectForm: React.FC = () => {
-  // track user inputs and list of roles
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [roleInput, setRoleInput] = useState<string>("");
+  // form state
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [roleInput, setRoleInput] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
 
   // submission state
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // function: add a new role to the list
-  const handleAddRole = (): void => {
-    if (roleInput.trim()) {
-      setRoles([...roles, roleInput.trim()]);
-      setRoleInput("");
-    }
+  // reset form fields
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setRoles([]);
+    setRoleInput("");
   };
 
-  // function: handle form submission - sends data and token to backend
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  // add a role to the list
+  const handleAddRole = () => {
+    const trimmed = roleInput.trim();
+    if (!trimmed) return;
+    setRoles((prev) => [...prev, trimmed]);
+    setRoleInput("");
+  };
+
+  // handle form submission
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    // Check for Authentication Token
-    const token = localStorage.getItem('userToken'); 
-
-    if (!token) {
-        setError("You must be logged in to create a project. Please log in.");
-        return; // Stop submission if no token is found
-    }
+    const token = localStorage.getItem("userToken");
 
     setIsSubmitting(true);
-    
-    const projectData = { title, description, roles };
+
+    const projectData: ProjectData = { title, description, roles };
 
     try {
-      const response = await fetch('http://localhost:5000/api/projects/create', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify(projectData)
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/projects/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(projectData),
+        }
+      );
 
       if (response.status === 401 || response.status === 403) {
-          // Handle cases where the token is invalid or expired
-          throw new Error('Session expired or unauthorized. Please log in again.');
+        throw new Error("Session expired. Please log in again.");
       }
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || errorData.message || 'Project submission failed on the server.');
+        throw new Error(errorData.error || "Project submission failed.");
       }
 
-      // Success!
       const result = await response.json();
       alert(`Project created successfully! ID: ${result.projectId}`);
-
-      // Reset form on success
-      setTitle("");
-      setDescription("");
-      setRoles([]);
-    } catch (error) {
-      console.error("Submission Error:", error);
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred during submission.');
+      resetForm();
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError(
+        err instanceof Error ? err.message : "Unexpected error occurred."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -76,37 +128,31 @@ const CreateProjectForm: React.FC = () => {
 
   return (
     <form className="create-project-form" onSubmit={handleSubmit}>
-      <label htmlFor="title">Title</label>
-      <input
+      {/* Title*/}
+      <InputField
         id="title"
-        type="text"
+        label="Title"
         value={title}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setTitle(e.target.value)
-        }
-        required
+        onChange={(e) => setTitle(e.target.value)}
       />
 
-      <label htmlFor="description">Description</label>
-      <textarea
+      {/* Description */}
+      <InputField
         id="description"
+        label="Description"
         value={description}
-        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-          setDescription(e.target.value)
-        }
+        onChange={(e) => setDescription(e.target.value)}
         rows={4}
-        required
       />
 
+      {/* Roles */}
       <label htmlFor="roles">Roles Needed</label>
       <div className="roles-row">
         <input
           id="roles"
           type="text"
           value={roleInput}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setRoleInput(e.target.value)
-          }
+          onChange={(e) => setRoleInput(e.target.value)}
           placeholder="e.g., Backend Developer"
         />
         <button type="button" className="add-btn" onClick={handleAddRole}>
@@ -124,12 +170,14 @@ const CreateProjectForm: React.FC = () => {
           </ul>
         </div>
       )}
-      
-      {error && <p style={{ color: 'red', fontWeight: 'bold' }}>{error}</p>}
 
+      {/* Error Message */}
+      {error && <p className="error-text">{error}</p>}
+
+      {/* Submit */}
       <div className="submit-row">
         <button type="submit" className="submit-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit Project'}
+          {isSubmitting ? "Submitting..." : "Create Project"}
         </button>
       </div>
     </form>
