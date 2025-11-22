@@ -1,8 +1,12 @@
 body {
-    margin: 0;
-    padding: 0;
-    background-size: cover;
-    /* Remove any background here since we’re using inline background in React */
+  margin: 0;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
 }
 
 .book-container {
@@ -10,11 +14,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 90vh;
-  padding: 20px;
-  font-family: "Amatic SC", Poppins;
-  /* Remove background-color so background image shows */
+  height: calc(95vh - 70px); 
+  width: 100vw;
+  padding: 0;
+  box-sizing: border-box;
   background-color: transparent;
+  font-family: "Amatic SC", Poppins;
+  overflow: hidden; 
 }
 
 .book {
@@ -201,7 +207,6 @@ body {
   background: #20b2aa;
 }
 
-/* Message Bar */
 .message-bar {
   position: fixed;
   bottom: 20px;
@@ -253,4 +258,3 @@ body {
   padding: 8px 12px;
   cursor: pointer;
 }
-
