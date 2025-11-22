@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
 import "./flipBookProfile.css";
+import DashNavbar from "./DashboardNavbar"; 
 
-// --- Interfaces ---
 interface PaperProps {
   id: string;
   isFlipped: boolean;
@@ -35,7 +35,6 @@ interface Message {
   type: "success" | "error" | "info";
 }
 
-// --- Paper Component ---
 const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zIndex }) => {
   const paperStyle: CSSProperties = { zIndex };
 
@@ -69,7 +68,6 @@ const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ mess
   );
 };
 
-// --- Main Component ---
 const FlipBookProfile: FC = () => {
   const [page, setPage] = useState<number>(1);
   const total: number = 3;
@@ -78,7 +76,9 @@ const FlipBookProfile: FC = () => {
   const [savedPic, setSavedPic] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
 
-  // no edit-mode: flipbook is only initial setup
+  // NEW: edit mode state
+  const [isEditing, setIsEditing] = useState(true);
+
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
     name: "",
     description: "",
@@ -121,7 +121,6 @@ const FlipBookProfile: FC = () => {
     setProfileInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Save profile (first-time insert OR update if exists) then redirect to dashboard
   const saveProfile = async () => {
     try {
       const userId = localStorage.getItem("userId");
@@ -153,7 +152,8 @@ const FlipBookProfile: FC = () => {
 
       setMessage({ text: "Profile saved successfully! Redirecting...", type: "success" });
 
-      // small delay so user sees message (keeps UX consistent with your current UI)
+      setIsEditing(false); 
+
       setTimeout(() => {
         window.location.href = "/dashboard";
       }, 900);
@@ -163,7 +163,6 @@ const FlipBookProfile: FC = () => {
     }
   };
 
-  // --- Pages ---
   const pages: PageData[] = [
     {
       id: "p1",
@@ -222,19 +221,20 @@ const FlipBookProfile: FC = () => {
       frontContent: (
         <div className="page-content-wrapper page-3-right-wrapper">
           <h2 className="selection-title-small">About Myself</h2>
+
+          {/* FORM UPDATED (save & edit button) */}
           <form className="profile-form-right" onSubmit={(e) => e.preventDefault()}>
-            {/* Name is prefilled and NOT editable here */}
             <div>
               <label>Name:</label>
               <input
                 type="text"
                 name="name"
                 value={profileInfo.name}
-                disabled
+                onChange={handleProfileInfoChange}
+                disabled={!isEditing}
               />
             </div>
 
-            {/* The rest of the fields are editable for initial setup */}
             <div>
               <label>Description:</label>
               <input
@@ -242,6 +242,7 @@ const FlipBookProfile: FC = () => {
                 name="description"
                 value={profileInfo.description}
                 onChange={handleProfileInfoChange}
+                disabled={!isEditing}
               />
             </div>
 
@@ -252,6 +253,7 @@ const FlipBookProfile: FC = () => {
                 name="course"
                 value={profileInfo.course}
                 onChange={handleProfileInfoChange}
+                disabled={!isEditing}
               />
             </div>
 
@@ -262,6 +264,7 @@ const FlipBookProfile: FC = () => {
                 name="contactNo"
                 value={profileInfo.contactNo}
                 onChange={handleProfileInfoChange}
+                disabled={!isEditing}
               />
             </div>
 
@@ -272,14 +275,21 @@ const FlipBookProfile: FC = () => {
                 name="skill"
                 value={profileInfo.skill}
                 onChange={handleProfileInfoChange}
+                disabled={!isEditing}
               />
             </div>
           </form>
 
           <div className="form-buttons">
-            <button onClick={saveProfile} className="save-info-btn">
-              Save & Continue
-            </button>
+            {isEditing ? (
+              <button onClick={saveProfile} className="save-info-btn">
+                Save
+              </button>
+            ) : (
+              <button onClick={() => setIsEditing(true)} className="save-info-btn">
+                Edit
+              </button>
+            )}
           </div>
         </div>
       ),
@@ -294,10 +304,16 @@ const FlipBookProfile: FC = () => {
     backgroundPosition: "center",
     minHeight: "100vh",
     width: "100%",
+    paddingTop: "5rem",
+    boxSizing: "border-box",
   };
+
+  const handleProfileClick = () => console.log("Profile clicked (Navbar)");
+  const handleHomeClick = () => console.log("Home clicked (Navbar)");
 
   return (
     <div style={containerStyle}>
+      <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
       <div className="book-container">
         <div className={`book ${page === 1 ? "book-closed" : ""}`}>
           {pages.map((p, i) => {
