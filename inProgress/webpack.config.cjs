@@ -47,6 +47,8 @@ module.exports = {
   devServer: {
     port: 3000,
     open: true, // Automatically open the browser
+    historyApiFallback: true,
+
   },
   mode: 'development', // Set mode to 'production' for a minimized build
 };

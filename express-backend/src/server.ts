@@ -3,9 +3,10 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
+import authForgotRoutes from "./routes/authForgot"
 
 
 type Request = import("express").Request;
@@ -20,16 +21,15 @@ const app = express()
 
 // Middleware
 app.use(express.json());
-app.use(cors())
-
-app.use("/profile", profileRoutes)
-
-
+app.use(cors()); 
+app.use("/profile", profileRoutes);
+app.use("/api", authForgotRoutes);
 
 // Test DB connection
 pool.connect()
     .then(() => console.log("✅ Connected to PostgreSQL"))
     .catch((err: string) => console.error("❌ DB connection error ", err))
+
 
 
 // Interfaces
@@ -65,15 +65,6 @@ interface AuthenticatedRequest extends Request {
     email?: string;
 }
 
-// --- Nodemailer Transporter ---
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-
-  },
-});
 
 // --- AUTHENTICATION MIDDLEWARE ---
 const authMiddleware = (req: AuthenticatedRequest, res: Response, next: () => void) => {
@@ -242,105 +233,6 @@ app.post('/api/login', async (req: Request, res: Response) => {
     }
 });
 
-
-//forgot password route
-import crypto from "crypto";
-
-app.post("/api/forgot-password", async (req: Request, res: Response) => {
-    const { cpuEmail }: { cpuEmail: string } = req.body;
-
-    if (!cpuEmail) {
-        return res.status(400).json({ message: "Email is required." });
-    }
-
-    try {
-        // Check if user exists
-        const userResult = await pool.query(
-            "SELECT id FROM users WHERE email = $1",
-            [cpuEmail]
-        );
-
-        if (userResult.rows.length === 0) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        const userId = userResult.rows[0].id;
-
-        // Generate secure reset token
-        const resetToken = require("crypto").randomBytes(32).toString("hex");
-        const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
-
-        // Store token and expiry in DB
-        await pool.query(
-            "UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3",
-            [resetToken, expires, userId]
-        );
-
-        // Construct reset link
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-        // Send email via Nodemailer
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: cpuEmail,
-            subject: "Reset Your Password",
-            html: `
-                <p>You requested a password reset.</p>
-                <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-                <p>This link expires in 1 hour.</p>
-            `
-        });
-
-        res.status(200).json({
-            message: "Password reset link sent via email."
-        });
-    } catch (error) {
-        console.error("❌ Error in forgot-password:", error);
-        res.status(500).json({ message: "Server error during password reset." });
-    }
-});
-
-// Reset Password Route
-app.post("/api/reset-password", async (req: Request, res: Response) => {
-    const data: ResetPasswordBody = req.body;
-    const { resetToken, newPassword, rePassword } = data;
-
-    if (!resetToken || !newPassword || !rePassword) {
-        return res.status(400).json({ message: "All fields are required." });
-    }
-
-    if (newPassword !== rePassword) {
-        return res.status(400).json({ message: "Passwords do not match." });
-    }
-
-    try {
-        // Find user with matching token that has not expired
-        const userResult = await pool.query(
-            "SELECT id FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()",
-            [resetToken]
-        );
-
-        if (userResult.rows.length === 0) {
-            return res.status(400).json({ message: "Invalid or expired reset token." });
-        }
-
-        const userId = userResult.rows[0].id;
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password and remove token
-        await pool.query(
-            "UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2",
-            [hashedPassword, userId]
-        );
-
-        res.status(200).json({ message: "Password has been reset successfully." });
-    } catch (error) {
-        console.error("❌ Error in reset-password:", error);
-        res.status(500).json({ message: "Server error during password reset." });
-    }
-});
 
 // Create Project Route
 app.post(

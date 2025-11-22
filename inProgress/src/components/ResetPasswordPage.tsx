@@ -40,7 +40,7 @@ const ResetPasswordPage: React.FC = () => {
       const response = await fetch(`http://localhost:5000/api/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: form.newPassword, rePassword: form.rePassword })
+        body: JSON.stringify({ newPassword: form.newPassword, rePassword: form.rePassword })
       });
 
       const data = await response.json();
