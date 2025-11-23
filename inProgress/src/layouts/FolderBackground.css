@@ -96,3 +96,18 @@
     font-size: 0.8rem;
   }
 }
+
+.exit-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #555;
+  cursor: pointer;
+}
+
+.exit-button:hover {
+  color: #000;
+}
