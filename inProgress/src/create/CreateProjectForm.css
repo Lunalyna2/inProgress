@@ -75,3 +75,9 @@
 .submit-btn:hover {
   background-color: #e14b76;
 }
+
+.error-text {
+  color: red;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
