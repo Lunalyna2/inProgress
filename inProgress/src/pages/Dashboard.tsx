@@ -4,13 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { Search, ArrowBigUp, MessageCircle, Send } from 'lucide-react';
 import DashNavbar from './DashboardNavbar';
-<<<<<<< HEAD
 import ProjectCommentsModal from './ProjectCommentsModal'; 
-=======
->>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
 
 interface Project {
-  description: ReactNode;
+  description: string | undefined;
   id: number;
   title: string;
   course: string;
@@ -69,10 +66,10 @@ const Dashboard: React.FC = () => {
   const filters = ['All', 'Recent', 'Popular', 'Trending'];
 
   const [pickedProjects] = useState<Project[]>([
-    { id: 1, title: 'Build a Social Media App', course: 'Mobile Development', description: undefined },
-    { id: 2, title: 'E-commerce Website', course: 'Web Development', description: undefined },
-    { id: 3, title: 'Data Visualization Dashboard', course: 'Data Science', description: undefined },
-    { id: 4, title: 'Portfolio Website', course: 'Design', description: undefined },
+    { id: 1, title: 'Build a Social Media App', course: 'Mobile Development', description: 'An app that allows users to connect and share content.' },
+    { id: 2, title: 'E-commerce Website', course: 'Web Development', description: 'An online platform for buying and selling products.' },
+    { id: 3, title: 'Data Visualization Dashboard', course: 'Data Science', description: 'Interactive dashboard to visualize complex datasets.' },
+    { id: 4, title: 'Portfolio Website', course: 'Design', description: 'A personal website to showcase projects and skills.' },
   ]);
 
   const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([
@@ -115,7 +112,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-<<<<<<< HEAD
       <DashNavbar onProfileClick={function (): void {
         throw new Error('Function not implemented.');
       } } onHomeClick={function (): void {
@@ -123,13 +119,11 @@ const Dashboard: React.FC = () => {
       } } />
       
       
-=======
       <DashNavbar
         onProfileClick={function (): void { throw new Error('Function not implemented.'); }}
         onHomeClick={function (): void { throw new Error('Function not implemented.'); }}
       />
 
->>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
       <div className="dashboard-content">
         <div className="dashboard-header-row">
           <div className="dashboard-actions" style={{ width: '100%', justifyContent: 'space-between' }}>
@@ -249,31 +243,8 @@ const Dashboard: React.FC = () => {
                     </span>
                 </div>
 
-<<<<<<< HEAD
                 {/* --- REMOVED: Comment Input Pop-Up and Comment List Pop-Up --- */}
 
-=======
-                {showCommentBox === project.id && (
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="comment-input"
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && commentInput.trim() !== '') {
-                        setComments(prev => ({
-                          ...prev,
-                          [project.id]: [...(prev[project.id] || []), commentInput.trim()]
-                        }));
-                        setCommentInput('');
-                        setShowCommentBox(null);
-                      }
-                    }}
-                    autoFocus
-                  />
-                )}
->>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
               </div>
             ))}
           </div>
@@ -292,13 +263,13 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
       </main>
-<<<<<<< HEAD
 
       {/* --- NEW PROJECT COMMENTS MODAL --- */}
       {selectedProjectIdForComments !== null && projectForModal && (
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
           projectTitle={projectForModal.title}
+          projectDescription={projectForModal.description || 'No description available.'}
           onClose={() => setSelectedProjectIdForComments(null)}
         />
       )}
@@ -330,8 +301,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-=======
->>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
     </div>
   );
 };
