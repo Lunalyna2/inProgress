@@ -7,6 +7,7 @@ const crypto = require("crypto");
 import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
 import authForgotRoutes from "./routes/authForgot"
+import collaboratorRoutes from "./routes/collaborators";
 
 
 type Request = import("express").Request;
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use(cors()); 
 app.use("/profile", profileRoutes);
 app.use("/api", authForgotRoutes);
+app.use("/api/collaborators", collaboratorRoutes);
 
 // Test DB connection
 pool.connect()

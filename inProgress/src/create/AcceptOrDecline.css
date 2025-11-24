@@ -10,7 +10,7 @@
 }
 
 .accept-or-decline h2 {
-  color: #d6336c;
+  color: #7546c7;
   margin-bottom: 1rem;
   font-weight: 600;
 }
@@ -27,7 +27,7 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffe6f0;
+  background-color: #debef2;
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -73,21 +73,21 @@ ul {
 }
 
 .btn-accept {
-  background-color: #d6336c;
+  background-color: #7546c7;
   color: white;
 }
 
 .btn-accept:hover {
-  background-color: #c61f5a;
+  background-color: #7546c7;
 }
 
 .btn-decline {
-  background-color: #f8d7da;
+  background-color: #debef2;
   color: #721c24;
 }
 
 .btn-decline:hover {
-  background-color: #f5c6cb;
+  background-color: #debef2;
 }
 
 .no-collaborators {
