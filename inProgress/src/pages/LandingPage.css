@@ -50,26 +50,56 @@
   width: 900px;
   margin-left: 130px;
   height: auto;
+  -webkit-animation: float-rotate 10s ease-in-out infinite;
   animation: float-rotate 10s ease-in-out infinite;
+}
+
+@-webkit-keyframes float-rotate {
+  0% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  25% {
+    -webkit-transform: translate(10px, -40px) rotate(-3deg);
+    transform: translate(10px, -40px) rotate(-3deg);
+  }
+  50% {
+    -webkit-transform: translate(0px, -80px) rotate(-5deg);
+    transform: translate(0px, -80px) rotate(-5deg);
+  }
+  75% {
+    -webkit-transform: translate(-10px, -40px) rotate(3deg);
+    transform: translate(-10px, -40px) rotate(3deg);
+  }
+  100% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+    transform: translate(0px, 0px) rotate(0deg);
+  }
 }
 
 @keyframes float-rotate {
   0% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
     transform: translate(0px, 0px) rotate(0deg);
   }
   25% {
+    -webkit-transform: translate(10px, -40px) rotate(-3deg);
     transform: translate(10px, -40px) rotate(-3deg);
   }
   50% {
+    -webkit-transform: translate(0px, -80px) rotate(-5deg);
     transform: translate(0px, -80px) rotate(-5deg);
   }
   75% {
+    -webkit-transform: translate(-10px, -40px) rotate(3deg);
     transform: translate(-10px, -40px) rotate(3deg);
   }
   100% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
     transform: translate(0px, 0px) rotate(0deg);
   }
 }
+
 
 .join-btn {
   background-color: #d636fe;
