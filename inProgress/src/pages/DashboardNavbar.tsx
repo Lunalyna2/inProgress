@@ -22,7 +22,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
         <img src="./pglogo.png" alt="Logo" className="logo-img" />
         <h2 className="logo">inProgress</h2>
       </div>
-
+//corrected links
       <div className="nav-links">
         <button
           className="menu-button"
