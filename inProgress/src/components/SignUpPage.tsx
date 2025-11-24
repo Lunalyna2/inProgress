@@ -151,88 +151,90 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
     });
 
     return (
-        <div className="signup-container">
-            <div className="left-panel">
-                <h1 className="main-title">Count your Progress Today!</h1>
-                <p className="description">
-                    Transform your unfinished project ideas into reality. Connect with
-                    peers based on your courses, skills, and passions.
-                </p>
+        <div className="signup-page-body">
+            <div className="signup-container">
+                <div className="left-panel">
+                    <h1 className="main-title">Count your Progress Today!</h1>
+                    <p className="description">
+                        Transform your unfinished project ideas into reality. Connect with
+                        peers based on your courses, skills, and passions.
+                    </p>
 
-                <div className="login-prompt">
-                    <p>Already have an account?</p>
-                    <button className="login-button" onClick={switchToLogin}>Login Here!</button>
+                    <div className="login-prompt">
+                        <p>Already have an account?</p>
+                        <button className="login-button" onClick={switchToLogin}>Login Here!</button>
+                    </div>
                 </div>
-            </div>
 
-            <div className="right-panel">
-                <h2 className="panel-title">Start your Journey Today!</h2>
-                <form className="signup-form" onSubmit={handleSubmit} noValidate>
-                    {/* Full Name */}
-                    <input
-                        type="text"
-                        placeholder="Full name"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        {...getValidationProps('fullName')}
-                        required
-                    />
-                    {errors.fullName && <p className="error-message">{errors.fullName}</p>}
+                <div className="right-panel">
+                    <h2 className="panel-title">Start your Journey Today!</h2>
+                    <form className="signup-form" onSubmit={handleSubmit} noValidate>
+                        {/* Full Name */}
+                        <input
+                            type="text"
+                            placeholder="Full name"
+                            name="fullName"
+                            value={formData.fullName}
+                            onChange={handleChange}
+                            {...getValidationProps('fullName')}
+                            required
+                        />
+                        {errors.fullName && <p className="error-message">{errors.fullName}</p>}
 
-                    {/* Username */}
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        {...getValidationProps('username')}
-                        required
-                    />
-                    {errors.username && <p className="error-message">{errors.username}</p>}
+                        {/* Username */}
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            {...getValidationProps('username')}
+                            required
+                        />
+                        {errors.username && <p className="error-message">{errors.username}</p>}
 
-                    {/* CPU Email */}
-                    <input
-                        type="email"
-                        placeholder="CPU email address"
-                        name="cpuEmail"
-                        value={formData.cpuEmail}
-                        onChange={handleChange}
-                        {...getValidationProps('cpuEmail')}
-                        required
-                    />
-                    {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
+                        {/* CPU Email */}
+                        <input
+                            type="email"
+                            placeholder="CPU email address"
+                            name="cpuEmail"
+                            value={formData.cpuEmail}
+                            onChange={handleChange}
+                            {...getValidationProps('cpuEmail')}
+                            required
+                        />
+                        {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
 
-                    {/* Password */}
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        {...getValidationProps('password')}
-                        required
-                    />
-                    {errors.password && <p className="error-message">{errors.password}</p>}
+                        {/* Password */}
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            {...getValidationProps('password')}
+                            required
+                        />
+                        {errors.password && <p className="error-message">{errors.password}</p>}
 
-                    {/* Re-Password */}
-                    <input
-                        type="password"
-                        placeholder="Re-enter password"
-                        name="rePassword"
-                        value={formData.rePassword}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        required
-                        className={`form-input ${rePasswordError ? 'input-error-special' : ''} ${errors.rePassword ? 'input-error' : ''}`}
-                    />
-                    {(rePasswordError || errors.rePassword) && (
-                        <p className="error-message">{rePasswordError || errors.rePassword}</p>
-                    )}
+                        {/* Re-Password */}
+                        <input
+                            type="password"
+                            placeholder="Re-enter password"
+                            name="rePassword"
+                            value={formData.rePassword}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                            className={`form-input ${rePasswordError ? 'input-error-special' : ''} ${errors.rePassword ? 'input-error' : ''}`}
+                        />
+                        {(rePasswordError || errors.rePassword) && (
+                            <p className="error-message">{rePasswordError || errors.rePassword}</p>
+                        )}
 
-                    <button type="submit" className="get-started-button">Get Started</button>
-                </form>
+                        <button type="submit" className="get-started-button">Get Started</button>
+                    </form>
+                </div>
             </div>
         </div>
     );
