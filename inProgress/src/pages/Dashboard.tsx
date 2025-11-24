@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useState, type ReactNode } from 'react';
 import './Dashboard.css';
-import { Search, ArrowBigUp, MessageCircle } from 'lucide-react';
+import { Search, ArrowBigUp, MessageCircle, Send } from 'lucide-react';
 import DashNavbar from './DashboardNavbar';
-
-
+import ProjectCommentsModal from './ProjectCommentsModal'; 
 
 interface Project {
   description: ReactNode;
@@ -20,6 +19,12 @@ interface JoinedProject {
   progress: number;
 }
 
+interface ProjectComment {
+    username: string;
+    text: string;
+    timestamp: number;
+}
+
 const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
@@ -28,9 +33,13 @@ const Dashboard: React.FC = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
-  const [showCommentBox, setShowCommentBox] = useState<number | null>(null);
-  const [comments, setComments] = useState<{ [projectId: number]: string[] }>({});
-  const [commentInput, setCommentInput] = useState<string>('');
+  
+  // --- REPLACED/MODIFIED STATES ---
+  // Replaced: showCommentBox, showCommentsList, comments, commentInput
+  // New state to manage the Project ID whose comments are open in the modal
+  const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
+
+  // Remaining states for upvotes/etc.
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
 
@@ -91,6 +100,9 @@ const Dashboard: React.FC = () => {
   const filteredJoinedProjects = joinedProjects.filter((project) =>
     project.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Find the project object that corresponds to the open modal ID
+  const projectForModal = pickedProjects.find(p => p.id === selectedProjectIdForComments);
 
   return (
     <div className="dashboard">
@@ -100,7 +112,7 @@ const Dashboard: React.FC = () => {
         throw new Error('Function not implemented.');
       } } />
       
-    
+      
       <div className="dashboard-content">
         <div className="dashboard-header-row">
           <div className="dashboard-actions" style={{ width: '100%', justifyContent: 'space-between' }}>
@@ -204,40 +216,28 @@ const Dashboard: React.FC = () => {
                       }
                     }}
                   >
-                    <ArrowBigUp />
+                    <ArrowBigUp className={hasUpvoted[project.id] ? 'upvoted' : ''} />
                     <span className="upvote-count">{upvotes[project.id] || 0}</span>
                   </div>
 
+                  {/* --- MODIFIED CLICK HANDLER --- */}
                   <MessageCircle
                     className="action-icon"
-                    onClick={() => setShowCommentBox(showCommentBox === project.id ? null : project.id)}
+                    // Clicking the icon now opens the full-screen comment modal
+                    onClick={() => setSelectedProjectIdForComments(project.id)}
                   />
+                    {/* The comment count here is now just placeholder or needs separate fetching */}
+                    <span className="comment-count">
+                        {/* You'll need to update this logic if you still want a real-time count */}
+                        0 
+                    </span>
                 </div>
 
-                {showCommentBox === project.id && (
-                  <input
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="comment-input"
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && commentInput.trim() !== '') {
-                        setComments(prev => ({
-                          ...prev,
-                          [project.id]: [...(prev[project.id] || []), commentInput.trim()]
-                        }));
-                        setCommentInput('');
-                        setShowCommentBox(null); 
-                      }
-                    }}
-                    autoFocus
-                  />
-                )}
+                {/* --- REMOVED: Comment Input Pop-Up and Comment List Pop-Up --- */}
+
               </div>
 
             ))}
-
           </div>
         </section>
 
@@ -255,6 +255,16 @@ const Dashboard: React.FC = () => {
         </section>
       </main>
 
+      {/* --- NEW PROJECT COMMENTS MODAL --- */}
+      {selectedProjectIdForComments !== null && projectForModal && (
+        <ProjectCommentsModal
+          projectId={selectedProjectIdForComments}
+          projectTitle={projectForModal.title}
+          onClose={() => setSelectedProjectIdForComments(null)}
+        />
+      )}
+
+      {/* --- EXISTING NEW PROJECT MODAL --- */}
       {showNewProjectModal && (
         <div className="modal-overlay">
           <div className="modal">
