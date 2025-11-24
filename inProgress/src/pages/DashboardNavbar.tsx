@@ -1,12 +1,15 @@
 import React from 'react';
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import './DashboardNavbar.css';
 
 interface NavbarProps {
-  onProfileClick: () => void;
-  onHomeClick: () => void;
+  onProfileClick?: () => void;
+  onHomeClick?: () => void;
 }
 
 const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="top-container">
       <div className="logo-section">
@@ -15,10 +18,30 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
       </div>
 
       <div className="nav-links">
-        <Link to="/dashboard" className="menu-link">Home</Link>
-        <Link to="/flipbook" className="menu-link">Profile</Link>
-        <Link to="/createdProjects" className="menu-link">Projects</Link>
-
+        <button
+          className="menu-button"
+          onClick={() => {
+            navigate("/dashboard");
+            onHomeClick?.();
+          }}
+        >
+          Home
+        </button>
+        <button
+          className="menu-button"
+          onClick={() => {
+            navigate("/profile");
+            onProfileClick?.();
+          }}
+        >
+          Profile
+        </button>
+        <button
+          className="menu-button"
+          onClick={() => navigate("/createdProjects")}
+        >
+          Projects
+        </button>
       </div>
     </div>
   );
