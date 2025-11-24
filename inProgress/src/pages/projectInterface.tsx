@@ -1,8 +1,8 @@
 import { useState } from "react";
-import "./projectInterface.css";
+import "./projectInterface.css"; 
+import FolderBackground from "../layouts/FolderBackground";
 
 export default function ProjectInterface() {
-  // Entire project following a backend-ready structure:
   const [project, setProject] = useState({
     title: "",
     description: "",
@@ -55,99 +55,109 @@ export default function ProjectInterface() {
         100;
 
   return (
-    <div className="project-folder">
-
-      {/* HEADER */}
-      <div className="header-box">
-        <input
-          className="title-input"
-          placeholder="Project Title"
-          value={project.title}
-          onChange={(e) => updateField("title", e.target.value)}
-        />
-
-        <textarea
-          className="desc-input"
-          placeholder="Description..."
-          value={project.description}
-          onChange={(e) => updateField("description", e.target.value)}
-        />
-
-        <div className="info-line">
-          <label>College:</label>
+    <FolderBackground>
+      {/* New container for flexible layout inside the folder */}
+      <div className="folder-content-grid">
+        
+        {/* HEADER - Top area (left column) */}
+        <div className="header-box">
           <input
-            value={project.college}
-            onChange={(e) => updateField("college", e.target.value)}
+            className="title-input"
+            placeholder="Project Title"
+            value={project.title}
+            onChange={(e) => updateField("title", e.target.value)}
           />
-        </div>
 
-        <div className="info-line">
-          <label>Role:</label>
-          <input
-            value={project.role}
-            onChange={(e) => updateField("role", e.target.value)}
+          {/* Description is expanded to take up more space */}
+          <textarea
+            className="desc-input expanded"
+            placeholder="Description..."
+            value={project.description}
+            onChange={(e) => updateField("description", e.target.value)}
           />
-        </div>
 
-        <div className="collab-section">
-          <label>Collaborators:</label>
-          {project.collaborators.map((c, i) => (
-            <div key={i}>{c}</div>
-          ))}
-          <button onClick={addCollaborator}>+ Add Collaborator</button>
-        </div>
-
-        <div className="status-section">
-          <label>Status:</label>
-          <div
-            className={`status-indicator ${
-              project.status === "done" ? "green" : "orange"
-            }`}
-          />
-          <button onClick={() => updateField("status", "ongoing")}>
-            Ongoing
-          </button>
-          <button onClick={() => updateField("status", "done")}>
-            Done
-          </button>
-        </div>
-      </div>
-
-      {/* TASKS */}
-      <div className="task-box">
-        <button className="assign-btn" onClick={addTask}>
-          Assign Task
-        </button>
-
-        <div className="task-list">
-          {project.tasks.map((task) => (
-            <div key={task.id} className="task-item">
-              <input
-                type="checkbox"
-                checked={task.done}
-                onChange={() => toggleTask(task.id)}
-              />
-              <span>{task.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* PROGRESS BAR */}
-        <div className="progress-bar">
-          {project.tasks.map((t) => (
-            <div
-              key={t.id}
-              className={`progress-dot ${t.done ? "done" : ""}`}
+          <div className="info-line">
+            <label>College:</label>
+            <input
+              value={project.college}
+              onChange={(e) => updateField("college", e.target.value)}
             />
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* REQUESTS */}
-      <div className="request-box">
-        <h3>Requests</h3>
-        <div className="req-placeholder">No requests yet.</div>
+          <div className="info-line">
+            <label>Role:</label>
+            <input
+              value={project.role}
+              onChange={(e) => updateField("role", e.target.value)}
+            />
+          </div>
+
+          <div className="collab-section">
+            <label>Collaborators:</label>
+            {project.collaborators.map((c, i) => (
+              <div key={i}>{c}</div>
+            ))}
+            <button onClick={addCollaborator}>+ Add Collaborator</button>
+          </div>
+
+          <div className="status-section">
+            <label>Status:</label>
+            <div
+              className={`status-indicator ${
+                project.status === "done" ? "green" : "orange"
+              }`}
+            />
+            <button onClick={() => updateField("status", "ongoing")}>
+              Ongoing
+            </button>
+            <button onClick={() => updateField("status", "done")}>
+              Done
+            </button>
+          </div>
+        </div>
+
+        {/* TASKS & REQUESTS - Right column, taking the remaining vertical space */}
+        <div className="right-panel">
+            
+          {/* TASKS - Takes up the flexible top space of the right column */}
+          <div className="task-box">
+            <button className="assign-btn" onClick={addTask}>
+              Assign Task
+            </button>
+
+            {/* Task list should be scrollable if needed */}
+            <div className="task-list scrollable"> 
+              {project.tasks.map((task) => (
+                <div key={task.id} className="task-item">
+                  <input
+                    type="checkbox"
+                    checked={task.done}
+                    onChange={() => toggleTask(task.id)}
+                  />
+                  <span>{task.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* PROGRESS BAR */}
+            <div className="progress-bar">
+              {project.tasks.map((t) => (
+                <div
+                  key={t.id}
+                  className={`progress-dot ${t.done ? "done" : ""}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* REQUESTS - Bottom area of the right column, fixed height if desired */}
+          <div className="request-box">
+            <h3>Requests</h3>
+            <div className="req-placeholder">No requests yet.</div>
+          </div>
+        </div>
+        
       </div>
-    </div>
+    </FolderBackground>
   );
 }
