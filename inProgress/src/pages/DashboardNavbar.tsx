@@ -10,6 +10,12 @@ interface NavbarProps {
 const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
   const navigate = useNavigate();
 
+  // Helper function for navigation with optional callback
+  const handleNavigate = (path: string, callback?: () => void) => {
+    navigate(path);
+    callback?.();
+  };
+
   return (
     <div className="top-container">
       <div className="logo-section">
@@ -20,27 +26,21 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
       <div className="nav-links">
         <button
           className="menu-button"
-          onClick={() => {
-            navigate("/dashboard");
-            onHomeClick?.();
-          }}
+          onClick={() => window.location.href = "http://localhost:3000"}
         >
           Home
         </button>
         <button
           className="menu-button"
-          onClick={() => {
-            navigate("/profile");
-            onProfileClick?.();
-          }}
+          onClick={() => handleNavigate("/created-projects")}
         >
-          Profile
+          Projects
         </button>
         <button
           className="menu-button"
-          onClick={() => navigate("/createdProjects")}
+          onClick={() => handleNavigate("/flipbook")}
         >
-          Projects
+          Profile
         </button>
       </div>
     </div>
