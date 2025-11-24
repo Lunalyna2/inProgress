@@ -70,6 +70,7 @@ const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ mess
 
 const FlipBookProfile: FC = () => {
   const [page, setPage] = useState<number>(1);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
   const total: number = 3;
 
   const [selectedPic, setSelectedPic] = useState<string | null>(null);
@@ -121,7 +122,14 @@ const FlipBookProfile: FC = () => {
     setProfileInfo((prev) => ({ ...prev, [name]: value }));
   };
 
-  const saveProfile = async () => {
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!savedPic) {
+            setMessage({ text: "Please select an avatar before saving.", type: "error" });
+            return; // Stop execution
+        }
+
     try {
       const userId = localStorage.getItem("userId");
       if (!userId) {
@@ -150,13 +158,10 @@ const FlipBookProfile: FC = () => {
         return;
       }
 
-      setMessage({ text: "Profile saved successfully! Redirecting...", type: "success" });
+      setMessage({ text: "Profile saved successfully!", type: "success" });
 
       setIsEditing(false); 
-
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 900);
+      setIsSaved(true);
     } catch (error) {
       console.error(error);
       setMessage({ text: "Network error saving profile", type: "error" });
@@ -223,7 +228,7 @@ const FlipBookProfile: FC = () => {
           <h2 className="selection-title-small">About Myself</h2>
 
           {/* FORM UPDATED (save & edit button) */}
-          <form className="profile-form-right" onSubmit={(e) => e.preventDefault()}>
+          <form className="profile-form-right" onSubmit={saveProfile}>
             <div>
               <label>Name:</label>
               <input
@@ -232,6 +237,8 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.name}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
+                onFocus={() => setIsEditing(true)}
+                required
               />
             </div>
 
@@ -243,6 +250,7 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.description}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
+                required
               />
             </div>
 
@@ -254,6 +262,7 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.course}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
+                required
               />
             </div>
 
@@ -265,6 +274,7 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.contactNo}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
+                required
               />
             </div>
 
@@ -276,21 +286,30 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.skill}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
+                required
               />
             </div>
-          </form>
 
-          <div className="form-buttons">
-            {isEditing ? (
-              <button onClick={saveProfile} className="save-info-btn">
-                Save
-              </button>
-            ) : (
-              <button onClick={() => setIsEditing(true)} className="save-info-btn">
-                Edit
-              </button>
-            )}
+            <div className="form-buttons">
+              {!isEditing && isSaved ? (
+                  <button 
+                      onClick={() => (window.location.href = "/dashboard")} 
+                      className="proceed-btn"
+                  >
+                      Proceed to Dashboard →
+                  </button>
+              ) : (
+                  <button 
+                      type="submit" 
+                      className="save-info-btn"
+                      disabled={!isEditing}
+                  >
+                      Save Profile
+                  </button>
+              )}
           </div>
+          
+          </form>
         </div>
       ),
       backContent: <h1 className="cover-text"></h1>,

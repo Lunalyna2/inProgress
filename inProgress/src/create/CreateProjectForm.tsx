@@ -1,8 +1,8 @@
 import React, { useState, type FormEvent, type ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
 // interfaces
-
 interface ProjectData {
   title: string;
   description: string;
@@ -20,7 +20,6 @@ interface InputProps {
 }
 
 // reusable input component
-
 const InputField: React.FC<InputProps> = ({
   id,
   label,
@@ -31,7 +30,7 @@ const InputField: React.FC<InputProps> = ({
   required = true,
 }) => (
   <>
-    <label htmlFor={id}></label>
+    <label htmlFor={id}>{label}</label>
     {rows ? (
       <textarea
         id={id}
@@ -52,19 +51,16 @@ const InputField: React.FC<InputProps> = ({
   </>
 );
 
-// main form component
 const CreateProjectForm: React.FC = () => {
-  // form state
+  const navigate = useNavigate(); // <- use navigate for redirect
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [roleInput, setRoleInput] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
-
-  // submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // reset form fields
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -72,7 +68,6 @@ const CreateProjectForm: React.FC = () => {
     setRoleInput("");
   };
 
-  // add a role to the list
   const handleAddRole = () => {
     const trimmed = roleInput.trim();
     if (!trimmed) return;
@@ -80,15 +75,12 @@ const CreateProjectForm: React.FC = () => {
     setRoleInput("");
   };
 
-  // handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
-    const token = localStorage.getItem("userToken");
-
     setIsSubmitting(true);
 
+    const token = localStorage.getItem("userToken");
     const projectData: ProjectData = { title, description, roles };
 
     try {
@@ -104,23 +96,22 @@ const CreateProjectForm: React.FC = () => {
         }
       );
 
-      if (response.status === 401 || response.status === 403) {
-        throw new Error("Session expired. Please log in again.");
-      }
-
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Project submission failed.");
+        const errData = await response.json();
+        throw new Error(errData.error || "Project submission failed");
       }
 
       const result = await response.json();
-      alert(`Project created successfully! ID: ${result.projectId}`);
+      const projectId = result.projectId; // get ID from API
+
+      alert(`Project created successfully! ID: ${projectId}`);
       resetForm();
+
+      // Redirect to ProjectInterface
+      navigate(`/project/${projectId}`);
     } catch (err) {
-      console.error("Submission error:", err);
-      setError(
-        err instanceof Error ? err.message : "Unexpected error occurred."
-      );
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {
       setIsSubmitting(false);
     }
@@ -128,15 +119,12 @@ const CreateProjectForm: React.FC = () => {
 
   return (
     <form className="create-project-form" onSubmit={handleSubmit}>
-      {/* Title*/}
       <InputField
         id="title"
         label="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-
-      {/* Description */}
       <InputField
         id="description"
         label="Description"
@@ -145,7 +133,6 @@ const CreateProjectForm: React.FC = () => {
         rows={4}
       />
 
-      {/* Roles */}
       <label htmlFor="roles">Roles Needed</label>
       <div className="roles-row">
         <input
@@ -155,7 +142,7 @@ const CreateProjectForm: React.FC = () => {
           onChange={(e) => setRoleInput(e.target.value)}
           placeholder="e.g., Backend Developer"
         />
-        <button type="button" className="add-btn" onClick={handleAddRole}>
+        <button type="button" onClick={handleAddRole}>
           Add Collaborator
         </button>
       </div>
@@ -163,21 +150,15 @@ const CreateProjectForm: React.FC = () => {
       {roles.length > 0 && (
         <div className="role-list">
           <h4>Added Roles:</h4>
-          <ul>
-            {roles.map((role, index) => (
-              <li key={index}>{role}</li>
-            ))}
-          </ul>
+          <ul>{roles.map((role, i) => <li key={i}>{role}</li>)}</ul>
         </div>
       )}
 
-      {/* Error Message */}
       {error && <p className="error-text">{error}</p>}
 
-      {/* Submit */}
       <div className="submit-row">
-        <button type="submit" className="submit-btn" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Create Project"}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Project"}
         </button>
       </div>
     </form>

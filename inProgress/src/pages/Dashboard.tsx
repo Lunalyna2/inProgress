@@ -1,9 +1,13 @@
 import * as React from 'react';
 import { useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { Search, ArrowBigUp, MessageCircle, Send } from 'lucide-react';
 import DashNavbar from './DashboardNavbar';
+<<<<<<< HEAD
 import ProjectCommentsModal from './ProjectCommentsModal'; 
+=======
+>>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
 
 interface Project {
   description: ReactNode;
@@ -26,6 +30,7 @@ interface ProjectComment {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate(); // Added for navigation
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
   const [selectedFilter, setSelectedFilter] = useState('All');
@@ -43,27 +48,31 @@ const Dashboard: React.FC = () => {
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
 
+  const departments = [
+    'All Departments',
+    'Senior High School',
+    'College of Agriculture, Resources and Environmental Sciences',
+    'College of Arts & Sciences',
+    'College of Business & Accountancy',
+    'College of Computer Studies',
+    'College of Education',
+    'College of Engineering',
+    'College of Hospitality Management',
+    'College of Medical Laboratory Science',
+    'College of Nursing',
+    'College of Pharmacy',
+    'College of Law',
+    'College of Medicine',
+    'College of Theology',
+  ];
 
-  const departments = ['All Departments', 'Senior High School', 'College of Agriculture, Resources and Environmental Sciences', 'College of Arts & Sciences', 'College of Business & Accountancy', 'College of Computer Studies', 'College of Education', 'College of Engineering', 'College of Hospitality Management', 'College of Medical Laboratory Science', 'College of Nursing', 'College of Pharmacy', 'College of Law', 'College of Medicine', 'College of Theology'];
   const filters = ['All', 'Recent', 'Popular', 'Trending'];
 
   const [pickedProjects] = useState<Project[]>([
-    {
-      id: 1, title: 'Build a Social Media App', course: 'Mobile Development',
-      description: undefined
-    },
-    {
-      id: 2, title: 'E-commerce Website', course: 'Web Development',
-      description: undefined
-    },
-    {
-      id: 3, title: 'Data Visualization Dashboard', course: 'Data Science',
-      description: undefined
-    },
-    {
-      id: 4, title: 'Portfolio Website', course: 'Design',
-      description: undefined
-    },
+    { id: 1, title: 'Build a Social Media App', course: 'Mobile Development', description: undefined },
+    { id: 2, title: 'E-commerce Website', course: 'Web Development', description: undefined },
+    { id: 3, title: 'Data Visualization Dashboard', course: 'Data Science', description: undefined },
+    { id: 4, title: 'Portfolio Website', course: 'Design', description: undefined },
   ]);
 
   const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([
@@ -106,6 +115,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
+<<<<<<< HEAD
       <DashNavbar onProfileClick={function (): void {
         throw new Error('Function not implemented.');
       } } onHomeClick={function (): void {
@@ -113,6 +123,13 @@ const Dashboard: React.FC = () => {
       } } />
       
       
+=======
+      <DashNavbar
+        onProfileClick={function (): void { throw new Error('Function not implemented.'); }}
+        onHomeClick={function (): void { throw new Error('Function not implemented.'); }}
+      />
+
+>>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
       <div className="dashboard-content">
         <div className="dashboard-header-row">
           <div className="dashboard-actions" style={{ width: '100%', justifyContent: 'space-between' }}>
@@ -124,10 +141,10 @@ const Dashboard: React.FC = () => {
                 onChange={handleSearch}
               />
               <Search className="search-icon" />
-              
             </div>
 
-            <button className="create-btn" onClick={() => setShowNewProjectModal(true)}>
+            {/* Changed MAKE PROJECT button to navigate to /create-project */}
+            <button className="create-btn" onClick={() => navigate("/create-project")}>
               MAKE<br />PROJECT
             </button>
           </div>
@@ -193,8 +210,7 @@ const Dashboard: React.FC = () => {
           <h2>Picked Out For You</h2>
           <div className="project-grid">
             {filteredPickedProjects.map((project) => (
-             <div key={project.id} className="project-wrapper">
-                {/* Project Card */}
+              <div key={project.id} className="project-wrapper">
                 <div className="project-card">
                   <div className="project-preview">{project.title}</div>
                   <button className="join-btn">JOIN</button>
@@ -233,10 +249,32 @@ const Dashboard: React.FC = () => {
                     </span>
                 </div>
 
+<<<<<<< HEAD
                 {/* --- REMOVED: Comment Input Pop-Up and Comment List Pop-Up --- */}
 
+=======
+                {showCommentBox === project.id && (
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    className="comment-input"
+                    value={commentInput}
+                    onChange={(e) => setCommentInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && commentInput.trim() !== '') {
+                        setComments(prev => ({
+                          ...prev,
+                          [project.id]: [...(prev[project.id] || []), commentInput.trim()]
+                        }));
+                        setCommentInput('');
+                        setShowCommentBox(null);
+                      }
+                    }}
+                    autoFocus
+                  />
+                )}
+>>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
               </div>
-
             ))}
           </div>
         </section>
@@ -254,6 +292,7 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
       </main>
+<<<<<<< HEAD
 
       {/* --- NEW PROJECT COMMENTS MODAL --- */}
       {selectedProjectIdForComments !== null && projectForModal && (
@@ -291,6 +330,8 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+=======
+>>>>>>> e46e9d76d08689bfdee2abb6f38dd3317469864c
     </div>
   );
 };
