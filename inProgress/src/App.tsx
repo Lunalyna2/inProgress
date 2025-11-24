@@ -1,24 +1,17 @@
 import React, { useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import FlipBookProfile from "./pages/flipBookProfile";
 import SignUpPage from "./components/SignUpPage";
-import ForgotPasswordModal from "./components/forgotPasswordModal";
 import LoginPage from "./components/LoginPage";
 import CreateProject from "./pages/CreateProject";
+import CreatedProjects from "./pages/CreatedProjects";
 import FolderPage from "./pages/FolderPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
+import AcceptOrDecline from "./create/acceptOrDecline";
 
-// Define a union type for the pages
-type Page = "signup" | "login";
-
-// Define interfaces for the props expected by each page component
+// Define interfaces for props
 export interface LoginPageProps {
   switchToSignup: () => void;
 }
@@ -60,21 +53,23 @@ const App: React.FC = () => {
         {/* Create Project */}
         <Route path="/create-project" element={<CreateProject />} />
 
+        {/* Created Projects */}
+        <Route path="/created-projects" element={<CreatedProjects />} />
+
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
 
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* Accept or Decline Collaborators */}
+        <Route path="/accept-decline" element={<AcceptOrDecline />} />
+
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
-
-  <div className="App">
-    <LandingPage />
-  </div>;
 };
 
 export default App;

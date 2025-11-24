@@ -47,29 +47,99 @@
 }
 
 .landing-img {
-  width: 900px;
-  margin-left: 130px;
+  width: 50vw; 
+  max-width: 900px; 
   height: auto;
+  margin-left: 15vw;
+  -webkit-animation: float-rotate 10s ease-in-out infinite;
   animation: float-rotate 10s ease-in-out infinite;
+}
+
+@-webkit-keyframes float-rotate {
+  0% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  25% {
+    -webkit-transform: translate(2vw, -4vh) rotate(-3deg);
+    transform: translate(2vw, -4vh) rotate(-3deg);
+  }
+  50% {
+    -webkit-transform: translate(0px, -8vh) rotate(-5deg);
+    transform: translate(0px, -8vh) rotate(-5deg);
+  }
+  75% {
+    -webkit-transform: translate(-2vw, -4vh) rotate(3deg);
+    transform: translate(-2vw, -4vh) rotate(3deg);
+  }
+  100% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+    transform: translate(0px, 0px) rotate(0deg);
+  }
 }
 
 @keyframes float-rotate {
   0% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
     transform: translate(0px, 0px) rotate(0deg);
   }
   25% {
-    transform: translate(10px, -40px) rotate(-3deg);
+    -webkit-transform: translate(2vw, -4vh) rotate(-3deg);
+    transform: translate(2vw, -4vh) rotate(-3deg);
   }
   50% {
-    transform: translate(0px, -80px) rotate(-5deg);
+    -webkit-transform: translate(0px, -8vh) rotate(-5deg);
+    transform: translate(0px, -8vh) rotate(-5deg);
   }
   75% {
-    transform: translate(-10px, -40px) rotate(3deg);
+    -webkit-transform: translate(-2vw, -4vh) rotate(3deg);
+    transform: translate(-2vw, -4vh) rotate(3deg);
   }
   100% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
     transform: translate(0px, 0px) rotate(0deg);
   }
 }
+/* Large desktops */
+@media (min-width: 1600px) {
+  .landing-img {
+    width: 45vw;
+    margin-left: 20vw;
+  }
+}
+
+/* Standard desktops */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .landing-img {
+    width: 50vw;
+    margin-left: 15vw;
+  }
+}
+
+/* Laptops */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .landing-img {
+    width: 55vw;
+    margin-left: 10vw;
+  }
+}
+
+/* Small laptops / tablets */
+@media (min-width: 768px) and (max-width: 991px) {
+  .landing-img {
+    width: 60vw;
+    margin-left: 5vw;
+  }
+}
+
+/* Mobile / small screens */
+@media (max-width: 767px) {
+  .landing-img {
+    width: 80vw;
+    margin-left: 0;
+  }
+}
+
 
 .join-btn {
   background-color: #d636fe;
