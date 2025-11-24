@@ -30,7 +30,7 @@ body {
   width: 900px;
   height: 600px;
   background-color: white;
-  border-radius: 8px;
+  border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -38,7 +38,8 @@ body {
 /* Left Panel */
 .left-panel {
   flex: 1;
-  background-color: #e0e0e0;
+  background-color: #C2A8F2;
+  background-image: linear-gradient(135deg, #C2A8F2 0%, #6A5ACD 100%);
   padding: 40px;
   display: flex;
   flex-direction: column;
@@ -54,7 +55,7 @@ body {
 
 .description {
   font-size: 1.1em;
-  color: #555;
+  color: #333333;
   line-height: 1.5;
   flex-grow: 1;
 }
@@ -74,25 +75,9 @@ body {
   font-size: 0.95em;
 }
 
-.login-button {
-  background-color: #e0e0e0;
-  color: #333;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-
-.login-button:hover {
-  background-color: #d0d0d0;
-}
-
 /* Right Panel */
 .right-panel {
-  flex: 1;
+  flex: 2;
   background-color: white;
   padding: 40px;
   display: flex;
@@ -138,7 +123,9 @@ body {
 
 .get-started-button {
   width: 100%;
-  background-color: black;
+  background-color: #7950c7;
+  background-image: linear-gradient(135deg, #7950c7 0%, #4c6ef5 100%);
+  box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
   color: white;
   border: none;
   padding: 18px 20px;
@@ -147,11 +134,11 @@ body {
   font-size: 1.1em;
   font-weight: bold;
   margin-top: 15px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
 .get-started-button:hover {
-  background-color: #333;
+  opacity: 0.9;
 }
 
 /* Forgot Password */
