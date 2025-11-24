@@ -2,12 +2,12 @@ import React, { type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import "./FolderBackground.css";
 
-// props: allows passing child components/content into the folder layout
+// Props: allows passing child components/content into the folder layout
 interface FolderBackgroundProps {
   children?: ReactNode;
 }
 
-// component : renders a folder-style background with a tab and body area
+// Component: renders a folder-style background with a tab and body area
 const FolderBackground: React.FC<FolderBackgroundProps> = ({ children }) => {
   const navigate = useNavigate();
   return (
@@ -22,7 +22,10 @@ const FolderBackground: React.FC<FolderBackgroundProps> = ({ children }) => {
           >
             ✕
           </button>
-          {children || <p className="placeholder">Contents here.</p>}
+
+          <div className="folder-content">
+            {children || <p className="placeholder">Contents here.</p>}
+          </div>
         </div>
       </div>
     </div>
