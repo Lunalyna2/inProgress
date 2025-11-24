@@ -3,17 +3,21 @@ body {
   font-family: Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.signup-page-body {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-image: 
+  width: 100vw;
+  background-image:
     linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
     url('/public/assets/background.png');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
 }
+
 
 /* Ensure full-page components fill the screen and disable Flex centering */
 .full-page-view {

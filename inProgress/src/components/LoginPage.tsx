@@ -96,60 +96,62 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
   };
 
   return (
-    <div className="login-container">
-      <div className="left-panel">
-        <h1 className="main-title">Count your Progress Today!</h1>
-        <p className="description">
-          Transform your unfinished project ideas into reality. Connect with peers based on your courses, skills, and passions.
-        </p>
-        <div className="login-prompt">
-          <p>Don't have an account?</p>
-          <button className="login-button" onClick={switchToSignup}>Signup Here!</button>
-        </div>
-      </div>
-
-      <div className="right-panel">
-        <h2 className="panel-title">Continue your Journey Today!</h2>
-        <form className="signup-form" onSubmit={handleLogin} noValidate>
-          <input
-            type="text"
-            placeholder="Username"
-            value={formData.username}
-            onChange={e => handleInputChange('username', e.target.value)}
-            className="form-input"
-          />
-          <input
-            type="email"
-            placeholder="CPU email address"
-            value={formData.cpuEmail}
-            onChange={e => handleInputChange('cpuEmail', e.target.value)}
-            className={`form-input ${errors.cpuEmail ? 'input-error' : ''}`}
-          />
-          {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={e => handleInputChange('password', e.target.value)}
-            className={`form-input ${errors.password ? 'input-error' : ''}`}
-          />
-          {errors.password && <p className="error-message">{errors.password}</p>}
-
-          <div className="forgot-container">
-            <button type="button" className="forgot-button" onClick={() => setShowForgotPassword(true)}>
-              Forgot your password?
-            </button>
+    <div className = "login-page-body">
+      <div className="login-container">
+        <div className="left-panel">
+          <h1 className="main-title">Count your Progress Today!</h1>
+          <p className="description">
+            Transform your unfinished project ideas into reality. Connect with peers based on your courses, skills, and passions.
+          </p>
+          <div className="login-prompt">
+            <p>Don't have an account?</p>
+            <button className="login-button" onClick={switchToSignup}>Signup Here!</button>
           </div>
+        </div>
 
-          <button type="submit" className="get-started-button">Login</button>
-        </form>
+        <div className="right-panel">
+          <h2 className="panel-title">Continue your Journey Today!</h2>
+          <form className="signup-form" onSubmit={handleLogin} noValidate>
+            <input
+              type="text"
+              placeholder="Username"
+              value={formData.username}
+              onChange={e => handleInputChange('username', e.target.value)}
+              className="form-input"
+            />
+            <input
+              type="email"
+              placeholder="CPU email address"
+              value={formData.cpuEmail}
+              onChange={e => handleInputChange('cpuEmail', e.target.value)}
+              className={`form-input ${errors.cpuEmail ? 'input-error' : ''}`}
+            />
+            {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={e => handleInputChange('password', e.target.value)}
+              className={`form-input ${errors.password ? 'input-error' : ''}`}
+            />
+            {errors.password && <p className="error-message">{errors.password}</p>}
+
+            <div className="forgot-container">
+              <button type="button" className="forgot-button" onClick={() => setShowForgotPassword(true)}>
+                Forgot your password?
+              </button>
+            </div>
+
+            <button type="submit" className="get-started-button">Login</button>
+          </form>
+        </div>
+
+        <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+        />
       </div>
-
-      <ForgotPasswordModal
-        isOpen={showForgotPassword}
-        onClose={() => setShowForgotPassword(false)}
-      />
     </div>
   );
 };
