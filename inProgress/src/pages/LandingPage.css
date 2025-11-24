@@ -1,16 +1,13 @@
 .landing-container {
   display: flex;
-  justify-content: flex-start;
+  justify-content:space-between;
   align-items: center;
   height: 100vh;
   width: 100vw;
 
-  background:
-    radial-gradient(circle at 20% 30%, #62bef0 0%, transparent 60%),
-    radial-gradient(circle at 80% 20%, #bd80ff 0%, transparent 60%),
-    radial-gradient(circle at 50% 80%, #ff9f6e 0%, transparent 60%),
-    radial-gradient(circle at 70% 70%, #ff5ad1 0%, transparent 60%),
-    linear-gradient(135deg, #62bef0, #bd80ff);
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+    url('/public/assets/landingPage-bg.png');
 
   background-size: cover;
   background-repeat: no-repeat;
@@ -50,20 +47,27 @@
 }
 
 .landing-img {
-  width: 1000px;
+  width: 900px;
+  margin-left: 130px;
   height: auto;
-  animation: float 10s ease-in-out infinite;
+  animation: float-rotate 10s ease-in-out infinite;
 }
 
-@keyframes float {
+@keyframes float-rotate {
   0% {
-    transform: translateY(0px);
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  25% {
+    transform: translate(10px, -40px) rotate(-3deg);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translate(0px, -80px) rotate(-5deg);
+  }
+  75% {
+    transform: translate(-10px, -40px) rotate(3deg);
   }
   100% {
-    transform: translateY(0px);
+    transform: translate(0px, 0px) rotate(0deg);
   }
 }
 
