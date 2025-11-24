@@ -10,6 +10,8 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import AcceptOrDecline from "./create/AcceptOrDecline";
+import ProjectInterface from "./pages/projectInterface";
+import CreateProjectForm from "./create/CreateProjectForm";
 
 // Define interfaces for props
 export interface LoginPageProps {
@@ -55,6 +57,12 @@ const App: React.FC = () => {
 
         {/* Created Projects */}
         <Route path="/created-projects" element={<CreatedProjects />} />
+
+        {/*create project form*/}
+        <Route path="/create-project-form" element={<CreateProjectForm />} />
+
+        {/* Project Interface */}
+        <Route path="/project/:projectId" element={<ProjectInterface />} />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
