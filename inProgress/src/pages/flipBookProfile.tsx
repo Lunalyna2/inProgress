@@ -311,8 +311,17 @@ const FlipBookProfile: FC = () => {
   const handleProfileClick = () => console.log("Profile clicked (Navbar)");
   const handleHomeClick = () => console.log("Home clicked (Navbar)");
 
-  return (
-    <div style={containerStyle}>
+return (
+  <div style={containerStyle}>
+    <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
+
+    <button
+      className="close-btn"
+      onClick={() => (window.location.href = "/dashboard")}
+    >
+      &times;
+    </button>
+
       <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
       <div className="book-container">
         <div className={`book ${page === 1 ? "book-closed" : ""}`}>
