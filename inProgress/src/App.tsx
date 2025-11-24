@@ -9,7 +9,7 @@ import FolderPage from "./pages/FolderPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
-import AcceptOrDecline from "./create/acceptOrDecline";
+import AcceptOrDecline from "./create/AcceptOrDecline";
 
 // Define interfaces for props
 export interface LoginPageProps {
