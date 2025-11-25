@@ -41,19 +41,16 @@ const CreatedProjects = () => {
       <h1 className="projects-title">My Projects</h1>
       <div className="projects-grid">
         {projects.map((project) => (
-          <div key={project.id} className="project-card">
-            {project.image && (
-              <div className="project-image">
-                <img src={project.image} alt={project.title} />
-              </div>
-            )}
-            <div className="project-content">
-              <div className="project-header">
-                <h2 className="project-title">{project.title}</h2>
-              </div>
-              <p className="project-description">{project.description}</p>
-
+          <div className="project-card">
+            <div className="project-image">
+              <img src={project.image} alt={project.title} />
             </div>
+
+            <h3 className="project-title">{project.title}</h3>
+
+            <p className="project-description">
+              {project.description}
+            </p>
           </div>
         ))}
       </div>
