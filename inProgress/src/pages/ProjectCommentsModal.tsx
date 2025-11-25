@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'; 
-import './ProjectCommentsModal.css'; 
+import './ProjectCommentsModal.css';
 
 interface Comment {
   id: number;
@@ -11,17 +11,24 @@ interface Comment {
 interface ProjectCommentsModalProps {
   projectId: number;
   projectTitle: string;
+  // ✨ NEW PROP ADDED
+  projectDescription: string; 
   onClose: () => void;
 }
 
-// Dummy data for initial comments (Sorted newest first)
+// Dummy data for initial comments
 const initialComments: Comment[] = [
   { id: 3, username: 'Modern_Aesthete', text: 'Clean, sleek, and truly mobile-first. Excellent job!' },
   { id: 2, username: 'Interaction_Fan', text: 'The input field lifting up is a great interactive touch.' },
   { id: 1, username: 'Design_Lover', text: 'This version is so clean, I love the flat look!' },
 ];
 
-const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ projectId, projectTitle, onClose }) => {
+const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ 
+  projectId, 
+  projectTitle, 
+  projectDescription, // ✨ Destructured
+  onClose 
+}) => {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState(initialComments);
   const [isSending, setIsSending] = useState(false);
@@ -65,10 +72,8 @@ const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ projectId, 
 
   return (
     <div className="modal-overlay"> 
-      {/* Primary container for the modal, uses the CSS centering fix */}
       <div className="project-comments-modal"> 
         
-        {/* Close Button */}
         <button className="close-button" onClick={onClose}>
           ✖
         </button>
@@ -78,6 +83,8 @@ const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ projectId, 
           <h2 className="modal-title">
             Project Discussion: {projectTitle}
           </h2>
+          {/* ✨ NEW DESCRIPTION ELEMENT */}
+          <p className="modal-project-description">{projectDescription}</p> 
           <p className="modal-project-id">Project ID: {projectId}</p>
         </header>
 
@@ -96,7 +103,7 @@ const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ projectId, 
                 </div>
               </div>
             ))}
-            <div ref={commentsEndRef} /> {/* Scroll target */}
+            <div ref={commentsEndRef} />
           </div>
         </div>
 
@@ -117,7 +124,6 @@ const ProjectCommentsModal: React.FC<ProjectCommentsModalProps> = ({ projectId, 
             onClick={handleSendComment}
             disabled={isSending || commentText.trim() === ''} 
           >
-            {/* SVG for Send/Spinner */}
             {isSending ? (
               <svg className="spinner" viewBox="0 0 50 50">
                 <circle className="path" cx="25" cy="25" r="20" fill="none" strokeWidth="5"></circle>

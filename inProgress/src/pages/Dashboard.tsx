@@ -7,7 +7,7 @@ import DashNavbar from './DashboardNavbar';
 
 
 interface Project {
-  description: ReactNode;
+  description: string | undefined;
   id: number;
   title: string;
   course: string;
