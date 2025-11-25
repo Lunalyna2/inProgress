@@ -193,7 +193,6 @@ const Dashboard: React.FC = () => {
               <div key={project.id} className="project-wrapper">
                 <div className="project-card">
                   <div className="project-preview">{project.title}</div>
-                  <button className="join-btn">JOIN</button>
                 </div>
 
                 <div className="action-icons">
