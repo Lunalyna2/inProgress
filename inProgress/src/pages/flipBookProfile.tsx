@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
+import { useNavigate } from 'react-router-dom'; // Added for navigation
 import "./flipBookProfile.css";
 import DashNavbar from "./DashboardNavbar"; 
+
+// --- INTERFACE DEFINITIONS ---
 
 interface PaperProps {
   id: string;
@@ -35,6 +38,8 @@ interface Message {
   type: "success" | "error" | "info";
 }
 
+// --- COMPONENTS ---
+
 const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zIndex }) => {
   const paperStyle: CSSProperties = { zIndex };
 
@@ -57,7 +62,6 @@ const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zInde
   );
 };
 
-// --- MessageBar ---
 const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ message, onClose }) => {
   if (!message) return null;
   return (
@@ -68,7 +72,11 @@ const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ mess
   );
 };
 
+// --- MAIN COMPONENT ---
+
 const FlipBookProfile: FC = () => {
+  const navigate = useNavigate(); // Added for navigation
+
   const [page, setPage] = useState<number>(1);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const total: number = 3;
@@ -77,8 +85,7 @@ const FlipBookProfile: FC = () => {
   const [savedPic, setSavedPic] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
 
-  // NEW: edit mode state
-  const [isEditing, setIsEditing] = useState(true);
+  const [isEditing, setIsEditing] = useState(false); // Changed default to false, allow fetch to set to true/false
 
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
     name: "",
@@ -96,12 +103,76 @@ const FlipBookProfile: FC = () => {
     { id: "avatar5", image: "/assets/characters/char5.png" },
   ]);
 
-  // Initialize name from signup (localStorage) and set initial avatar preview
+  // --- FETCH PROFILE DATA ON MOUNT (FIXED & SECURE) ---
   useEffect(() => {
-    const savedName = localStorage.getItem("name") || "";
+    const savedName = localStorage.getItem("fullName") || localStorage.getItem("username") || ""; // Check for full name or username
+    const token = localStorage.getItem("userToken");
+    const userId = localStorage.getItem("userId");
+    
+    // Initialize state with stored name (used while fetching)
     setProfileInfo((prev) => ({ ...prev, name: savedName }));
-    setSavedPic(profilePics[0]?.image || null);
-  }, [profilePics]);
+    setSavedPic(profilePics[0]?.image || null); // Set a default preview avatar
+
+    const fetchProfile = async () => {
+        if (!token || !userId) {
+            setMessage({ text: "Please log in to view your profile. Redirecting to dashboard...", type: "error" });
+            setTimeout(() => navigate("/dashboard"), 3000); // Redirect after error
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:5000/profile/${userId}`, {
+                method: "GET",
+                headers: {
+                    // MANDATORY: Include the JWT for authentication
+                    'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await res.json();
+            
+            if (!res.ok) {
+                // If profile is not found (404), allow editing/saving a new one.
+                if (res.status === 404) {
+                    setMessage({ text: "No existing profile found. Please fill out the form.", type: "info" });
+                    setIsEditing(true);
+                    setIsSaved(false);
+                    return;
+                }
+                
+                // Handle 403 (Invalid Token) or other server errors
+                setMessage({ text: data.message || "Failed to load profile.", type: "error" });
+                return;
+            }
+
+            // Successfully fetched data
+            setProfileInfo({
+                name: data.name, 
+                description: data.description || "",
+                course: data.course || "",
+                contactNo: data.contactNo || "", 
+                skill: data.skill || "",
+            });
+            
+            // Set the saved avatar for display
+            if (data.avatar) {
+                setSavedPic(data.avatar);
+                setSelectedPic(data.avatar);
+            }
+
+            // Profile successfully loaded, disable editing initially
+            setIsEditing(false);
+            setIsSaved(true);
+
+        } catch (error) {
+            console.error("Profile fetch error:", error);
+            setMessage({ text: "Network error fetching profile data.", type: "error" });
+        }
+    };
+
+    fetchProfile();
+  }, [profilePics, navigate]); // Added navigate to dependency array
 
   const closeMessage = () => setMessage(null);
   const next = () => page < total + 1 && setPage(page + 1);
@@ -124,29 +195,34 @@ const FlipBookProfile: FC = () => {
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const token = localStorage.getItem("userToken");
+    const userId = localStorage.getItem("userId");
+
+    console.log("useEffect: Checking token for GET request. Token:", token ? "FOUND" : "NOT FOUND", "UserID:", userId);
 
     if (!savedPic) {
-            setMessage({ text: "Please select an avatar before saving.", type: "error" });
-            return; // Stop execution
-        }
+      setMessage({ text: "Please select an avatar before saving.", type: "error" });
+      return; 
+    }
+    
+    if (!token || !userId) {
+        setMessage({ text: "Authorization failed. Please log in again.", type: "error" });
+        return;
+    }
 
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        setMessage({ text: "Missing user ID. Please sign up again.", type: "error" });
-        return;
-      }
-
       const res = await fetch(`http://localhost:5000/profile/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`, 
         },
         body: JSON.stringify({
           avatar: savedPic,
           description: profileInfo.description,
           course: profileInfo.course,
-          contact_no: profileInfo.contactNo,
+          contactNo: profileInfo.contactNo, 
           skill: profileInfo.skill,
         }),
       });
@@ -227,7 +303,6 @@ const FlipBookProfile: FC = () => {
         <div className="page-content-wrapper page-3-right-wrapper">
           <h2 className="selection-title-small">About Myself</h2>
 
-          {/* FORM UPDATED (save & edit button) */}
           <form className="profile-form-right" onSubmit={saveProfile}>
             <div>
               <label>Name:</label>
@@ -293,7 +368,7 @@ const FlipBookProfile: FC = () => {
             <div className="form-buttons">
               {!isEditing && isSaved ? (
                   <button 
-                      onClick={() => (window.location.href = "/dashboard")} 
+                      onClick={() => navigate("/dashboard")} // Use navigate for cleaner routing
                       className="proceed-btn"
                   >
                       Proceed to Dashboard →
@@ -307,8 +382,7 @@ const FlipBookProfile: FC = () => {
                       Save Profile
                   </button>
               )}
-          </div>
-          
+            </div>        
           </form>
         </div>
       ),
@@ -336,7 +410,7 @@ return (
 
     <button
       className="close-btn"
-      onClick={() => (window.location.href = "/dashboard")}
+      onClick={() => navigate("/dashboard")} // Use navigate for cleaner routing
     >
       &times;
     </button>

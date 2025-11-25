@@ -13,7 +13,7 @@ import AcceptOrDecline from "./create/AcceptOrDecline";
 import ProjectInterface from "./pages/projectInterface";
 import CreateProjectForm from "./create/CreateProjectForm";
 
-// Define interfaces for props
+// // Define interfaces for props
 export interface LoginPageProps {
   switchToSignup: () => void;
 }
@@ -81,3 +81,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+

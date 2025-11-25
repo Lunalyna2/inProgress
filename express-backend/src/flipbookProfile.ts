@@ -10,7 +10,7 @@ router.get("/:userId", async (req, res) => {
 
         // Get user name from users table
         const userResult = await pool.query(
-            "SELECT name FROM users WHERE id = $1", [userId]
+            "SELECT fullname FROM users WHERE id = $1", [userId]
         );
 
         if (userResult.rows.length === 0) {
@@ -25,7 +25,7 @@ router.get("/:userId", async (req, res) => {
         const profile = profileResult.rows[0]  || {};
 
         res.json({
-            name: userResult.rows[0].name,
+            name: userResult.rows[0].fullname,
             ...profile
         });
     } catch(error) {
