@@ -14,13 +14,9 @@
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, #62bef0, transparent 60%),
-    radial-gradient(circle at 80% 20%, #bd80ff, transparent 60%),
-    radial-gradient(circle at 50% 80%, #ff9f6e, transparent 60%),
-    radial-gradient(circle at 70% 70%, #ff5ad1, transparent 60%),
-    linear-gradient(135deg, #62bef0, #bd80ff);
-  filter: blur(45px);
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+    url('/public/assets/dashboard-bg.png') center/cover no-repeat;
   transform: scale(1.3);
   z-index: -1;
 }
