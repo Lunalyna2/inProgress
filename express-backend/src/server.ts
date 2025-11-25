@@ -17,13 +17,57 @@ type Response = import("express").Response;
 dotenv.config()
 
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'gkes9Vwl5lJlO3w';
+const JWT_SECRET = 'gkes9Vwl5lJlO3w';
+
 const app = express()
+
+// Interface for requests that have been processed by the auth middleware
+interface AuthenticatedRequest extends Request {
+    userId?: number;
+    username?: string;
+    email?: string;
+}
+
+// --- AUTHENTICATION MIDDLEWARE (MOVED) ---
+const authMiddleware = (req: AuthenticatedRequest, res: Response, next: () => void) => {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token || token.toLowerCase() === 'null') {
+        console.error("Token is null or empty after Bearer split.");
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
+
+        console.log("Token received:", token);
+        console.log("JWT Secret used for verification:", JWT_SECRET); // Should be 'gkes9Vwl5lJlO3w'
+
+    try {
+        // Verify the token
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; username: string; email: string };
+        
+        // Attach user info to the request object
+        req.userId = decoded.id;
+        req.username = decoded.username;
+        req.email = decoded.email;
+        
+        next(); // Proceed to the route handler
+    } catch (ex) {
+        const errorMessage = ex instanceof Error ? ex.message : 'Unknown JWT verification error';
+
+        console.error("JWT verification error (details):", errorMessage); 
+        return res.status(403).json({ message: 'Invalid token.' });
+    }
+};
 
 // Middleware
 app.use(express.json());
 app.use(cors()); 
-app.use("/profile", profileRoutes);
+
+app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
 
@@ -31,8 +75,6 @@ app.use("/api/collaborators", collaboratorRoutes);
 pool.connect()
     .then(() => console.log("✅ Connected to PostgreSQL"))
     .catch((err: string) => console.error("❌ DB connection error ", err))
-
-
 
 // Interfaces
 interface SignUpFormData {
@@ -59,40 +101,6 @@ interface CreateProjectRequestBody {
     description: string;
     roles: string[];
 }
-
-// Interface for requests that have been processed by the auth middleware
-interface AuthenticatedRequest extends Request {
-    userId?: number;
-    username?: string;
-    email?: string;
-}
-
-
-// --- AUTHENTICATION MIDDLEWARE ---
-const authMiddleware = (req: AuthenticatedRequest, res: Response, next: () => void) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-        // Verify the token
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; username: string; email: string };
-        
-        // Attach user info to the request object
-        req.userId = decoded.id;
-        req.username = decoded.username;
-        req.email = decoded.email;
-        
-        next(); // Proceed to the route handler
-    } catch (ex) {
-        console.error("JWT verification error:", ex);
-        res.status(403).json({ message: 'Invalid token.' });
-    }
-};
-
 
 // Validation for Signup
 const validateSignUpData = (data: SignUpFormData): ValidationResult => {
@@ -245,7 +253,6 @@ app.post(
         const { title, description, roles } = req.body as CreateProjectRequestBody;
 
         if (!creatorId) {
-            // This case should ideally be caught by authMiddleware, but it's a safety check
             return res.status(403).json({ message: 'Authorization required to create a project.' });
         }
 
@@ -257,10 +264,8 @@ app.post(
         const client = await pool.connect();
 
         try {
-            // 1. Start a transaction (to ensure data consistency)
             await client.query('BEGIN');
 
-            // 2. Insert the new project, linking it to the creator ID
             const projectInsertQuery = `
                 INSERT INTO projects(title, description, creator_id) 
                 VALUES($1, $2, $3) 
@@ -269,10 +274,7 @@ app.post(
             const projectResult = await client.query(projectInsertQuery, [title, description, creatorId]);
             const newProjectId = projectResult.rows[0].id; 
             
-            // 3. Insert the roles (if any)
             if (roles.length > 0) {
-                // Prepare values for bulk insertion: ($1, $2), ($3, $4), ...
-                // The parameters for the query are flattened: [project_id, role1, project_id, role2, ...]
                 const roleValues = roles
                     .map((_, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
                     .join(', ');
@@ -282,13 +284,11 @@ app.post(
                     VALUES ${roleValues}
                 `;
                 
-                // Prepare parameters
                 const roleParams: (string | number)[] = roles.flatMap(role => [newProjectId, role]);
 
                 await client.query(roleInsertQuery, roleParams);
             }
 
-            // 4. Commit the transaction
             await client.query('COMMIT');
 
             // Success response
@@ -299,12 +299,10 @@ app.post(
             });
 
         } catch (error) {
-            // If any error occurs, rollback the transaction
             await client.query('ROLLBACK');
             console.error('❌ Database Error during project creation:', error);
             res.status(500).json({ error: 'Failed to create project due to a server error.' });
         } finally {
-            // Release the client back to the pool
             client.release();
         }
     }
