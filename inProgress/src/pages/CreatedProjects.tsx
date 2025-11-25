@@ -6,7 +6,7 @@ interface Project {
   id: number;
   title: string;
   description: string;
-  image?: string;  
+  image?: string;
 }
 
 const CreatedProjects = () => {
@@ -17,7 +17,6 @@ const CreatedProjects = () => {
       description:
         "A full-stack e-commerce application with payment integration and inventory management.",
       image: "https://via.placeholder.com/400x200",
-      
     },
     {
       id: 2,
@@ -37,25 +36,27 @@ const CreatedProjects = () => {
 
   return (
     <div className="projects-container">
-        <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
-      <h1 className="projects-title">My Projects</h1>
-      <div className="projects-grid">
-        {projects.map((project) => (
-          <div key={project.id} className="project-card">
-            {project.image && (
-              <div className="project-image">
-                <img src={project.image} alt={project.title} />
-              </div>
-            )}
-            <div className="project-content">
-              <div className="project-header">
-                <h2 className="project-title">{project.title}</h2>
-              </div>
-              <p className="project-description">{project.description}</p>
+      <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
 
+      <div className="projects-wrapper">
+        <h1 className="projects-title">My Projects</h1>
+
+        <div className="projects-grid">
+          {projects.map((project) => (
+           <div className="project-card">
+            <div className="project-image">
+              <img src={project.image} alt={project.title} />
             </div>
+
+            <h3 className="project-title">{project.title}</h3>
+
+            <p className="project-description">
+              {project.description}
+            </p>
           </div>
-        ))}
+
+          ))}
+        </div>
       </div>
     </div>
   );
