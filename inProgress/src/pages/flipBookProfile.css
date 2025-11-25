@@ -265,7 +265,6 @@ body {
   transform: scale(1.2);
 }
 
-<<<<<<< HEAD
 .profile-form-right input {
   border: none;
   border-bottom: 1px dashed #aaa;
@@ -273,15 +272,6 @@ body {
   padding: 7px;
   width: 90%;
   transition: all 0.25s ease;
-=======
-.form-buttons {
-    margin-top: 20px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;     
-    width: 100%;             
->>>>>>> a2c119ed6f4c2fb121c48fe069ee2fe19f4a02ce
 }
 
 .profile-form-right input:focus {
