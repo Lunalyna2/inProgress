@@ -6,311 +6,338 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
-import authForgotRoutes from "./routes/authForgot"
+import authForgotRoutes from "./routes/authForgot";
 import collaboratorRoutes from "./routes/collaborators";
-
-
+import forumUpvoteRouter from "./routes/forumUpvote";
 type Request = import("express").Request;
 type Response = import("express").Response;
 
-
-dotenv.config()
+dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'gkes9Vwl5lJlO3w';
-const app = express()
+const JWT_SECRET = "gkes9Vwl5lJlO3w";
 
-// Middleware
-app.use(express.json());
-app.use(cors()); 
-app.use("/profile", profileRoutes);
-app.use("/api", authForgotRoutes);
-app.use("/api/collaborators", collaboratorRoutes);
-
-// Test DB connection
-pool.connect()
-    .then(() => console.log("✅ Connected to PostgreSQL"))
-    .catch((err: string) => console.error("❌ DB connection error ", err))
-
-
-
-// Interfaces
-interface SignUpFormData {
-    fullName: string;
-    username: string;
-    cpuEmail: string;
-    password: string;
-    rePassword: string;
-}
-
-interface ValidationResult {
-    isValid: boolean;
-    errors: Record<string, string>
-}
-
-interface ResetPasswordBody {
-    resetToken: string;
-    newPassword: string;
-    rePassword: string;
-}
-
-interface CreateProjectRequestBody {
-    title: string;
-    description: string;
-    roles: string[];
-}
+const app = express();
 
 // Interface for requests that have been processed by the auth middleware
 interface AuthenticatedRequest extends Request {
-    userId?: number;
-    username?: string;
-    email?: string;
+  userId?: number;
+  username?: string;
+  email?: string;
 }
 
+// --- AUTHENTICATION MIDDLEWARE (MOVED) ---
+const authMiddleware = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: () => void
+) => {
+  const authHeader = req.headers.authorization;
 
-// --- AUTHENTICATION MIDDLEWARE ---
-const authMiddleware = (req: AuthenticatedRequest, res: Response, next: () => void) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
-    }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
+  }
 
-    const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
+  if (!token || token.toLowerCase() === "null") {
+    console.error("Token is null or empty after Bearer split.");
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
+  }
 
-    try {
-        // Verify the token
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; username: string; email: string };
-        
-        // Attach user info to the request object
-        req.userId = decoded.id;
-        req.username = decoded.username;
-        req.email = decoded.email;
-        
-        next(); // Proceed to the route handler
-    } catch (ex) {
-        console.error("JWT verification error:", ex);
-        res.status(403).json({ message: 'Invalid token.' });
-    }
+  console.log("Token received:", token);
+  console.log("JWT Secret used for verification:", JWT_SECRET); // Should be 'gkes9Vwl5lJlO3w'
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      id: number;
+      username: string;
+      email: string;
+    };
+
+    // Attach user info to the request object
+    req.userId = decoded.id;
+    req.username = decoded.username;
+    req.email = decoded.email;
+
+    next(); // Proceed to the route handler
+  } catch (ex) {
+    const errorMessage =
+      ex instanceof Error ? ex.message : "Unknown JWT verification error";
+
+    console.error("JWT verification error (details):", errorMessage);
+    return res.status(403).json({ message: "Invalid token." });
+  }
 };
 
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+app.use("/profile", authMiddleware, profileRoutes);
+app.use("/api", authForgotRoutes);
+app.use("/api/collaborators", collaboratorRoutes);
+app.use("/api/forum-upvotes", forumUpvoteRouter);
+
+// Test DB connection
+pool
+  .connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch((err: string) => console.error("❌ DB connection error ", err));
+
+// Interfaces
+interface SignUpFormData {
+  fullName: string;
+  username: string;
+  cpuEmail: string;
+  password: string;
+  rePassword: string;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
+}
+
+interface ResetPasswordBody {
+  resetToken: string;
+  newPassword: string;
+  rePassword: string;
+}
+
+interface CreateProjectRequestBody {
+  title: string;
+  description: string;
+  roles: string[];
+}
 
 // Validation for Signup
 const validateSignUpData = (data: SignUpFormData): ValidationResult => {
-    const errors: Record<string, string> = {};
-    const { fullName, username, cpuEmail, password, rePassword } = data;
+  const errors: Record<string, string> = {};
+  const { fullName, username, cpuEmail, password, rePassword } = data;
 
-    
-    // Check if forms are filled out
-    if (!fullName) errors.fullName = "Full name is required.";
-    if (!username) errors.username = "Username is required."
-    if (!cpuEmail) errors.cpuEmail = "CPU email is required."
-    if (!password) errors.password = "Password is required."
-    if (!rePassword) errors.rePassword = "Re-enter password is required."
+  // Check if forms are filled out
+  if (!fullName) errors.fullName = "Full name is required.";
+  if (!username) errors.username = "Username is required.";
+  if (!cpuEmail) errors.cpuEmail = "CPU email is required.";
+  if (!password) errors.password = "Password is required.";
+  if (!rePassword) errors.rePassword = "Re-enter password is required.";
 
-    // Validate Password Match
-    if (cpuEmail && !cpuEmail.endsWith("@cpu.edu.ph")) {
-        errors.cpuEmail = "Must use CPU email address!";
-    }
+  // Validate Password Match
+  if (cpuEmail && !cpuEmail.endsWith("@cpu.edu.ph")) {
+    errors.cpuEmail = "Must use CPU email address!";
+  }
 
-    if (password && rePassword && password !== rePassword) {
-        errors.rePassword = "Passwords does not match!"
-    }
+  if (password && rePassword && password !== rePassword) {
+    errors.rePassword = "Passwords does not match!";
+  }
 
-    return {isValid: Object.keys(errors).length === 0, errors}
-}
+  return { isValid: Object.keys(errors).length === 0, errors };
+};
 
 // Validate for Login
-const validateLoginData = (data: Pick<SignUpFormData, 'cpuEmail' | 'password'>): ValidationResult => {
-    const { cpuEmail, password } = data;
-    const errors: Record<string, string> = {};
+const validateLoginData = (
+  data: Pick<SignUpFormData, "cpuEmail" | "password">
+): ValidationResult => {
+  const { cpuEmail, password } = data;
+  const errors: Record<string, string> = {};
 
-    if (!cpuEmail) errors.cpuEmail = "Email is required";
-    if (!password) errors.password = "Password is required";
+  if (!cpuEmail) errors.cpuEmail = "Email is required";
+  if (!password) errors.password = "Password is required";
 
-    return {
-        isValid: Object.keys(errors).length === 0,
-        errors,
-    };
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
 };
 
 // Signup Route
 app.post("/api/signup", async (req: Request, res: Response) => {
-    // Explicitly type req.body to SignUpFormData
-    const data: SignUpFormData = req.body;
-    const { isValid, errors } = validateSignUpData(data);
+  // Explicitly type req.body to SignUpFormData
+  const data: SignUpFormData = req.body;
+  const { isValid, errors } = validateSignUpData(data);
 
-    if (!isValid) {
-        return res.status(400).json({
-            message: "Validation failed.",
-            errors
-        });
-    }
+  if (!isValid) {
+    return res.status(400).json({
+      message: "Validation failed.",
+      errors,
+    });
+  }
 
-    try {
-        const { fullName, cpuEmail, username, password } = data;
-        const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const { fullName, cpuEmail, username, password } = data;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        const result = await pool.query(
-            `INSERT INTO users (fullname, username, email, password) 
+    const result = await pool.query(
+      `INSERT INTO users (fullname, username, email, password) 
             VALUES ($1, $2, $3, $4) 
             RETURNING id, username, email, fullname`,
-            [fullName, username, cpuEmail, hashedPassword]
-        );
+      [fullName, username, cpuEmail, hashedPassword]
+    );
 
-        res.status(201).json({
-            message: 'Sign-up successful!',
-            user: {
-                id: result.rows[0].id,
-                username: result.rows[0].username,
-                email: result.rows[0].email,
-                fullname: result.rows[0].fullname
-            }
-        });
-    } catch (error: any) {
-        console.error('❌ Error signing up:', error);
+    res.status(201).json({
+      message: "Sign-up successful!",
+      user: {
+        id: result.rows[0].id,
+        username: result.rows[0].username,
+        email: result.rows[0].email,
+        fullname: result.rows[0].fullname,
+      },
+    });
+  } catch (error: any) {
+    console.error("❌ Error signing up:", error);
 
-        // Check for PostgreSQL's unique violation error code (23505)
-        if (error.code === '23505') {
-            return res.status(409).json({ message: 'User with this email already exists' });
-        }
-        res.status(500).json({ message: 'Server error during sign-up.' });
+    // Check for PostgreSQL's unique violation error code (23505)
+    if (error.code === "23505") {
+      return res
+        .status(409)
+        .json({ message: "User with this email already exists" });
     }
+    res.status(500).json({ message: "Server error during sign-up." });
+  }
 });
-
 
 // Login Route
-app.post('/api/login', async (req: Request, res: Response) => {
-    // Explicitly type req.body
-    const data: Pick<SignUpFormData, 'cpuEmail' | 'password'> = req.body;
-    const { isValid, errors } = validateLoginData(data);
+app.post("/api/login", async (req: Request, res: Response) => {
+  // Explicitly type req.body
+  const data: Pick<SignUpFormData, "cpuEmail" | "password"> = req.body;
+  const { isValid, errors } = validateLoginData(data);
 
-    if (!isValid) {
-        return res.status(400).json({
-            message: "Validation failed.",
-            errors,
-        });
+  if (!isValid) {
+    return res.status(400).json({
+      message: "Validation failed.",
+      errors,
+    });
+  }
+
+  const { cpuEmail, password } = data;
+
+  try {
+    const userResult = await pool.query(
+      "SELECT id, username, email, password FROM users WHERE email = $1",
+      [cpuEmail]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({
+        message: "Invalid Credentials.",
+      });
     }
 
-    const { cpuEmail, password } = data;
+    const user = userResult.rows[0];
+    const hashedPassword = user.password;
 
-    try {
-        const userResult = await pool.query(
-            "SELECT id, username, email, password FROM users WHERE email = $1",
-            [cpuEmail]
-        );
+    const passwordMatch = await bcrypt.compare(password, hashedPassword);
 
-        if (userResult.rows.length === 0) {
-            return res.status(401).json({
-                message: "Invalid Credentials."
-            });
-        }
-
-        const user = userResult.rows[0];
-        const hashedPassword = user.password;
-
-        const passwordMatch = await bcrypt.compare(password, hashedPassword);
-
-        if (!passwordMatch) {
-            return res.status(401).json({ message: "Invalid Credentials." });
-        }
-
-        const token = jwt.sign(
-            { id: user.id, username: user.username, email: user.email },
-            JWT_SECRET,
-            { expiresIn: '1d' }
-        );
-
-        res.status(200).json({
-            message: "Login successful!",
-            token,
-            user: {
-                id: user.id,
-                username: user.username,
-                email: user.email
-            }
-        });
-    } catch(error) {
-        console.error('❌ Error during login:', error);
-        res.status(500).json({ message: 'Server error during login.' });
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid Credentials." });
     }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).json({
+      message: "Login successful!",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error during login:", error);
+    res.status(500).json({ message: "Server error during login." });
+  }
 });
-
 
 // Create Project Route
 app.post(
-    '/api/projects/create',
-    authMiddleware, // Ensure the user is authenticated
-    async (req: AuthenticatedRequest, res: Response) => {
-        const creatorId = req.userId; 
-        const { title, description, roles } = req.body as CreateProjectRequestBody;
+  "/api/projects/create",
+  authMiddleware, // Ensure the user is authenticated
+  async (req: AuthenticatedRequest, res: Response) => {
+    const creatorId = req.userId;
+    const { title, description, roles } = req.body as CreateProjectRequestBody;
 
-        if (!creatorId) {
-            // This case should ideally be caught by authMiddleware, but it's a safety check
-            return res.status(403).json({ message: 'Authorization required to create a project.' });
-        }
+    if (!creatorId) {
+      return res
+        .status(403)
+        .json({ message: "Authorization required to create a project." });
+    }
 
-        // Basic input validation
-        if (!title || !description || !roles || !Array.isArray(roles)) {
-            return res.status(400).json({ error: 'Missing or invalid project data (title, description, or roles).' });
-        }
+    // Basic input validation
+    if (!title || !description || !roles || !Array.isArray(roles)) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Missing or invalid project data (title, description, or roles).",
+        });
+    }
 
-        const client = await pool.connect();
+    const client = await pool.connect();
 
-        try {
-            // 1. Start a transaction (to ensure data consistency)
-            await client.query('BEGIN');
+    try {
+      await client.query("BEGIN");
 
-            // 2. Insert the new project, linking it to the creator ID
-            const projectInsertQuery = `
+      const projectInsertQuery = `
                 INSERT INTO projects(title, description, creator_id) 
                 VALUES($1, $2, $3) 
                 RETURNING id, created_at
             `;
-            const projectResult = await client.query(projectInsertQuery, [title, description, creatorId]);
-            const newProjectId = projectResult.rows[0].id; 
-            
-            // 3. Insert the roles (if any)
-            if (roles.length > 0) {
-                // Prepare values for bulk insertion: ($1, $2), ($3, $4), ...
-                // The parameters for the query are flattened: [project_id, role1, project_id, role2, ...]
-                const roleValues = roles
-                    .map((_, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
-                    .join(', ');
-                
-                const roleInsertQuery = `
+      const projectResult = await client.query(projectInsertQuery, [
+        title,
+        description,
+        creatorId,
+      ]);
+      const newProjectId = projectResult.rows[0].id;
+
+      if (roles.length > 0) {
+        const roleValues = roles
+          .map((_, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
+          .join(", ");
+
+        const roleInsertQuery = `
                     INSERT INTO project_roles(project_id, role_name)
                     VALUES ${roleValues}
                 `;
-                
-                // Prepare parameters
-                const roleParams: (string | number)[] = roles.flatMap(role => [newProjectId, role]);
 
-                await client.query(roleInsertQuery, roleParams);
-            }
+        const roleParams: (string | number)[] = roles.flatMap((role) => [
+          newProjectId,
+          role,
+        ]);
 
-            // 4. Commit the transaction
-            await client.query('COMMIT');
+        await client.query(roleInsertQuery, roleParams);
+      }
 
-            // Success response
-            res.status(201).json({ 
-                message: 'Project created successfully', 
-                projectId: newProjectId,
-                createdAt: projectResult.rows[0].created_at
-            });
+      await client.query("COMMIT");
 
-        } catch (error) {
-            // If any error occurs, rollback the transaction
-            await client.query('ROLLBACK');
-            console.error('❌ Database Error during project creation:', error);
-            res.status(500).json({ error: 'Failed to create project due to a server error.' });
-        } finally {
-            // Release the client back to the pool
-            client.release();
-        }
+      // Success response
+      res.status(201).json({
+        message: "Project created successfully",
+        projectId: newProjectId,
+        createdAt: projectResult.rows[0].created_at,
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error("❌ Database Error during project creation:", error);
+      res
+        .status(500)
+        .json({ error: "Failed to create project due to a server error." });
+    } finally {
+      client.release();
     }
+  }
 );
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-})
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});

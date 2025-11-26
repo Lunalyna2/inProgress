@@ -12,8 +12,10 @@ import Dashboard from "./pages/Dashboard";
 import AcceptOrDecline from "./create/AcceptOrDecline";
 import ProjectInterface from "./pages/projectInterface";
 import CreateProjectForm from "./create/CreateProjectForm";
+import JoinedProjectFolder from "./pages/JoinedProjectFolder";
+import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
 
-// Define interfaces for props
+// // Define interfaces for props
 export interface LoginPageProps {
   switchToSignup: () => void;
 }
@@ -62,7 +64,13 @@ const App: React.FC = () => {
         <Route path="/create-project-form" element={<CreateProjectForm />} />
 
         {/* Project Interface */}
-        <Route path="/project/:projectId" element={<ProjectInterface />} />
+        <Route path="/projectinterface" element={<ProjectInterface />} />
+
+        {/* Project Owner Folder */}
+        <Route path="/project-owner-folder" element={<ProjectOwnerFolder />} />
+
+        {/* Joined Collaborator */}
+        <Route path="/joined-collaborator-folder" element={<JoinedProjectFolder />} />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
@@ -81,3 +89,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./projectInterface.css"; 
+import { Route } from "react-router-dom";
 import FolderBackground from "../layouts/FolderBackground";
+import AcceptOrDecline from "../create/AcceptOrDecline";
 
 export default function ProjectInterface() {
   const [project, setProject] = useState({
@@ -150,11 +152,8 @@ export default function ProjectInterface() {
             </div>
           </div>
 
-          {/* REQUESTS - Bottom area of the right column, fixed height if desired */}
-          <div className="request-box">
-            <h3>Requests</h3>
-            <div className="req-placeholder">No requests yet.</div>
-          </div>
+          {/* AcceptOrDecline component retained */}
+          <AcceptOrDecline />
         </div>
         
       </div>

@@ -1,15 +1,15 @@
-import * as React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Dashboard.css';
-import { Search, ArrowBigUp, MessageCircle } from 'lucide-react';
-import DashNavbar from './DashboardNavbar';
-import ProjectCommentsModal from './ProjectCommentsModal';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Dashboard.css";
+import { Search, ArrowBigUp, MessageCircle } from "lucide-react";
+import DashNavbar from "./DashboardNavbar";
+import ProjectCommentsModal from "./ProjectCommentsModal";
+import { getComments } from "../api/comments";
 
 interface Project {
-  description: string | undefined;
   id: number;
   title: string;
+  description?: string;
   course: string;
 }
 
@@ -23,52 +23,67 @@ interface JoinedProject {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
-  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
+  const [selectedFilter, setSelectedFilter] = useState("All");
   const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-
-  // --- Comments modal state ---
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
+
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
+  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({}); // ✅ store comment counts
 
   const departments = [
-    'All Departments',
-    'Senior High School',
-    'College of Agriculture, Resources and Environmental Sciences',
-    'College of Arts & Sciences',
-    'College of Business & Accountancy',
-    'College of Computer Studies',
-    'College of Education',
-    'College of Engineering',
-    'College of Hospitality Management',
-    'College of Medical Laboratory Science',
-    'College of Nursing',
-    'College of Pharmacy',
-    'College of Law',
-    'College of Medicine',
-    'College of Theology',
+    "All Departments",
+    "Senior High School",
+    "College of Arts & Sciences",
+    "College of Business & Accountancy",
+    "College of Computer Studies",
+    "College of Education",
+    "College of Engineering",
+    "College of Hospitality Management",
+    "College of Nursing",
+    "College of Pharmacy",
+    "College of Law",
+    "College of Medicine",
   ];
 
-  const filters = ['All', 'Recent', 'Popular', 'Trending'];
+  const filters = ["All", "Recent", "Popular", "Trending"];
 
   const [pickedProjects] = useState<Project[]>([
-    { id: 1, title: 'Build a Social Media App', course: 'Mobile Development', description: 'An app that allows users to connect and share content.' },
-    { id: 2, title: 'E-commerce Website', course: 'Web Development', description: 'An online platform for buying and selling products.' },
-    { id: 3, title: 'Data Visualization Dashboard', course: 'Data Science', description: 'Interactive dashboard to visualize complex datasets.' },
-    { id: 4, title: 'Portfolio Website', course: 'Design', description: 'A personal website to showcase projects and skills.' },
+    { id: 1, title: "Build a Social Media App", course: "Mobile Development", description: "An app that allows users to connect and share content." },
+    { id: 2, title: "E-commerce Website", course: "Web Development", description: "An online platform for buying and selling products." },
+    { id: 3, title: "Data Visualization Dashboard", course: "Data Science", description: "Interactive dashboard to visualize complex datasets." },
+    { id: 4, title: "Portfolio Website", course: "Design", description: "A personal website to showcase projects and skills." },
   ]);
 
-  const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([
-    { id: 1, title: 'Website Redesign', course: 'Web Development', progress: 65, description: 'Redesigning old website with modern UI.' },
-    { id: 2, title: 'Mobile App', course: 'Mobile Development', progress: 30, description: 'Developing a cross-platform mobile app.' },
-    { id: 3, title: 'Marketing Dashboard', course: 'Data Science', progress: 85, description: 'Dashboard for marketing KPIs.' },
-    { id: 4, title: 'UI Design System', course: 'Design', progress: 50, description: 'Creating a reusable UI component library.' },
+  const [joinedProjects] = useState<JoinedProject[]>([
+    { id: 101, title: "Website Redesign", course: "Web Development", progress: 65 },
+    { id: 102, title: "Mobile App", course: "Mobile Development", progress: 30 },
+    { id: 103, title: "Marketing Dashboard", course: "Data Science", progress: 85 },
+    { id: 104, title: "UI Design System", course: "Design", progress: 50 },
   ]);
+
+  const loadCommentCounts = async () => {
+    const allProjects = [...pickedProjects, ...joinedProjects];
+    const counts: { [key: number]: number } = {};
+    await Promise.all(
+      allProjects.map(async (project) => {
+        try {
+          const comments = await getComments(project.id);
+          counts[project.id] = comments.length;
+        } catch {
+          counts[project.id] = 0;
+        }
+      })
+    );
+    setCommentCounts(counts);
+  };
+
+  useEffect(() => {
+    loadCommentCounts();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -77,27 +92,23 @@ const Dashboard: React.FC = () => {
   const filteredPickedProjects = pickedProjects.filter(
     (project) =>
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedDepartment === 'All Departments' || project.course === selectedDepartment)
+      (selectedDepartment === "All Departments" || project.course === selectedDepartment)
   );
 
   const filteredJoinedProjects = joinedProjects.filter((project) =>
     project.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const projectForModal =
-    pickedProjects.find(p => p.id === selectedProjectIdForComments) ||
-    joinedProjects.find(p => p.id === selectedProjectIdForComments);
+  const allProjectsForModal = [...pickedProjects, ...joinedProjects];
+  const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
 
   return (
     <div className="dashboard">
-      <DashNavbar
-        onProfileClick={() => {}}
-        onHomeClick={() => {}}
-      />
+      <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
 
       <div className="dashboard-content">
         <div className="dashboard-header-row">
-          <div className="dashboard-actions" style={{ width: '100%', justifyContent: 'space-between' }}>
+          <div className="dashboard-actions" style={{ width: "100%", justifyContent: "space-between" }}>
             <div className="dashboard-search">
               <input
                 type="text"
@@ -153,10 +164,7 @@ const Dashboard: React.FC = () => {
           <div className="project-grid">
             {filteredPickedProjects.map(project => (
               <div key={project.id} className="project-wrapper">
-                <div className="project-card">
-                  <div className="project-preview">{project.title}</div>
-                  <button className="join-btn">JOIN</button>
-                </div>
+                <div className="project-card">{project.title}</div>
 
                 <div className="action-icons">
                   <div
@@ -168,7 +176,7 @@ const Dashboard: React.FC = () => {
                       }
                     }}
                   >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? 'upvoted' : ''} />
+                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
                     <span className="upvote-count">{upvotes[project.id] || 0}</span>
                   </div>
 
@@ -176,7 +184,7 @@ const Dashboard: React.FC = () => {
                     className="action-icon"
                     onClick={() => setSelectedProjectIdForComments(project.id)}
                   />
-                  <span className="comment-count">0</span>
+                  <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
               </div>
             ))}
@@ -189,9 +197,7 @@ const Dashboard: React.FC = () => {
           <div className="project-grid">
             {filteredJoinedProjects.map(project => (
               <div key={project.id} className="project-wrapper">
-                <div className="project-card">
-                  <div className="project-title">{project.title}</div>
-                </div>
+                <div className="project-card">{project.title}</div>
 
                 <div className="action-icons">
                   <div
@@ -203,7 +209,7 @@ const Dashboard: React.FC = () => {
                       }
                     }}
                   >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? 'upvoted' : ''} />
+                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
                     <span className="upvote-count">{upvotes[project.id] || 0}</span>
                   </div>
 
@@ -211,7 +217,7 @@ const Dashboard: React.FC = () => {
                     className="action-icon"
                     onClick={() => setSelectedProjectIdForComments(project.id)}
                   />
-                  <span className="comment-count">0</span>
+                  <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
               </div>
             ))}
@@ -224,8 +230,11 @@ const Dashboard: React.FC = () => {
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
           projectTitle={projectForModal.title}
-          projectDescription={projectForModal.description || 'No description available.'}
-          onClose={() => setSelectedProjectIdForComments(null)}
+          projectDescription={projectForModal.description || "No description available."}
+          onClose={() => {
+            setSelectedProjectIdForComments(null);
+            loadCommentCounts(); // ✅ refresh comment counts after modal closes
+          }}
         />
       )}
     </div>

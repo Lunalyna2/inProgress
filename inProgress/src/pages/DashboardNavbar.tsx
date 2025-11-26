@@ -26,7 +26,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
       <div className="nav-links">
         <button
           className="menu-button"
-          onClick={() => window.location.href = "http://localhost:3000"}
+          onClick={() => handleNavigate("/dashboard")}
         >
           Home
         </button>
@@ -38,7 +38,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
         </button>
         <button
           className="menu-button"
-          onClick={() => handleNavigate("/flipbook")}
+          onClick={() => handleNavigate("/flipbook?source=profile")}
         >
           Profile
         </button>

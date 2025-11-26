@@ -68,7 +68,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("userToken", data.token);
         localStorage.setItem("userId", data.user.id);
         localStorage.setItem("username", data.user.username);
         localStorage.setItem("email", data.user.email);

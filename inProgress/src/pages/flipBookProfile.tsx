@@ -4,46 +4,48 @@ import "./flipBookProfile.css";
 import DashNavbar from "./DashboardNavbar"; 
 
 interface PaperProps {
-  id: string;
-  isFlipped: boolean;
-  frontContent: ReactNode;
-  backContent: ReactNode;
-  zIndex: number;
+  id: string
+  isFlipped: boolean
+  frontContent: ReactNode
+  backContent: ReactNode
+  zIndex: number
 }
 
 interface ProfileInfo {
-  name: string;
-  description: string;
-  course: string;
-  contactNo: string;
-  skill: string;
+  name: string
+  description: string
+  course: string
+  contactNo: string
+  skill: string
 }
 
 interface ProfilePic {
-  id: string;
-  image: string;
+  id: string
+  image: string
 }
 
 interface PageData {
-  id: string;
-  frontContent: ReactNode;
-  backContent: ReactNode;
+  id: string
+  frontContent: ReactNode
+  backContent: ReactNode
 }
 
 interface Message {
-  text: string;
-  type: "success" | "error" | "info";
+  text: string
+  type: "success" | "error" | "info"
 }
 
+// --- COMPONENTS ---
+
 const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zIndex }) => {
-  const paperStyle: CSSProperties = { zIndex };
+  const paperStyle: CSSProperties = { zIndex }
 
   const pageBgStyle: CSSProperties = {
     backgroundImage: `url("/assets/page-bg.png")`,
     backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
-  };
+  }
 
   return (
     <div className={`paper ${isFlipped ? "flipped" : ""}`} id={id} style={paperStyle}>
@@ -54,12 +56,11 @@ const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zInde
         <div className="page-content">{backContent}</div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-// --- MessageBar ---
 const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ message, onClose }) => {
-  if (!message) return null;
+  if (!message) return null
   return (
     <div className={`message-bar ${message.type}`}>
       <span>{message.text}</span>
@@ -86,7 +87,7 @@ const FlipBookProfile: FC = () => {
     course: "",
     contactNo: "",
     skill: "",
-  });
+  })
 
   const [profilePics] = useState<ProfilePic[]>([
     { id: "avatar1", image: "/assets/characters/char1.png" },
@@ -94,7 +95,7 @@ const FlipBookProfile: FC = () => {
     { id: "avatar3", image: "/assets/characters/char3.png" },
     { id: "avatar4", image: "/assets/characters/char4.png" },
     { id: "avatar5", image: "/assets/characters/char5.png" },
-  ]);
+  ])
 
   // Initialize name from signup (localStorage) and set initial avatar preview
   useEffect(() => {
@@ -103,24 +104,52 @@ const FlipBookProfile: FC = () => {
     setSavedPic(profilePics[0]?.image || null);
   }, [profilePics]);
 
-  const closeMessage = () => setMessage(null);
-  const next = () => page < total + 1 && setPage(page + 1);
-  const prev = () => page > 1 && setPage(page - 1);
+  const loadUserProfile = async () => {
+    try {
+      const userId = localStorage.getItem("userId")
+      if (!userId) {
+        setMessage({ text: "User ID not found.", type: "error" })
+        return
+      }
 
-  const handlePicSelect = (image: string) => setSelectedPic(image);
+      const res = await fetch(`http://localhost:5000/profile/${userId}`)
+      const data = await res.json()
+
+      if (res.ok) {
+        setProfileInfo({
+          name: data.name || "",
+          description: data.description || "",
+          course: data.course || "",
+          contactNo: data.contactNo || "",
+          skill: data.skill || "",
+        })
+        setSavedPic(data.avatar || profilePics[0]?.image || null)
+        setSelectedPic(data.avatar || profilePics[0]?.image || null)
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error)
+      setMessage({ text: "Failed to load profile data.", type: "error" })
+    }
+  }
+
+  const closeMessage = () => setMessage(null)
+  const next = () => page < total + 1 && setPage(page + 1)
+  const prev = () => page > 1 && setPage(page - 1)
+
+  const handlePicSelect = (image: string) => setSelectedPic(image)
   const handleSavePic = () => {
     if (!selectedPic) {
-      setMessage({ text: "Please select an avatar first.", type: "info" });
-      return;
+      setMessage({ text: "Please select an avatar first.", type: "info" })
+      return
     }
-    setSavedPic(selectedPic);
-    setMessage({ text: "Avatar selected!", type: "success" });
-  };
+    setSavedPic(selectedPic)
+    setMessage({ text: "Avatar selected!", type: "success" })
+  }
 
   const handleProfileInfoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfileInfo((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setProfileInfo((prev) => ({ ...prev, [name]: value }))
+  }
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,24 +178,24 @@ const FlipBookProfile: FC = () => {
           contact_no: profileInfo.contactNo,
           skill: profileInfo.skill,
         }),
-      });
+        });
 
-      const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
+        if (!res.ok) {
         setMessage({ text: data.message || "Failed to save profile", type: "error" });
         return;
-      }
+        }
 
-      setMessage({ text: "Profile saved successfully!", type: "success" });
-
-      setIsEditing(false); 
-      setIsSaved(true);
+        setMessage({ text: "Profile saved successfully!", type: "success" });
+        setIsEditing(false);
+        setIsSaved(true);
     } catch (error) {
-      console.error(error);
-      setMessage({ text: "Network error saving profile", type: "error" });
+        console.error(error);
+        setMessage({ text: "Network error saving profile", type: "error" });
     }
-  };
+    };
+
 
   const pages: PageData[] = [
     {
@@ -177,7 +206,7 @@ const FlipBookProfile: FC = () => {
           <div className="polaroid-frame">
             <div className="polaroid-placeholder">
               {selectedPic ? (
-                <img src={selectedPic} alt="Selected Avatar" className="avatar-preview" />
+                <img src={selectedPic || "/placeholder.svg"} alt="Selected Avatar" className="avatar-preview" />
               ) : (
                 <span>No Selection</span>
               )}
@@ -201,7 +230,7 @@ const FlipBookProfile: FC = () => {
                 className={`profile-thumbnail ${selectedPic === pic.image ? "selected" : ""}`}
                 onClick={() => handlePicSelect(pic.image)}
               >
-                <img src={pic.image} alt={pic.id} className="avatar-thumb" />
+                <img src={pic.image || "/placeholder.svg"} alt={pic.id} className="avatar-thumb" />
               </div>
             ))}
           </div>
@@ -211,11 +240,7 @@ const FlipBookProfile: FC = () => {
         <div className="page-content-wrapper page-3-left-wrapper">
           <div className={`polaroid-frame-large ${page === 3 ? "tilt" : ""}`}>
             <div className="polaroid-placeholder-large">
-              <img
-                src={savedPic || "/images/default.png"}
-                alt="Saved Avatar"
-                className="avatar-preview-large"
-              />
+              <img src={savedPic || "/assets/characters/char1.png"} alt="Saved Avatar" className="avatar-preview-large" />
             </div>
           </div>
         </div>
@@ -227,7 +252,6 @@ const FlipBookProfile: FC = () => {
         <div className="page-content-wrapper page-3-right-wrapper">
           <h2 className="selection-title-small">About Myself</h2>
 
-          {/* FORM UPDATED (save & edit button) */}
           <form className="profile-form-right" onSubmit={saveProfile}>
             <div>
               <label>Name:</label>
@@ -314,7 +338,7 @@ const FlipBookProfile: FC = () => {
       ),
       backContent: <h1 className="cover-text"></h1>,
     },
-  ];
+  ]
 
   const containerStyle: CSSProperties = {
     backgroundImage: `url("/assets/background.png")`,
@@ -325,10 +349,10 @@ const FlipBookProfile: FC = () => {
     width: "100%",
     paddingTop: "5rem",
     boxSizing: "border-box",
-  };
+  }
 
-  const handleProfileClick = () => console.log("Profile clicked (Navbar)");
-  const handleHomeClick = () => console.log("Home clicked (Navbar)");
+  const handleProfileClick = () => console.log("Profile clicked (Navbar)")
+  const handleHomeClick = () => console.log("Home clicked (Navbar)")
 
 return (
   <div style={containerStyle}>
@@ -345,8 +369,8 @@ return (
       <div className="book-container">
         <div className={`book ${page === 1 ? "book-closed" : ""}`}>
           {pages.map((p, i) => {
-            const isFlipped = page > i + 1;
-            const zIndex = isFlipped ? i + 1 : total - i + 1;
+            const isFlipped = page > i + 1
+            const zIndex = isFlipped ? i + 1 : total - i + 1
             return (
               <Paper
                 key={p.id}
@@ -356,7 +380,7 @@ return (
                 backContent={p.backContent}
                 zIndex={zIndex}
               />
-            );
+            )
           })}
         </div>
 
@@ -372,7 +396,7 @@ return (
         <MessageBar message={message} onClose={closeMessage} />
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default FlipBookProfile;

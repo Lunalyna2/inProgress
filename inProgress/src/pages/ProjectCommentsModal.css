@@ -1,5 +1,6 @@
 .modal-overlay {
-  position: fixed;
+  position: absolute;
+  margin-top: 50px;
   inset: 0;
   background: rgba(0,0,0,0.25);
   display: flex;
@@ -11,24 +12,25 @@
 .project-comments-modal {
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
+  max-height: 50vh;
+  background: black;
   border-radius: 30px;
   padding: 25px 30px 25px 40px; 
   display: flex;
   flex-direction: column;
   box-shadow: 0 12px 30px rgba(1, 15, 65, 0.15);
   position: relative;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 .close-button {
   position: absolute; 
-  top: 15px; 
-  right: 15px;
+  top: 10px; 
+  right: 10px;
   border: none; 
   background: #ff6b81; 
   border-radius: 50%; 
-  padding: 6px;
+  padding: 3px;
   display: flex; 
   justify-content: center; 
   align-items: center;
@@ -36,7 +38,6 @@
   transition: transform 0.2s, 
   background 0.2s;
 }
-
 .close-button:hover { 
     transform: scale(1.2); 
     background: #ff4757; 
@@ -144,7 +145,6 @@
   align-items: center; 
   transition: all 0.2s; 
 }
-
 .comment-actions button:hover { 
     transform: scale(1.1); 
     background: rgba(255,255,255,0.5); 
