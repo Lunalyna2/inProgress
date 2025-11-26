@@ -8,8 +8,7 @@ import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
 import authForgotRoutes from "./routes/authForgot";
 import collaboratorRoutes from "./routes/collaborators";
-import forumUpvoteRoutes from "./routes/forumUpvote";
-
+import forumUpvoteRouter from "./routes/forumUpvote";
 type Request = import("express").Request;
 type Response = import("express").Response;
 
@@ -82,7 +81,7 @@ app.use(cors());
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
-app.use("/api/forum-upvotes", forumUpvoteRoutes);
+app.use("/api/forum-upvotes", forumUpvoteRouter);
 
 // Test DB connection
 pool
