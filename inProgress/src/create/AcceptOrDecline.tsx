@@ -111,11 +111,11 @@ const AcceptOrDecline: React.FC = () => {
       {collaborators.length === 0 ? (
         <div className="no-collaborators">
           <img
-            src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
-            alt="No requests"
-            className="no-collab-img"
+          src="/assets/empty.png"
+          alt="No requests"
+          className="no-collab-img"
           />
-          <p>Yay! No pending requests right now 💖</p>
+          <p>No pending requests right now 💖</p>
           <p>Invite peers or share your project!</p>
         </div>
       ) : (
