@@ -1,12 +1,13 @@
 body {
   margin: 0;
   padding: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   height: 100vh;
   width: 100vw;
   overflow-x: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: "Poppins", sans-serif;
 }
 
 .book-container {
@@ -15,51 +16,32 @@ body {
   align-items: center;
   justify-content: center;
   height: calc(95vh - 70px);
-  width: 100vw;
+  width: 100%;
   padding: 0;
   box-sizing: border-box;
-  background-color: transparent;
-  font-family: "Amatic SC", Poppins;
   overflow: hidden;
+  background-color: transparent;
 }
 
 .book {
   position: relative;
   width: 800px;
   height: 600px;
-  perspective: 1800px;
+  perspective: 2200px;
   margin: 20px 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.book::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  background-color: none;
-  border-radius: 8px 0 0 8px;
-  border: none;
-  box-shadow: none;
-}
-
-.book-closed::before {
-  background-color: none;
-  border: none;
-  box-shadow: none;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
 }
 
 .paper {
   position: absolute;
   top: 0;
+  left: 50%;
   width: 50%;
   height: 100%;
-  left: 50%;
   transform-style: preserve-3d;
-  transition: transform 0.8s ease-in-out;
   transform-origin: left center;
+  transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 .paper.flipped {
@@ -71,23 +53,26 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
+  backface-visibility: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  backface-visibility: hidden;
-  background-color: white;
-  border: 1px solid #d4c8c8;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
 .paper .back {
   transform: rotateY(180deg);
 }
 
+/*page*/
 .page-content-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
 }
 
 .cover-text {
@@ -116,13 +101,13 @@ body {
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .profile-thumbnail.selected {
-  border-color: #ff69b4;
+  border-color: #b044ff;
   transform: scale(1.1);
 }
 
@@ -132,14 +117,17 @@ body {
   object-fit: cover;
 }
 
+/*polaroid*/
 .polaroid-frame,
 .polaroid-frame-large {
-  background: white;
-  border: 1px solid #050f4a;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.1);
   padding: 8px;
   margin-bottom: 10px;
   height: 400px;
   width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .polaroid-placeholder,
@@ -151,59 +139,97 @@ body {
   height: 400px;
 }
 
-.avatar-preview {
-  width: 300px;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 5px;
-}
-
+.avatar-preview,
 .avatar-preview-large {
   width: 300px;
   height: 400px;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 
-.nav-buttons {
+/* buttons */
+.nav-buttons,
+.form-buttons {
   display: flex;
-  gap: 20px;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
 }
 
-.nav-buttons button {
-  background: #3c2ab5;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 30px;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s;
+.form-buttons {
+  position: fixed;
+  bottom: 80px; 
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.nav-buttons button:hover {
-  background: #7769d3;
-}
-
+.nav-buttons button,
 .save-btn,
-.save-info-btn {
-  margin-top: 10px;
-  padding: 10px 15px;
+.save-info-btn,
+.proceed-btn,
+.form-buttons button {
+  position: relative;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: bold;
+  border-radius: 12px;
   cursor: pointer;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  background: rgba(61, 42, 181, 0.6);
+  box-shadow: 0 5px 20px rgba(61,42,181,0.3);
 }
 
-.save-btn {
-  background: #ff69b4;
+.nav-buttons button:hover,
+.save-btn:hover,
+.save-info-btn:hover,
+.proceed-btn:hover,
+.form-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(61,42,181,0.5);
+  background: rgba(72, 14, 161, 0.75);
 }
 
-.save-info-btn {
-  background: #20b2aa;
+.nav-buttons button:active,
+.save-btn:active,
+.save-info-btn:active,
+.proceed-btn:active,
+.form-buttons button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+/* effects */
+.save-btn::before,
+.save-info-btn::before,
+.proceed-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    120deg,
+    #b044ff,
+    #e38cff,
+    #7a1cff,
+    #d86aff
+  );
+  background-size: 320%;
+  animation: led-border 3s linear infinite;
+  z-index: -1;
+}
+
+@keyframes led-border {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* messages */
 .message-bar {
   position: fixed;
   bottom: 20px;
@@ -217,44 +243,9 @@ body {
   gap: 10px;
 }
 
-.message-bar.success {
-  background: #28a745;
-}
-
-.message-bar.error {
-  background: #dc3545;
-}
-
-.message-bar.info {
-  background: #007bff;
-}
-
-.tilt {
-  transform: rotate(-5deg);
-}
-
-.profile-form-right input {
-  border: none;
-  border-bottom: 1px dashed #aaa;
-  background: transparent;
-  padding: 5px;
-  width: 90%;
-}
-
-.form-buttons {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.form-buttons button {
-  background-color: #20b2aa;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  cursor: pointer;
-}
+.message-bar.success { background: #28a745; }
+.message-bar.error { background: #dc3545; }
+.message-bar.info { background: #007bff; }
 
 .close-btn {
   position: absolute;
@@ -266,8 +257,8 @@ body {
   cursor: pointer;
   z-index: 9999;
   font-weight: bold;
-  transition: 0.2s ease;
   color: white;
+  transition: 0.2s ease;
 }
 
 .close-btn:hover {
@@ -291,4 +282,17 @@ body {
   cursor: pointer;
   transition: background-color 0.3s;
   margin: 0 5px;
+.profile-form-right input {
+  border: none;
+  border-bottom: 1px dashed #aaa;
+  background: transparent;
+  padding: 7px;
+  width: 90%;
+  transition: all 0.25s ease;
+}
+
+.profile-form-right input:focus {
+  border-color: #b044ff;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(180, 68, 255, 0.3);
 }

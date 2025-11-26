@@ -4,7 +4,6 @@ import pool from "../pool";
 
 const router = Router();
 
-// Extend Request type to include user
 interface AuthRequest extends Request {
   user?: { id: string };
 }
@@ -12,8 +11,7 @@ interface AuthRequest extends Request {
 // Middleware to verify JWT
 const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader)
-    return res.status(401).json({ error: "No token provided" });
+  if (!authHeader) return res.status(401).json({ error: "No token provided" });
 
   const token = authHeader.split(" ")[1];
   try {
@@ -27,98 +25,91 @@ const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
 
 /* ----------------------------------------------------
    GET /api/collaborators/pending
+   Fetch pending collaborator requests for projects owned by the user
 ---------------------------------------------------- */
-router.get(
-  "/pending",
-  auth,
-  async (req: AuthRequest, res: Response): Promise<Response> => {
-    try {
-      const userId = req.user!.id;
+router.get("/pending", auth, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
 
-      const query = `
-        SELECT 
-          pc.id,
-          u.username AS name,
-          u.skills
-        FROM project_collaborators pc
-        JOIN users u ON u.id = pc.user_id
-        WHERE pc.owner_id = $1 AND pc.status = 'pending'
-      `;
+    const query = `
+      SELECT pc.id, u.username, up.skills, p.title AS project_title
+      FROM project_collaborators pc
+      JOIN users u ON u.id = pc.user_id
+      LEFT JOIN userprofile up ON up.user_id = u.id
+      JOIN projects p ON p.id = pc.project_id
+      WHERE p.creator_id = $1 AND pc.status = 'pending'
+    `;
 
-      const result = await pool.query(query, [userId]);
+    const result = await pool.query(query, [userId]);
 
-      const collaborators = result.rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        skills: row.skills || [],
-      }));
+    const collaborators = result.rows.map((row) => ({
+      id: row.id,
+      name: row.username,
+      skills: row.skills ? row.skills.split(",") : [],
+      project: row.project_title,
+    }));
 
-      return res.json(collaborators);
-    } catch (err) {
-      console.error("Error fetching collaborators:", err);
-      return res.status(500).json({ error: "Server error" });
-    }
+    return res.json(collaborators);
+  } catch (err) {
+    console.error("Error fetching collaborators:", err);
+    return res.status(500).json({ error: "Server error" });
   }
-);
+});
 
 /* ----------------------------------------------------
    POST /api/collaborators/:id/accept
 ---------------------------------------------------- */
-router.post(
-  "/:id/accept",
-  auth,
-  async (req: AuthRequest, res: Response): Promise<Response> => {
-    try {
-      const collabId = req.params.id;
+router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
+  try {
+    const collabId = req.params.id;
+    const userId = req.user!.id;
 
-      const result = await pool.query(
-        `UPDATE project_collaborators 
-         SET status='accepted'
-         WHERE id=$1 
-         RETURNING id`,
-        [collabId]
-      );
+    const result = await pool.query(
+      `UPDATE project_collaborators pc
+       SET status='accepted'
+       FROM projects p
+       WHERE pc.id=$1 AND pc.project_id = p.id AND p.creator_id=$2
+       RETURNING pc.id`,
+      [collabId, userId]
+    );
 
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: "Collaborator not found" });
-      }
-
-      return res.json({ message: "Collaborator accepted" });
-    } catch (err) {
-      console.error("Accept collaborator error:", err);
-      return res.status(500).json({ error: "Server error" });
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Collaborator not found or not authorized" });
     }
+
+    return res.json({ message: "Collaborator accepted" });
+  } catch (err) {
+    console.error("Accept collaborator error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
-);
+});
 
 /* ----------------------------------------------------
    POST /api/collaborators/:id/decline
 ---------------------------------------------------- */
-router.post(
-  "/:id/decline",
-  auth,
-  async (req: AuthRequest, res: Response): Promise<Response> => {
-    try {
-      const collabId = req.params.id;
+router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
+  try {
+    const collabId = req.params.id;
+    const userId = req.user!.id;
 
-      const result = await pool.query(
-        `UPDATE project_collaborators
-         SET status='declined'
-         WHERE id=$1 
-         RETURNING id`,
-        [collabId]
-      );
+    const result = await pool.query(
+      `UPDATE project_collaborators pc
+       SET status='declined'
+       FROM projects p
+       WHERE pc.id=$1 AND pc.project_id = p.id AND p.creator_id=$2
+       RETURNING pc.id`,
+      [collabId, userId]
+    );
 
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: "Collaborator not found" });
-      }
-
-      return res.json({ message: "Collaborator declined" });
-    } catch (err) {
-      console.error("Decline collaborator error:", err);
-      return res.status(500).json({ error: "Server error" });
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Collaborator not found or not authorized" });
     }
+
+    return res.json({ message: "Collaborator declined" });
+  } catch (err) {
+    console.error("Decline collaborator error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
-);
+});
 
 export default router;

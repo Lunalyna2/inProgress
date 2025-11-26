@@ -6,20 +6,23 @@ type Collaborator = {
   name: string;
   skills: string[];
   avatarUrl?: string;
+  approved?: boolean;
+  role?: string;
+  decline?: boolean; // used for slide-out animation
 };
 
 const AcceptOrDecline: React.FC = () => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch collaborators from backend or use dummy data
+  // Fetch pending collaborators
   useEffect(() => {
     const fetchCollaborators = async () => {
       try {
         const token = localStorage.getItem("userToken") || "";
 
         if (!token) {
-          // No token, use dummy collaborators for demo
+          // Demo data if no token
           setCollaborators([
             { id: "1", name: "Alice", skills: ["UI Design", "Figma"] },
             { id: "2", name: "Bob", skills: ["Backend", "Node.js"] },
@@ -28,13 +31,13 @@ const AcceptOrDecline: React.FC = () => {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/api/collaborators/pending", {
+        const res = await fetch(`http://localhost:5000/api/collaborators/pending`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) throw new Error("Failed to fetch collaborators");
 
-        const data: Collaborator[] = await res.json().catch(() => []);
+        const data: Collaborator[] = await res.json();
         setCollaborators(data);
       } catch (err) {
         console.error("Error fetching collaborators:", err);
@@ -47,7 +50,7 @@ const AcceptOrDecline: React.FC = () => {
     fetchCollaborators();
   }, []);
 
-  // Handle accept/decline
+  // Accept collaborator
   const handleAccept = async (id: string) => {
     try {
       const token = localStorage.getItem("userToken") || "";
@@ -60,12 +63,17 @@ const AcceptOrDecline: React.FC = () => {
 
       if (!res.ok) throw new Error("Failed to accept collaborator");
 
-      setCollaborators(prev => prev.filter(c => c.id !== id));
+      setCollaborators(prev =>
+        prev.map(c =>
+          c.id === id ? { ...c, approved: true, role: "collaborator" } : c
+        )
+      );
     } catch (err) {
-      console.error(err);
+      console.error("Accept error:", err);
     }
   };
 
+  // Decline collaborator
   const handleDecline = async (id: string) => {
     try {
       const token = localStorage.getItem("userToken") || "";
@@ -78,13 +86,20 @@ const AcceptOrDecline: React.FC = () => {
 
       if (!res.ok) throw new Error("Failed to decline collaborator");
 
-      setCollaborators(prev => prev.filter(c => c.id !== id));
+      // Trigger animation
+      setCollaborators(prev =>
+        prev.map(c => (c.id === id ? { ...c, decline: true } : c))
+      );
+
+      // Remove after animation
+      setTimeout(() => {
+        setCollaborators(prev => prev.filter(c => c.id !== id));
+      }, 350);
     } catch (err) {
-      console.error(err);
+      console.error("Decline error:", err);
     }
   };
 
-  // Loading state
   if (loading) {
     return <p className="loading-text">Loading pending collaborators… 💌</p>;
   }
@@ -101,19 +116,20 @@ const AcceptOrDecline: React.FC = () => {
             className="no-collab-img"
           />
           <p>Yay! No pending requests right now 💖</p>
-          <p>Invite friends or share your project to get collaborators!</p>
+          <p>Invite peers or share your project!</p>
         </div>
       ) : (
         <ul>
           {collaborators.map(user => (
-            <li key={user.id} className="collaborator-card">
+            <li
+              key={user.id}
+              className={`collaborator-card ${user.decline ? "slide-out" : ""}`}
+            >
               <div className="collaborator-info">
                 <img
                   src={
                     user.avatarUrl ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      user.name
-                    )}&background=FFC0CB&color=000`
+                    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
                   }
                   alt={user.name}
                   className="avatar"
@@ -121,19 +137,26 @@ const AcceptOrDecline: React.FC = () => {
                 <strong>{user.name}</strong>
                 <p>Skills: {user.skills.join(", ")}</p>
               </div>
+
               <div className="collaborator-actions">
-                <button
-                  onClick={() => handleAccept(user.id)}
-                  className="btn-accept"
-                >
-                  Accept
-                </button>
-                <button
-                  onClick={() => handleDecline(user.id)}
-                  className="btn-decline"
-                >
-                  Decline
-                </button>
+                {user.approved ? (
+                  <span className="approved-badge pop-in">✓ Collaborator</span>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleAccept(user.id)}
+                      className="btn-accept"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleDecline(user.id)}
+                      className="btn-decline"
+                    >
+                      Decline
+                    </button>
+                  </>
+                )}
               </div>
             </li>
           ))}

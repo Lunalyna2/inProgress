@@ -98,7 +98,7 @@ const CreateProjectForm: React.FC = () => {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || "Project submission failed");
+        throw new Error(errData.error || errData.message || "Project submission failed");
       }
 
       const result = await response.json();
@@ -143,7 +143,7 @@ const CreateProjectForm: React.FC = () => {
           placeholder="e.g., Backend Developer"
         />
         <button type="button" onClick={handleAddRole}>
-          Add Collaborator
+          Add Role
         </button>
       </div>
 

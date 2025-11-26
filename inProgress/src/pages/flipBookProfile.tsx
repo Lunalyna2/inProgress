@@ -1,10 +1,7 @@
-"use client"
-
-import type React from "react"
-import { useState, useEffect } from "react"
-import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react"
-import "./flipBookProfile.css"
-import DashNavbar from "./DashboardNavbar"
+import React, { useState, useEffect } from "react";
+import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
+import "./flipBookProfile.css";
+import DashNavbar from "./DashboardNavbar"; 
 
 interface PaperProps {
   id: string
@@ -38,6 +35,8 @@ interface Message {
   type: "success" | "error" | "info"
 }
 
+// --- COMPONENTS ---
+
 const Paper: FC<PaperProps> = ({ id, isFlipped, frontContent, backContent, zIndex }) => {
   const paperStyle: CSSProperties = { zIndex }
 
@@ -67,20 +66,20 @@ const MessageBar: FC<{ message: Message | null; onClose: () => void }> = ({ mess
       <span>{message.text}</span>
       <button onClick={onClose}>&times;</button>
     </div>
-  )
-}
+  );
+};
 
 const FlipBookProfile: FC = () => {
-  const [page, setPage] = useState<number>(1)
-  const [isSaved, setIsSaved] = useState<boolean>(false)
-  const total: number = 3
+  const [page, setPage] = useState<number>(1);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const total: number = 3;
 
-  const [selectedPic, setSelectedPic] = useState<string | null>(null)
-  const [savedPic, setSavedPic] = useState<string | null>(null)
-  const [message, setMessage] = useState<Message | null>(null)
-  const [isEditing, setIsEditing] = useState(true)
+  const [selectedPic, setSelectedPic] = useState<string | null>(null);
+  const [savedPic, setSavedPic] = useState<string | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
 
-  const [isFromProfileButton, setIsFromProfileButton] = useState<boolean>(false)
+  // NEW: edit mode state
+  const [isEditing, setIsEditing] = useState(true);
 
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
     name: "",
@@ -98,21 +97,12 @@ const FlipBookProfile: FC = () => {
     { id: "avatar5", image: "/assets/characters/char5.png" },
   ])
 
+  // Initialize name from signup (localStorage) and set initial avatar preview
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const source = params.get("source")
-
-    if (source === "profile") {
-      setIsFromProfileButton(true)
-      setIsEditing(false)
-      loadUserProfile()
-    } else {
-      // Coming from signup flow
-      const savedName = localStorage.getItem("name") || ""
-      setProfileInfo((prev) => ({ ...prev, name: savedName }))
-      setSavedPic(profilePics[0]?.image || null)
-    }
-  }, [profilePics])
+    const savedName = localStorage.getItem("name") || "";
+    setProfileInfo((prev) => ({ ...prev, name: savedName }));
+    setSavedPic(profilePics[0]?.image || null);
+  }, [profilePics]);
 
   const loadUserProfile = async () => {
     try {
@@ -161,33 +151,32 @@ const FlipBookProfile: FC = () => {
     setProfileInfo((prev) => ({ ...prev, [name]: value }))
   }
 
-    const saveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
 
     if (!savedPic) {
-        setMessage({ text: "Please select an avatar before saving.", type: "error" });
-        return;
-    }
-
-    try {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-        setMessage({ text: "Missing user ID. Please sign up again.", type: "error" });
-        return;
+            setMessage({ text: "Please select an avatar before saving.", type: "error" });
+            return; // Stop execution
         }
 
-        const res = await fetch(`http://localhost:5000/profile/${userId}`, {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        setMessage({ text: "Missing user ID. Please sign up again.", type: "error" });
+        return;
+      }
+
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            name: profileInfo.name,        // <- make sure we send name
-            avatar: savedPic,
-            description: profileInfo.description,
-            course: profileInfo.course,
-            contactNo: profileInfo.contactNo,
-            skill: profileInfo.skill,
+          avatar: savedPic,
+          description: profileInfo.description,
+          course: profileInfo.course,
+          contact_no: profileInfo.contactNo,
+          skill: profileInfo.skill,
         }),
         });
 
@@ -326,35 +315,24 @@ const FlipBookProfile: FC = () => {
             </div>
 
             <div className="form-buttons">
-            {/* 1️⃣ If viewing profile from dashboard → show Edit Profile */}
-            {!isEditing && !isSaved && isFromProfileButton && (
-                <button
-                type="button"
-                className="edit-profile-btn"
-                onClick={() => setIsEditing(true)}
-                >
-                Edit Profile
-                </button>
-            )}
-
-            {/* 2️⃣ If editing mode → show Save Profile */}
-            {isEditing && (
-                <button type="submit" className="save-info-btn">
-                Save Profile
-                </button>
-            )}
-
-            {/* 3️⃣ After saving → show Proceed button */}
-            {!isEditing && isSaved && !isFromProfileButton &&(
-                <button
-                onClick={() => (window.location.href = "/dashboard")}
-                className="proceed-btn"
-                >
-                Proceed to Dashboard →
-                </button>
-            )}
-            </div>
-
+              {!isEditing && isSaved ? (
+                  <button 
+                      onClick={() => (window.location.href = "/dashboard")} 
+                      className="proceed-btn"
+                  >
+                      Proceed to Dashboard →
+                  </button>
+              ) : (
+                  <button 
+                      type="submit" 
+                      className="save-info-btn"
+                      disabled={!isEditing}
+                  >
+                      Save Profile
+                  </button>
+              )}
+          </div>
+          
           </form>
         </div>
       ),
@@ -376,10 +354,18 @@ const FlipBookProfile: FC = () => {
   const handleProfileClick = () => console.log("Profile clicked (Navbar)")
   const handleHomeClick = () => console.log("Home clicked (Navbar)")
 
-  return (
-    <div style={containerStyle}>
-      {isFromProfileButton && <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />}
+return (
+  <div style={containerStyle}>
+    <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
 
+    <button
+      className="close-btn"
+      onClick={() => (window.location.href = "/dashboard")}
+    >
+      &times;
+    </button>
+
+      <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
       <div className="book-container">
         <div className={`book ${page === 1 ? "book-closed" : ""}`}>
           {pages.map((p, i) => {
@@ -413,4 +399,4 @@ const FlipBookProfile: FC = () => {
   )
 }
 
-export default FlipBookProfile
+export default FlipBookProfile;

@@ -62,7 +62,7 @@ const App: React.FC = () => {
         <Route path="/create-project-form" element={<CreateProjectForm />} />
 
         {/* Project Interface */}
-        <Route path="/project/:projectId" element={<ProjectInterface />} />
+        <Route path="/projectinterface" element={<ProjectInterface />} />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />

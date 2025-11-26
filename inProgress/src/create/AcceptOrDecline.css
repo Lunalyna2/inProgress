@@ -110,3 +110,54 @@ ul {
   color: #d6336c;
   font-weight: 500;
 }
+
+.slide-out {
+  animation: slideLeft 0.35s forwards ease-in-out;
+}
+
+@keyframes slideLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-40px); }
+}
+
+/* Pop-in animation for Approved */
+.pop-in {
+  animation: popIn 0.35s ease-out;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Approved badge style */
+.approved-badge {
+  padding: 6px 12px;
+  background: #d4ffc4;
+  color: #2b7a0b;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 1px solid #9ed48e;
+}
+
+/* Buttons */
+.btn-accept {
+  background: #4ca574;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-decline {
+  background: #cf6969;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.collaborator-card {
+  transition: all 0.3s ease;
+}

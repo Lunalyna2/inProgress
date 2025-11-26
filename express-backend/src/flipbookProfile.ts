@@ -41,7 +41,7 @@ router.get("/:userId", async (req, res) => {
         const profile = profileResult.rows[0] || {};
 
         res.json({
-            name: userResult.rows[0].fullname,   // FIXED HERE
+            name: userResult.rows[0].fullname,
             ...profile
         });
 

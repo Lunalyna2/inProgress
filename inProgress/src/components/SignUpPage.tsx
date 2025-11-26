@@ -123,6 +123,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
             const data = await response.json();
 
             if (response.ok) {
+                localStorage.setItem("userToken", data.token);
                 // Save user info for flipbook
                 localStorage.setItem("userId", data.user.id);
                 localStorage.setItem("username", data.user.username);
