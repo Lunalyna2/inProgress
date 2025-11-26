@@ -210,8 +210,6 @@ const ProjectOwnerFolder: React.FC = () => {
     },
     ]
 
-
-
   const handleUpdateTaskStatus = (taskId: number, newStatus: TaskStatus): void => {
     setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
   }
