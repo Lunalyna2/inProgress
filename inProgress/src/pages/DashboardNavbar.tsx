@@ -38,7 +38,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
         </button>
         <button
           className="menu-button"
-          onClick={() => handleNavigate("/flipbook")}
+          onClick={() => handleNavigate("/flipbook?source=profile")}
         >
           Profile
         </button>
