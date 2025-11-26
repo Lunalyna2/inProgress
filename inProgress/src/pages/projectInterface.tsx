@@ -351,160 +351,162 @@ export default function ProjectInterface() {
         100;
 
   return (
-    <FolderBackground>
-      <div className="folder-content-grid">
-        
-        {/* HEADER - Left Column */}
-        <div className="header-box">
-          <input
-            className="title-input"
-            placeholder="Project Title"
-            value={project.title}
-            onChange={(e) => updateField("title", e.target.value)}
-          />
+   <FolderBackground>
+  <div className="folder-content-grid">
 
-          {/* DESCRIPTION */}
-          <textarea
-            className="desc-input expanded"
-            placeholder="Description..."
-            value={project.description}
-            onChange={(e) => updateField("description", e.target.value)}
-          />
+    {/* HEADER - Left Column */}
+    <div className="header-box">
+      <input
+        className="title-input"
+        placeholder="Project Title"
+        value={project.title}
+        onChange={(e) => updateField("title", e.target.value)}
+      />
 
-          <div className="info-line">
-            <label>College:</label>
-            <select
-                value={project.college}
-                onChange={(e) => updateField("college", e.target.value)}
-            >
-                {COLLEGE_OPTIONS.map((collegeName) => (
-                    <option key={collegeName || "none"} value={collegeName}>
-                        {collegeName || "Select College"}
-                    </option>
-                ))}
-            </select>
-          </div>
+      {/* DESCRIPTION */}
+      <textarea
+        className="desc-input expanded"
+        placeholder="Description..."
+        value={project.description}
+        onChange={(e) => updateField("description", e.target.value)}
+      />
 
-          <div className="roles-section">
-                    <label>Roles Needed:</label>
-                        <div className="roles-list">
-                            {projectRoles.map((role) => (
-                                <div key={role.id} className="role-tag">
-                                    <span>{role.role_name}</span>
-                                    <button onClick={() => removeRequiredRole(role.id)} className="remove-role-btn">&times;</button>
-                                </div>
-                            ))}
-                        </div>
-                        <button onClick={addRequiredRole} className="add-role-btn">
-                            + Add Role
-                        </button>
-                    </div>
+      <div className="info-line">
+        <label>College:</label>
+        <select
+          value={project.college}
+          onChange={(e) => updateField("college", e.target.value)}
+        >
+          {COLLEGE_OPTIONS.map((collegeName) => (
+            <option key={collegeName || "none"} value={collegeName}>
+              {collegeName || "Select College"}
+            </option>
+          ))}
+        </select>
+      </div>
 
-                    {/* COLLABORATORS */}
-                    <div className="collab-section">
-                        <label>Collaborators:</label>
-                        <div className="collab-list">
-                            {project.collaborators.map((c, i) => (
-                                <span key={c.id || c.userId || i} className="collaborator-tag">
-                                    {c.username}
-                                    {/* REMOVE BUTTON */}
-                                    {
-                                        String(c.userId) !== userId && (
-                                          <button onClick={() => removeCollaborator(c.userId)} className="remove-role-btn">&times;</button>
-                                      )
-                                    }
-                                </span>
-                            ))}
-                        </div>
-                        <button onClick={addCollaborator} className="add-collab-btn">
-                            + Add Collaborator
-                        </button>
-                    </div>
-
-                    {/* Status Toggle */}
-                    <div className="status-section">
-                        <label>Status:</label>
-                        <div
-                            className={`status-indicator ${
-                                project.status === "done" ? "green" : "orange"
-                            }`}
-                            title={project.status.toUpperCase()}
-                        />
-                        <button 
-                            onClick={() => updateField("status", "ongoing")}
-                            disabled={project.status === "ongoing"}
-                        >
-                            Ongoing
-                        </button>
-                        <button 
-                            onClick={() => updateField("status", "done")}
-                            disabled={project.status === "done"}
-                        >
-                            Done
-                        </button>
-                    </div>
-                    
-                    {/* SAVE BUTTON */}
-                    <button className="save-project-btn" onClick={saveProject}>
-                        Save Project Details
-                    </button>
-                    
-                </div>
-
-                {/* TASKS & REQUESTS - Right Column */}
-                <div className="right-panel">
-                        
-                    {/* TASKS */}
-                    <div className="task-box">
-                        <h3 className="task-header">To-Do ({progress.toFixed(0)}%)</h3>
-                        <button className="assign-btn" onClick={addTask}>
-                            Assign Task
-                        </button>
-
-                        <div className="task-list scrollable"> 
-                            {project.tasks.map((task) => (
-                                <div key={task.id} className="task-item">
-                                    <input
-                                        type="checkbox"
-                                        checked={task.done}
-                                        onChange={(e) => toggleTask(task.id, e.target.checked)} 
-                                    />
-                                    <span className={task.done ? "task-done" : ""}>{task.label}</span>
-                                </div>
-                            ))}
-                            {project.tasks.length === 0 && (
-                                <div className="req-placeholder">No tasks assigned yet.</div>
-                            )}
-                        </div>
-
-                        {/* PROGRESS BAR */}
-                        <div className="progress-bar-container">
-                            <div 
-                                className="progress-fill" 
-                                style={{ width: `${progress}%` }}
-                            >
-                                {progress > 0 && `${progress.toFixed(0)}%`}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* REQUESTS */}
-                    <div className="request-box">
-                        <h3>Requests</h3>
-                        <div className="req-placeholder">No requests yet.</div>
-                    </div>
-                </div>
-                
-                {/* Message Bar for Success/Error */}
-                {message && (
-                    <div className={`message-bar ${message.type}`}>
-                        <span>{message.text}</span>
-                        <button onClick={() => setMessage(null)}>&times;</button>
-                    </div>
-                )}
-                {/* AcceptOrDecline component retained */}
-          <AcceptOrDecline />
+      <div className="roles-section">
+        <label>Roles Needed:</label>
+        <div className="roles-list">
+          {projectRoles.map((role) => (
+            <div key={role.id} className="role-tag">
+              <span>{role.role_name}</span>
+              <button
+                onClick={() => removeRequiredRole(role.id)}
+                className="remove-role-btn"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
         </div>
-    </FolderBackground>
-  );
+        <button onClick={addRequiredRole} className="add-role-btn">
+          + Add Role
+        </button>
+      </div>
+
+      {/* COLLABORATORS */}
+      <div className="collab-section">
+        <label>Collaborators:</label>
+        <div className="collab-list">
+          {project.collaborators.map((c, i) => (
+            <span key={c.id || c.userId || i} className="collaborator-tag">
+              {c.username}
+              {/* REMOVE BUTTON */}
+              {String(c.userId) !== userId && (
+                <button
+                  onClick={() => removeCollaborator(c.userId)}
+                  className="remove-role-btn"
+                >
+                  &times;
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+        <button onClick={addCollaborator} className="add-collab-btn">
+          + Add Collaborator
+        </button>
+      </div>
+
+      {/* Status Toggle */}
+      <div className="status-section">
+        <label>Status:</label>
+        <div
+          className={`status-indicator ${
+            project.status === "done" ? "green" : "orange"
+          }`}
+          title={project.status.toUpperCase()}
+        />
+        <button
+          onClick={() => updateField("status", "ongoing")}
+          disabled={project.status === "ongoing"}
+        >
+          Ongoing
+        </button>
+        <button
+          onClick={() => updateField("status", "done")}
+          disabled={project.status === "done"}
+        >
+          Done
+        </button>
+      </div>
+
+      {/* SAVE BUTTON */}
+      <button className="save-project-btn" onClick={saveProject}>
+        Save Project Details
+      </button>
+    </div>
+
+    {/* TASKS & REQUESTS - Right Column */}
+    <div className="right-panel">
+
+      {/* TASKS */}
+      <div className="task-box">
+        <h3 className="task-header">To-Do ({progress.toFixed(0)}%)</h3>
+        <button className="assign-btn" onClick={addTask}>
+          Assign Task
+        </button>
+
+        <div className="task-list scrollable">
+          {project.tasks.map((task) => (
+            <div key={task.id} className="task-item">
+              <input
+                type="checkbox"
+                checked={task.done}
+                onChange={(e) => toggleTask(task.id, e.target.checked)}
+              />
+              <span className={task.done ? "task-done" : ""}>{task.label}</span>
+            </div>
+          ))}
+          {project.tasks.length === 0 && (
+            <div className="req-placeholder">No tasks assigned yet.</div>
+          )}
+        </div>
+
+        {/* PROGRESS BAR */}
+        <div className="progress-bar-container">
+          <div
+            className="progress-fill"
+            style={{ width: `${progress}%` }}
+          >
+            {progress > 0 && `${progress.toFixed(0)}%`}
+          </div>
+        </div>
+      </div>
+
+      {/* REQUESTS → AcceptOrDecline */}
+      <AcceptOrDecline />
+    </div>
+
+    {/* Message Bar for Success/Error */}
+    {message && (
+      <div className={`message-bar ${message.type}`}>
+        <span>{message.text}</span>
+        <button onClick={() => setMessage(null)}>&times;</button>
+      </div>
+    )}
+  </div>
+</FolderBackground>
+);
 }
