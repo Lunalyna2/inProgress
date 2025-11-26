@@ -1,18 +1,18 @@
 .folder-content-grid {
-    display: grid;
-    grid-template-columns: 35% 1fr; 
-    height: 100%;
-    gap: 15px; 
-    padding: 0 15px 15px 15px; 
-    box-sizing: border-box;
-    padding-top: 50px; 
+  display: grid;
+  grid-template-columns: 35% 1fr;
+  grid-template-rows: 1fr; /* force one row that fills available height */
+  height: 100%;
+  gap: 15px;
+  padding: 0 15px 15px 15px;
+  box-sizing: border-box;
+  padding-top: 50px;
 }
 
-.header-box {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+.header-box,
+.right-panel {
+  height: 100%;   
+  align-self: stretch; 
 }
 
 .title-input {

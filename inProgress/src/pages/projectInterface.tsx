@@ -1,8 +1,8 @@
 import { useState } from "react";
-import "./projectInterface.css"; 
 import { Route } from "react-router-dom";
 import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
+import "./projectInterface.css";
 
 export default function ProjectInterface() {
   const [project, setProject] = useState({
