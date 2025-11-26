@@ -31,7 +31,7 @@ const AcceptOrDecline: React.FC = () => {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/api/collaborators/pending", {
+        const res = await fetch(`http://localhost:5000/api/collaborators/pending`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -116,7 +116,7 @@ const AcceptOrDecline: React.FC = () => {
             className="no-collab-img"
           />
           <p>Yay! No pending requests right now 💖</p>
-          <p>Invite friends or share your project!</p>
+          <p>Invite peers or share your project!</p>
         </div>
       ) : (
         <ul>
