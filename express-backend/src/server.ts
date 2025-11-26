@@ -8,71 +8,17 @@ import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
 import authForgotRoutes from "./routes/authForgot";
 import collaboratorRoutes from "./routes/collaborators";
-import forumUpvoteRouter from "./routes/forumUpvote";
+import forumUpvoteRoutes from "./routes/forumUpvote";
+import projectRoutes from "./routes/createproject";
+import { AuthenticatedRequest, authMiddleware, JWT_SECRET } from "./shared";
+
 type Request = import("express").Request;
 type Response = import("express").Response;
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = "gkes9Vwl5lJlO3w";
-
 const app = express();
-
-// Interface for requests that have been processed by the auth middleware
-interface AuthenticatedRequest extends Request {
-  userId?: number;
-  username?: string;
-  email?: string;
-}
-
-// --- AUTHENTICATION MIDDLEWARE (MOVED) ---
-const authMiddleware = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: () => void
-) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided." });
-  }
-
-  const token = authHeader.split(" ")[1];
-  if (!token || token.toLowerCase() === "null") {
-    console.error("Token is null or empty after Bearer split.");
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided." });
-  }
-
-  console.log("Token received:", token);
-  console.log("JWT Secret used for verification:", JWT_SECRET); // Should be 'gkes9Vwl5lJlO3w'
-
-  try {
-    // Verify the token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: number;
-      username: string;
-      email: string;
-    };
-
-    // Attach user info to the request object
-    req.userId = decoded.id;
-    req.username = decoded.username;
-    req.email = decoded.email;
-
-    next(); // Proceed to the route handler
-  } catch (ex) {
-    const errorMessage =
-      ex instanceof Error ? ex.message : "Unknown JWT verification error";
-
-    console.error("JWT verification error (details):", errorMessage);
-    return res.status(403).json({ message: "Invalid token." });
-  }
-};
 
 // Middleware
 app.use(express.json());
@@ -81,7 +27,8 @@ app.use(cors());
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
-app.use("/api/forum-upvotes", forumUpvoteRouter);
+app.use("/api/forum-upvotes", forumUpvoteRoutes);
+app.use("/api/projects", projectRoutes);
 
 // Test DB connection
 pool
@@ -107,12 +54,6 @@ interface ResetPasswordBody {
   resetToken: string;
   newPassword: string;
   rePassword: string;
-}
-
-interface CreateProjectRequestBody {
-  title: string;
-  description: string;
-  roles: string[];
 }
 
 // Validation for Signup
@@ -203,7 +144,6 @@ app.post("/api/signup", async (req: Request, res: Response) => {
 
 // Login Route
 app.post("/api/login", async (req: Request, res: Response) => {
-  // Explicitly type req.body
   const data: Pick<SignUpFormData, "cpuEmail" | "password"> = req.body;
   const { isValid, errors } = validateLoginData(data);
 
@@ -257,85 +197,6 @@ app.post("/api/login", async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error during login." });
   }
 });
-
-// Create Project Route
-app.post(
-  "/api/projects/create",
-  authMiddleware, // Ensure the user is authenticated
-  async (req: AuthenticatedRequest, res: Response) => {
-    const creatorId = req.userId;
-    const { title, description, roles } = req.body as CreateProjectRequestBody;
-
-    if (!creatorId) {
-      return res
-        .status(403)
-        .json({ message: "Authorization required to create a project." });
-    }
-
-    // Basic input validation
-    if (!title || !description || !roles || !Array.isArray(roles)) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Missing or invalid project data (title, description, or roles).",
-        });
-    }
-
-    const client = await pool.connect();
-
-    try {
-      await client.query("BEGIN");
-
-      const projectInsertQuery = `
-                INSERT INTO projects(title, description, creator_id) 
-                VALUES($1, $2, $3) 
-                RETURNING id, created_at
-            `;
-      const projectResult = await client.query(projectInsertQuery, [
-        title,
-        description,
-        creatorId,
-      ]);
-      const newProjectId = projectResult.rows[0].id;
-
-      if (roles.length > 0) {
-        const roleValues = roles
-          .map((_, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
-          .join(", ");
-
-        const roleInsertQuery = `
-                    INSERT INTO project_roles(project_id, role_name)
-                    VALUES ${roleValues}
-                `;
-
-        const roleParams: (string | number)[] = roles.flatMap((role) => [
-          newProjectId,
-          role,
-        ]);
-
-        await client.query(roleInsertQuery, roleParams);
-      }
-
-      await client.query("COMMIT");
-
-      // Success response
-      res.status(201).json({
-        message: "Project created successfully",
-        projectId: newProjectId,
-        createdAt: projectResult.rows[0].created_at,
-      });
-    } catch (error) {
-      await client.query("ROLLBACK");
-      console.error("❌ Database Error during project creation:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to create project due to a server error." });
-    } finally {
-      client.release();
-    }
-  }
-);
 
 // Start the server
 app.listen(PORT, () => {
