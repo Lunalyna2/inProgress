@@ -32,7 +32,7 @@ router.get("/pending", auth, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
 
     const query = `
-      SELECT pc.id, u.username, up.skills, p.title AS project_title
+      SELECT pc.id, u.fullname, up.skill, up.avatar, p.title AS project_title
       FROM project_collaborators pc
       JOIN users u ON u.id = pc.user_id
       LEFT JOIN userprofile up ON up.user_id = u.id
@@ -43,9 +43,13 @@ router.get("/pending", auth, async (req: AuthRequest, res: Response) => {
     const result = await pool.query(query, [userId]);
 
     const collaborators = result.rows.map((row) => ({
-      id: row.id,
-      name: row.username,
-      skills: row.skills ? row.skills.split(",") : [],
+      id: row.id.toString(),
+      name: row.fullname,
+      skills: row.skill ? row.skill.split(",") : [],
+      avatarUrl: row.avatar || null,
+      approved: false,
+      role: undefined,
+      decline: false,
       project: row.project_title,
     }));
 
@@ -69,7 +73,7 @@ router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
        SET status='accepted'
        FROM projects p
        WHERE pc.id=$1 AND pc.project_id = p.id AND p.creator_id=$2
-       RETURNING pc.id`,
+       RETURNING pc.id, pc.user_id`,
       [collabId, userId]
     );
 
@@ -77,7 +81,27 @@ router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Collaborator not found or not authorized" });
     }
 
-    return res.json({ message: "Collaborator accepted" });
+    // Fetch collaborator details for frontend update
+    const collabUser = await pool.query(
+      `SELECT u.fullname, up.skill, up.avatar
+       FROM users u
+       LEFT JOIN userprofile up ON up.user_id = u.id
+       WHERE u.id = $1`,
+      [result.rows[0].user_id]
+    );
+
+    const row = collabUser.rows[0];
+    const collaborator = {
+      id: collabId,
+      name: row.fullname,
+      skills: row.skill ? row.skill.split(",") : [],
+      avatarUrl: row.avatar || null,
+      approved: true,
+      role: "collaborator",
+      decline: false,
+    };
+
+    return res.json(collaborator);
   } catch (err) {
     console.error("Accept collaborator error:", err);
     return res.status(500).json({ error: "Server error" });
@@ -97,7 +121,7 @@ router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
        SET status='declined'
        FROM projects p
        WHERE pc.id=$1 AND pc.project_id = p.id AND p.creator_id=$2
-       RETURNING pc.id`,
+       RETURNING pc.id, pc.user_id`,
       [collabId, userId]
     );
 
@@ -105,7 +129,7 @@ router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Collaborator not found or not authorized" });
     }
 
-    return res.json({ message: "Collaborator declined" });
+    return res.json({ id: collabId, message: "Collaborator declined" });
   } catch (err) {
     console.error("Decline collaborator error:", err);
     return res.status(500).json({ error: "Server error" });
