@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard";
 import AcceptOrDecline from "./create/AcceptOrDecline";
 import ProjectInterface from "./pages/projectInterface";
 import CreateProjectForm from "./create/CreateProjectForm";
+import JoinedProjectFolder from "./pages/JoinedProjectFolder";
+import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
 
 // // Define interfaces for props
 export interface LoginPageProps {
@@ -63,6 +65,12 @@ const App: React.FC = () => {
 
         {/* Project Interface */}
         <Route path="/projectinterface" element={<ProjectInterface />} />
+
+        {/* Project Owner Folder */}
+        <Route path="/project-owner-folder" element={<ProjectOwnerFolder />} />
+
+        {/* Joined Collaborator */}
+        <Route path="/joined-collaborator-folder" element={<JoinedProjectFolder />} />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
