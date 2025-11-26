@@ -1,11 +1,14 @@
 import express from "express";
-import pool from "../pool"; // Your PostgreSQL pool
-import { authMiddleware, AuthenticatedRequest } from "../middleware/auth";
+import pool from "../pool"; // your PostgreSQL pool
+import { authMiddleware, AuthenticatedRequest } from "../shared";
 
 const router = express.Router();
 
-// --- GET all comments for a project ---
-router.get("/:projectId", authMiddleware, async (req: AuthenticatedRequest, res) => {
+/**
+ * GET all comments for a project
+ * GET /api/projects/:projectId/comments
+ */
+router.get("/projects/:projectId/comments", authMiddleware, async (req: AuthenticatedRequest, res) => {
   const projectId = Number(req.params.projectId);
   if (isNaN(projectId)) return res.status(400).json({ message: "Invalid project ID" });
 
@@ -20,22 +23,29 @@ router.get("/:projectId", authMiddleware, async (req: AuthenticatedRequest, res)
     );
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching comments:", err);
     res.status(500).json({ message: "Failed to fetch comments" });
   }
 });
 
-// --- POST a new comment ---
-router.post("/", authMiddleware, async (req: AuthenticatedRequest, res) => {
-  const { projectId, text } = req.body;
+/**
+ * POST a new comment to a project
+ * POST /api/projects/:projectId/comments
+ */
+router.post("/projects/:projectId/comments", authMiddleware, async (req: AuthenticatedRequest, res) => {
+  const projectId = Number(req.params.projectId);
+  const { text } = req.body;
   const userId = req.userId;
   const username = req.username;
 
-  if (!projectId || !text || !userId || !username) {
-    return res.status(400).json({ message: "Missing comment text, projectId, or user info" });
+  if (!text || !userId || !username) {
+    return res.status(400).json({ message: "Missing comment text or user info" });
   }
 
   try {
+    const projectCheck = await pool.query("SELECT id FROM projects WHERE id = $1", [projectId]);
+    if (projectCheck.rowCount === 0) return res.status(404).json({ message: "Project not found" });
+
     const result = await pool.query(
       `INSERT INTO comments (project_id, user_id, username, text)
        VALUES ($1, $2, $3, $4)
@@ -44,13 +54,16 @@ router.post("/", authMiddleware, async (req: AuthenticatedRequest, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("Error adding comment:", err);
     res.status(500).json({ message: "Failed to add comment" });
   }
 });
 
-// --- PUT (edit) a comment ---
-router.put("/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
+/**
+ * PUT (edit) a comment
+ * PUT /api/comments/:id
+ */
+router.put("/comments/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
   const commentId = Number(req.params.id);
   const { text } = req.body;
   const userId = req.userId;
@@ -70,13 +83,16 @@ router.put("/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("Error editing comment:", err);
     res.status(500).json({ message: "Failed to edit comment" });
   }
 });
 
-// --- DELETE a comment ---
-router.delete("/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
+/**
+ * DELETE a comment
+ * DELETE /api/comments/:id
+ */
+router.delete("/comments/:id", authMiddleware, async (req: AuthenticatedRequest, res) => {
   const commentId = Number(req.params.id);
   const userId = req.userId;
 
@@ -90,7 +106,7 @@ router.delete("/:id", authMiddleware, async (req: AuthenticatedRequest, res) => 
     if (result.rowCount === 0) return res.status(403).json({ message: "Not authorized or comment not found" });
     res.status(204).send();
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting comment:", err);
     res.status(500).json({ message: "Failed to delete comment" });
   }
 });
