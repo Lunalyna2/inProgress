@@ -1,12 +1,12 @@
 .projects-container {
   position: relative;
-  min-height: 100vh;       
+  min-height: 100vh;
   width: 100%;
-  padding: 5rem 2rem 2rem; 
+  padding: 5rem 2rem 2rem;
   color: rgb(0, 0, 0);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;       
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
@@ -49,7 +49,6 @@
   }
 }
 
-/* Header */
 .projects-title {
   font-size: 2rem;
   font-weight: bold;
@@ -58,12 +57,11 @@
 }
 
 .project-description {
-  color: #000000;
+  color: #000;
   margin-bottom: 1rem;
   line-height: 1.6;
 }
 
-/* No Results */
 .no-results {
   text-align: center;
   padding: 4rem 0;

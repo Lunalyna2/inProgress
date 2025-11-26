@@ -1,248 +1,220 @@
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.4); 
-    z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .project-comments-modal {
-    /* Dimensions */
-    width: 90%;
-    max-width: 600px;
-    height: 90%;
-    max-height: 800px;
-    
-    /* Centering Fix */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    
-    /* Style */
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    padding: 30px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    font-family: sans-serif;
-    
-    animation: modalSlideUp 0.3s ease-out forwards;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  border-radius: 30px;
+  padding: 25px 30px 25px 40px; 
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 30px rgba(1, 15, 65, 0.15);
+  position: relative;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-@keyframes modalSlideUp {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -40%);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
-}
-
-/* Close Button */
 .close-button {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 1.2em;
-    cursor: pointer;
-    color: #333;
-    transition: color 0.2s;
-    z-index: 10;
+  position: absolute; 
+  top: 15px; 
+  right: 15px;
+  border: none; 
+  background: #ff6b81; 
+  border-radius: 50%; 
+  padding: 6px;
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  cursor: pointer; 
+  transition: transform 0.2s, 
+  background 0.2s;
 }
 
-.close-button:hover {
-    color: #f57824;
-}
-
-/* --- Header Section --- */
-.modal-header-section {
-    margin-bottom: 20px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #eee;
-    flex-shrink: 0;
+.close-button:hover { 
+    transform: scale(1.2); 
+    background: #ff4757; 
 }
 
 .modal-title {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: #333;
-    margin: 0;
+  font-size: 1.8em; font-weight: 800;
+  background: linear-gradient(90deg,#210a6b,#cb53d8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-left: 10px;
 }
 
-.modal-project-id {
-    font-size: 0.9em;
-    color: #999;
-    margin-top: 5px;
+.modal-project-description { 
+  font-size: 1em; 
+  color: #2e2929; 
+  margin-bottom: 20px; 
+  padding-left: 10px; 
 }
 
-/* --- Comments Area --- */
-
-.comments-section-wrapper {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-right: 15px; 
-    padding-bottom: 100px; /* Space for fixed input area */
+.comments-section-wrapper { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    margin-bottom: 15px; 
+    padding-right: 5px; 
 }
 
-.comments-label {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 15px;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 5;
-    padding-top: 5px;
+.comments-list { 
+    display: flex; 
+    flex-direction: 
+    column; gap: 12px; 
 }
 
-.comments-list {
-    padding-left: 0;
+.comment-item { 
+    display: flex; 
+    align-items: flex-start; 
+    gap: 10px; 
 }
 
-.comment-item {
-    display: flex;
-    gap: 15px;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
-}
-
-.comment-item:last-child {
-    border-bottom: none;
-}
-
-/* Highlight for new comments */
-.comment-item.is-new-comment {
-    background-color: #fffaf0; 
-}
-
-.user-avatar {
+.user-avatar { 
     width: 40px; 
-    height: 40px;
-    border-radius: 50%;
-    background-color: #29b6f6; 
-    flex-shrink: 0;
+    height: 40px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 2px solid #a186f6; 
+    margin-left: 15px;
+}
+
+.comment-bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 25px;
+  position: relative;
+  background: linear-gradient(135deg, #f6a6ff, #a186f6);
+  color: #000000;
+  font-size: 1em;
+  word-break: break-word;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.comment-bubble p { 
+    margin: 0; 
+    line-height: 1.4; 
+}
+
+.comment-header { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 4px; 
+    font-weight: 600; 
+    font-size: 0.85em; 
 }
 
 .comment-username {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: #333;
-    display: block;
-    margin-bottom: 2px;
+  background: linear-gradient(90deg,#152f96,#51063e);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.new-comment-tag {
-    font-size: 0.75em;
-    font-weight: 700;
-    color: white;
-    background-color: #f57824; 
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
+.new-comment-tag { 
+    font-size: 0.65em; 
+    font-weight: 700; 
+    color: #fff; 
+    background: #ff4757; 
+    padding: 2px 6px; 
+    border-radius: 12px; 
 }
 
-.comment-text {
-    font-size: 0.95em;
-    color: #555;
-    margin: 0;
-    line-height: 1.4;
+.comment-actions { 
+    display: flex; 
+    gap: 8px; 
+    margin-top: 5px; 
 }
 
-/* --- Comment Input Area (Fixed to Bottom) --- */
+.comment-actions button { 
+  background: rgba(255,255,255,0.3); 
+  border-radius: 12px; 
+  padding: 3px; 
+  border: none; 
+  cursor: pointer; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  transition: all 0.2s; 
+}
+
+.comment-actions button:hover { 
+    transform: scale(1.1); 
+    background: rgba(255,255,255,0.5); 
+}
+
+.comment-edit-form { 
+    display: flex; 
+    gap: 8px; 
+    margin-top: 5px; 
+}
+
+.comment-edit-form input { 
+    flex-grow: 1; 
+    border-radius: 15px; 
+    border: 1px solid #000000; 
+    padding: 8px 12px; 
+}
+
+.save-edit-btn { 
+    background: #8164e6; 
+    color: #fff; 
+    border-radius: 12px; 
+    padding: 6px 12px; 
+}
+
+.cancel-edit-btn { 
+    background: #ccc; 
+    color: #fff; 
+    border-radius: 12px; 
+    padding: 6px 12px; 
+}
+
 .comment-input-area {
-    position: absolute; 
-    bottom: 30px;
-    left: 30px;
-    right: 30px;
-    display: flex;
-    align-items: center;
-    background-color: #f5f5f5;
-    border-radius: 30px;
-    padding: 5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
-    z-index: 10;
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  background: #f7e6ff; 
+  border-radius: 30px; 
+  padding: 10px 15px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.comment-input-area input { 
+    flex-grow: 1; 
+    border: none; 
+    outline: none; 
+    background: transparent; 
+    font-size: 1em; 
 }
 
-.comment-input-area.is-focused {
-    box-shadow: 0 4px 12px rgba(41, 182, 246, 0.5);
+.send-button { 
+    background: #a186f6; 
+    color: #fff; 
+    border-radius: 50%; 
+    width: 45px; 
+    height: 45px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.2s; 
 }
 
-.comment-input {
-    flex-grow: 1;
-    border: none;
-    padding: 10px 15px;
-    outline: none;
-    font-size: 1em;
-    background: transparent;
-}
+.send-button:hover { 
+    transform: scale(1.15); 
+    background: #8164e6; }
 
-.send-button {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-color: #29b6f6; 
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.2s, transform 0.2s;
-    flex-shrink: 0;
-}
-
-.send-button:hover:not(:disabled) {
-    background-color: #00bcd4;
-    transform: scale(1.05);
-}
-
-.send-button:disabled {
-    background: #CCC;
-    cursor: not-allowed;
-}
-
-/* Spinner Styles */
-.send-button.is-sending .spinner {
-    animation: rotate 2s linear infinite;
-    width: 20px;
-    height: 20px;
-}
-
-.send-button.is-sending .path {
-    stroke: white;
-    stroke-linecap: round;
-    animation: dash 1.5s ease-in-out infinite;
-}
-
-@keyframes rotate {
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes dash {
-    0% {
-        stroke-dasharray: 1, 150;
-        stroke-dashoffset: 0;
-    }
-    50% {
-        stroke-dasharray: 90, 150;
-        stroke-dashoffset: -35;
-    }
-    100% {
-        stroke-dasharray: 90, 150;
-        stroke-dashoffset: -124;
-    }
+.empty-state { 
+    text-align: center; 
+    font-size: 1em; 
+    color: #aaa; 
+    padding: 30px 0; 
 }
