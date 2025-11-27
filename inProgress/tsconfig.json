@@ -7,17 +7,17 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "Node16",
+    "module": "esnext",
     "target": "es2020",
-    "types": [],
+    "types": ["react", "react-dom"],
     // For nodejs:
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "esModuleInterop": true,    
+    "allowJs": true,    
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node16",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noEmit": true,
+    // "noEmit": true,
     // "types": ["node"],
     // and npm install -D @types/node
 
@@ -42,9 +42,11 @@
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
-    "isolatedModules": true,
+    // "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+
+  "include": ["src/**/*"]
 }

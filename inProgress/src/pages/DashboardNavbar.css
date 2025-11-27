@@ -1,0 +1,23 @@
+.menu-button {
+  background-color: transparent;
+  color: #111827; 
+  border: 2px solid transparent; 
+  padding: 8px 20px;
+  margin: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.menu-button:hover {
+  background-color: rgba(79, 70, 229, 0.1); 
+  border-color: #4f46e5; 
+  transform: scale(1.05);
+}
+
+.menu-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}

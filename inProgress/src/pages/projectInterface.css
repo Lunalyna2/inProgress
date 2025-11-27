@@ -1,0 +1,413 @@
+.folder-background {
+  background-color: #cde5f5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding-top: 155px; 
+}
+
+.folder-container {
+  position: relative;
+  width: 95vw;
+  max-width: 1280px;
+  height: 75vh; 
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.folder-tab {
+  background-color: white;
+  height: 40px;
+  width: 280px;
+  border-radius: 25px 25px 0 0;
+  position: absolute;
+  top: -80px; 
+  left: 0;
+  z-index: 2;
+  padding: 1rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.folder-body {
+  background-color: white;
+  border-radius: 0 25px 25px 25px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-content {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* --- 2. MAIN GRID LAYOUT (Based on your component's HTML) --- */
+.folder-content-grid {
+    display: grid;
+    /* This defines the left/right columns */
+    grid-template-columns: 1fr 320px; 
+    gap: 2rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.header-box {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-right: 1rem; /* Visual separation */
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+    padding-left: 1rem;
+    border-left: 1px solid #e5e7eb;
+}
+
+/* --- 3. INPUT AND FORM STYLES --- */
+
+.title-input {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  border: 0;
+  border-bottom: 2px solid #ccc;
+  background: none;
+  padding: 4px;
+  width: 100%;
+}
+.title-input:focus {
+  outline: none;
+  border-bottom-color: #3b82f6;
+}
+
+.desc-input.expanded {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  resize: vertical;
+  font-size: 0.9rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  color: #4b5563;
+}
+.desc-input.expanded:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.info-line, .roles-section, .collab-section, .status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.info-line label, .roles-section label, .collab-section label, .status-section label {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+.info-line select {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 300px; /* Constraint width */
+}
+
+/* --- 4. ROLES/COLLABORATORS STYLES --- */
+
+.roles-list, .collab-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.role-tag, .collaborator-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e0f2fe; /* Light blue */
+    color: #0c4a6e; /* Darker blue */
+    padding: 0.4rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.collaborator-tag {
+    background: #fef3c7; /* Light yellow */
+    color: #92400e; /* Darker yellow */
+}
+
+.remove-role-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-left: 0.5rem;
+    padding: 0 0.2rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.remove-role-btn:hover {
+    opacity: 1;
+}
+
+.add-role-btn, .add-collab-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+    align-self: flex-start;
+}
+
+.add-role-btn:hover, .add-collab-btn:hover {
+    background: #2563eb;
+}
+
+/* --- 5. STATUS INDICATOR --- */
+.status-section {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-indicator.green {
+    background-color: #10b981;
+}
+
+.status-indicator.orange {
+    background-color: #f59e0b;
+}
+
+.status-section button {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.status-section button:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.status-section button:disabled {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    cursor: default;
+}
+
+/* --- 6. SAVE BUTTON --- */
+.save-project-btn {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: flex-start;
+}
+
+.save-project-btn:hover {
+    background: #047857;
+}
+
+/* --- 7. TASK PANEL STYLES --- */
+
+.task-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.task-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.assign-btn {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.assign-btn:hover {
+    background: #d97706;
+}
+
+.task-list.scrollable {
+    flex: 1; /* Allows it to take up available space */
+    overflow-y: auto;
+    max-height: 250px; /* Give it a fixed height for scrolling */
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}
+
+.task-item input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.task-item span {
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.task-item .task-done {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.req-placeholder {
+    text-align: center;
+    color: #9ca3af;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+/* PROGRESS BAR */
+.progress-bar-container {
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #10b981; /* Green for completion */
+    transition: width 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.7rem;
+    color: white;
+    padding-right: 5px;
+}
+
+/* --- 8. MESSAGE BAR --- */
+
+.message-bar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.message-bar.success {
+    background-color: #10b981;
+}
+
+.message-bar.error {
+    background-color: #ef4444;
+}
+
+.message-bar button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+/* --- 9. RESPONSIVENESS --- */
+@media (max-width: 1024px) {
+  .folder-content-grid {
+    grid-template-columns: 1fr;
+  }
+  .right-panel {
+    border-left: none;
+    padding-left: 0;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+}
+
+@media (max-width: 768px) {
+  .folder-background {
+    padding-top: 100px;
+  }
+}
