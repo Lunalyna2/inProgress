@@ -3,10 +3,15 @@ import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
 // interfaces
+interface Role {
+  name: string;
+  count: number;
+}
+
 interface ProjectData {
   title: string;
   description: string;
-  roles: string[];
+  roles: Role[];
 }
 
 interface InputProps {
@@ -57,7 +62,7 @@ const CreateProjectForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [roleInput, setRoleInput] = useState("");
-  const [roles, setRoles] = useState<string[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,7 +76,7 @@ const CreateProjectForm: React.FC = () => {
   const handleAddRole = () => {
     const trimmed = roleInput.trim();
     if (!trimmed) return;
-    setRoles((prev) => [...prev, trimmed]);
+    setRoles((prev) => [...prev, { name: trimmed, count: 1 }]);
     setRoleInput("");
   };
 
@@ -98,7 +103,9 @@ const CreateProjectForm: React.FC = () => {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || errData.message || "Project submission failed");
+        throw new Error(
+          errData.error || errData.message || "Project submission failed"
+        );
       }
 
       const result = await response.json();
@@ -150,7 +157,13 @@ const CreateProjectForm: React.FC = () => {
       {roles.length > 0 && (
         <div className="role-list">
           <h4>Added Roles:</h4>
-          <ul>{roles.map((role, i) => <li key={i}>{role}</li>)}</ul>
+          <ul>
+            {roles.map((role, i) => (
+              <li key={i}>
+                {role.name} (Qty: {role.count})
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
