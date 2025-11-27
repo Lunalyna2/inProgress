@@ -18,14 +18,13 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
-
 const allowedOrigins = [
-  allowedOrigin,                     // from Render env var
+  "https://inprogresss.netlify.app",
   "http://localhost:3000",
   "http://localhost:5173",
-  "https://inprogresss.netlify.app", // safety fallback
+  process.env.ALLOWED_ORIGIN,
 ];
+
 
 app.use(
   cors({
@@ -39,6 +38,7 @@ app.use(
         console.log("CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
+      console.log("Incoming request from:", origin);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
