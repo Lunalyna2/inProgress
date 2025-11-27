@@ -19,32 +19,25 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 
 const allowedOrigins = [
-  "https://inprogresss.netlify.app",
   "http://localhost:3000",
-  "http://localhost:5173",
-  process.env.ALLOWED_ORIGIN,
+  "https://inprogresss.netlify.app",  // your frontend
 ];
-
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow tools with no origin (Postman, curl, mobile apps)
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl)
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+        return callback(null, true);
       } else {
-        console.log("CORS blocked origin:", origin);
-        callback(new Error("Not allowed by CORS"));
+        return callback(new Error("CORS blocked"));
       }
-      console.log("Incoming request from:", origin);
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
 
 // Middleware
 app.use(express.json());
