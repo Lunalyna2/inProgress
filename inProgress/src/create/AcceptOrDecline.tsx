@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./acceptOrDecline.css";
+import "./AcceptOrDecline.css";
 
 type Collaborator = {
   id: string;
