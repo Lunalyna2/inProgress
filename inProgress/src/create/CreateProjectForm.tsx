@@ -1,7 +1,7 @@
 import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
-import { API_URL } from "../../../express-backend/src/config/api";
+import { API_URL } from "@/config/api";
 
 // interfaces
 interface Role {

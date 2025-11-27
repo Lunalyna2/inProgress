@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./AcceptOrDecline.css";
-import { API_URL } from "../../../express-backend/src/config/api";
+import { API_URL} from "../config/api";
 
 type Collaborator = {
   id: string;

@@ -1,6 +1,6 @@
 // forgotPasswordModal.tsx
 import { useState } from "react";
-import {API_URL} from "../../../express-backend/src/config/api"
+import { API_URL } from "@/config/api";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;

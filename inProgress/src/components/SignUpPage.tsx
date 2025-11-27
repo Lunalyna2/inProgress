@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ChangeEvent, FormEvent, FocusEvent } from 'react'; 
 import './signup.css';
 import { useNavigate } from "react-router-dom";
-import { API_URL } from '../../../express-backend/src/config/api';
+import { API_URL } from '@/config/api';
 
 interface SignUpPageProps {
     switchToLogin: () => void;

@@ -1,6 +1,5 @@
+import { API_URL } from "@/config/api";
 
-
-const API_URL = process.env.REACT_APP_API_URL;
 
 export const getComments = async (projectId: number) => {
   const token = localStorage.getItem("userToken");
