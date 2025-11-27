@@ -27,9 +27,10 @@ const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
    GET /api/collaborators/pending
    Fetch pending collaborator requests for projects owned by the user
 ---------------------------------------------------- */
-router.get("/pending", auth, async (req: AuthRequest, res: Response) => {
+router.get("/pending/:projectId", auth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
+    const projectId = req.params.projectId;
 
     const query = `
       SELECT pc.id, u.fullname, up.skill, up.avatar, p.title AS project_title
@@ -37,10 +38,10 @@ router.get("/pending", auth, async (req: AuthRequest, res: Response) => {
       JOIN users u ON u.id = pc.user_id
       LEFT JOIN userprofile up ON up.user_id = u.id
       JOIN projects p ON p.id = pc.project_id
-      WHERE p.creator_id = $1 AND pc.status = 'pending'
+      WHERE p.creator_id = $1 AND pc.status = 'pending' AND p.id = $2
     `;
 
-    const result = await pool.query(query, [userId]);
+    const result = await pool.query(query, [userId, projectId]);
 
     const collaborators = result.rows.map((row) => ({
       id: row.id.toString(),
@@ -121,7 +122,7 @@ router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
        SET status='declined'
        FROM projects p
        WHERE pc.id=$1 AND pc.project_id = p.id AND p.creator_id=$2
-       RETURNING pc.id, pc.user_id`,
+       RETURNING pc.id`,
       [collabId, userId]
     );
 

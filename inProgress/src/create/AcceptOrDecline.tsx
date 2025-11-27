@@ -9,9 +9,14 @@ type Collaborator = {
   approved?: boolean;
   role?: string;
   decline?: boolean; // used for slide-out animation
+  project?: string;
 };
 
-const AcceptOrDecline: React.FC = () => {
+type AcceptOrDeclineProps = {
+  projectId: string; 
+};
+
+const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,15 +28,11 @@ const AcceptOrDecline: React.FC = () => {
 
         if (!token) {
           // Demo data if no token
-          setCollaborators([
-            { id: "1", name: "Alice", skills: ["UI Design", "Figma"] },
-            { id: "2", name: "Bob", skills: ["Backend", "Node.js"] },
-            { id: "3", name: "Charlie", skills: ["Frontend", "React"] },
-          ]);
+          setCollaborators([]);
           return;
         }
 
-        const res = await fetch(`http://localhost:5000/api/collaborators/pending`, {
+        const res = await fetch(`http://localhost:5000/api/collaborators/pending/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -47,8 +48,11 @@ const AcceptOrDecline: React.FC = () => {
       }
     };
 
-    fetchCollaborators();
-  }, []);
+    if (projectId) {
+      fetchCollaborators();
+    }
+
+  }, [projectId]);
 
   // Accept collaborator
   const handleAccept = async (id: string) => {
@@ -106,7 +110,7 @@ const AcceptOrDecline: React.FC = () => {
 
   return (
     <div className="accept-or-decline">
-      <h2>Pending Collaborators</h2>
+      <h2>Pending Collaborators for Project {projectId}</h2>
 
       {collaborators.length === 0 ? (
         <div className="no-collaborators">
@@ -136,6 +140,7 @@ const AcceptOrDecline: React.FC = () => {
                 />
                 <strong>{user.name}</strong>
                 <p>Skills: {user.skills.join(", ")}</p>
+                <p className="project-title"> Project: <strong>{user.project}</strong></p>
               </div>
 
               <div className="collaborator-actions">

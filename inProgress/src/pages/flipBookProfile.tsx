@@ -78,8 +78,12 @@ const FlipBookProfile: FC = () => {
   const [savedPic, setSavedPic] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
 
-  // NEW: edit mode state
-  const [isEditing, setIsEditing] = useState(true);
+  // ✅ NEW: Check if accessed from profile page
+  const urlParams = new URLSearchParams(window.location.search);
+  const isFromProfile = urlParams.get("source") === "profile";
+
+  // ✅ CHANGED: If from profile, start in view mode (not editing)
+  const [isEditing, setIsEditing] = useState(!isFromProfile);
 
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
     name: "",
@@ -97,40 +101,56 @@ const FlipBookProfile: FC = () => {
     { id: "avatar5", image: "/assets/characters/char5.png" },
   ])
 
-  // Initialize name from signup (localStorage) and set initial avatar preview
+  // ✅ CHANGED: Load profile data if from profile page, otherwise use localStorage
   useEffect(() => {
-    const savedName = localStorage.getItem("name") || "";
-    setProfileInfo((prev) => ({ ...prev, name: savedName }));
-    setSavedPic(profilePics[0]?.image || null);
-  }, [profilePics]);
+    if (isFromProfile) {
+      loadUserProfile();
+    } else {
+      const savedName = localStorage.getItem("name") || "";
+      setProfileInfo((prev) => ({ ...prev, name: savedName }));
+      setSavedPic(profilePics[0]?.image || null);
+    }
+  }, [profilePics, isFromProfile]);
 
   const loadUserProfile = async () => {
     try {
-      const userId = localStorage.getItem("userId")
-      if (!userId) {
-        setMessage({ text: "User ID not found.", type: "error" })
-        return
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("userToken");
+
+      if (!userId || !token) {
+        setMessage({ text: "Not logged in. Please sign up again.", type: "error" });
+        return;
       }
 
-      const res = await fetch(`http://localhost:5000/profile/${userId}`)
-      const data = await res.json()
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (res.ok) {
-        setProfileInfo({
-          name: data.name || "",
-          description: data.description || "",
-          course: data.course || "",
-          contactNo: data.contactNo || "",
-          skill: data.skill || "",
-        })
-        setSavedPic(data.avatar || profilePics[0]?.image || null)
-        setSelectedPic(data.avatar || profilePics[0]?.image || null)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error("Failed to load profile:", err);
+        setMessage({ text: "Failed to load profile.", type: "error" });
+        return;
       }
+
+      const data = await res.json();
+      setProfileInfo({
+        name: data.name || "",
+        description: data.description || "",
+        course: data.course || "",
+        contactNo: data.contactNo || "",
+        skill: data.skill || "",
+      });
+      setSavedPic(data.avatar || profilePics[0]?.image || null);
+      setSelectedPic(data.avatar || profilePics[0]?.image || null);
     } catch (error) {
-      console.error("Error loading profile:", error)
-      setMessage({ text: "Failed to load profile data.", type: "error" })
+      console.error("Error loading profile:", error);
+      setMessage({ text: "Failed to load profile data.", type: "error" });
     }
-  }
+  };
 
   const closeMessage = () => setMessage(null)
   const next = () => page < total + 1 && setPage(page + 1)
@@ -152,24 +172,27 @@ const FlipBookProfile: FC = () => {
   }
 
   const saveProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!savedPic) {
-            setMessage({ text: "Please select an avatar before saving.", type: "error" });
-            return; // Stop execution
-        }
+      setMessage({ text: "Please select an avatar before saving.", type: "error" });
+      return;
+    }
+
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("userToken");
+
+    if (!userId || !token) {
+      setMessage({ text: "You are not logged in. Please log in again.", type: "error" });
+      return;
+    }
 
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        setMessage({ text: "Missing user ID. Please sign up again.", type: "error" });
-        return;
-      }
-
       const res = await fetch(`http://localhost:5000/profile/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,  
         },
         body: JSON.stringify({
           avatar: savedPic,
@@ -178,24 +201,34 @@ const FlipBookProfile: FC = () => {
           contact_no: profileInfo.contactNo,
           skill: profileInfo.skill,
         }),
-        });
+      });
 
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
-        if (!res.ok) {
+      if (!res.ok) {
         setMessage({ text: data.message || "Failed to save profile", type: "error" });
         return;
-        }
+      }
 
-        setMessage({ text: "Profile saved successfully!", type: "success" });
-        setIsEditing(false);
+      setMessage({ text: "Profile saved successfully!", type: "success" });
+      setIsEditing(false);
+      
+      // Only set isSaved for signup flow
+      if (!isFromProfile) {
         setIsSaved(true);
+      }
     } catch (error) {
-        console.error(error);
-        setMessage({ text: "Network error saving profile", type: "error" });
+      console.error(error);
+      setMessage({ text: "Network error saving profile", type: "error" });
     }
-    };
+  };
 
+  // ✅ NEW: Function to enable edit mode
+  const handleEditProfile = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsEditing(true);
+    setMessage({ text: "You can now edit your profile", type: "info" });
+  };
 
   const pages: PageData[] = [
     {
@@ -261,7 +294,6 @@ const FlipBookProfile: FC = () => {
                 value={profileInfo.name}
                 onChange={handleProfileInfoChange}
                 disabled={!isEditing}
-                onFocus={() => setIsEditing(true)}
                 required
               />
             </div>
@@ -314,25 +346,46 @@ const FlipBookProfile: FC = () => {
               />
             </div>
 
+            {/* ✅ CHANGED: Different button logic based on source */}
             <div className="form-buttons">
-              {!isEditing && isSaved ? (
+              {isFromProfile ? (
+                // Profile page mode: Edit/Save toggle
+                isEditing ? (
                   <button 
-                      onClick={() => (window.location.href = "/dashboard")} 
-                      className="proceed-btn"
+                    type="submit" 
+                    className="save-info-btn"
                   >
-                      Proceed to Dashboard →
+                    Save Changes
                   </button>
+                ) : (
+                  <button 
+                    type="button"
+                    onClick={handleEditProfile} 
+                    className="save-info-btn"
+                  >
+                    Edit Profile
+                  </button>
+                )
               ) : (
+                // Signup flow mode: Save/Proceed
+                !isEditing && isSaved ? (
                   <button 
-                      type="submit" 
-                      className="save-info-btn"
-                      disabled={!isEditing}
+                    onClick={() => (window.location.href = "/dashboard")} 
+                    className="proceed-btn"
                   >
-                      Save Profile
+                    Proceed to Dashboard →
                   </button>
+                ) : (
+                  <button 
+                    type="submit" 
+                    className="save-info-btn"
+                    disabled={!isEditing}
+                  >
+                    Save Profile
+                  </button>
+                )
               )}
-          </div>
-          
+            </div>
           </form>
         </div>
       ),
@@ -354,18 +407,11 @@ const FlipBookProfile: FC = () => {
   const handleProfileClick = () => console.log("Profile clicked (Navbar)")
   const handleHomeClick = () => console.log("Home clicked (Navbar)")
 
-return (
-  <div style={containerStyle}>
-    <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
-
-    <button
-      className="close-btn"
-      onClick={() => (window.location.href = "/dashboard")}
-    >
-      &times;
-    </button>
-
+  return (
+    <div style={containerStyle}>
       <DashNavbar onProfileClick={handleProfileClick} onHomeClick={handleHomeClick} />
+
+
       <div className="book-container">
         <div className={`book ${page === 1 ? "book-closed" : ""}`}>
           {pages.map((p, i) => {
