@@ -24,7 +24,10 @@ app.use(express.json());
 // Allow React dev server origin. Set credentials true if you later use cookies.
 app.use(
   cors({
-    origin: "*",
+    origin: [
+    "http://localhost:3000",                    // for local development
+    "https://inprogress.netlify.app"            // ←for live frontend
+  ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
