@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './LandingPage.css';
 import Navbar from './Navbar';
 import { Users, Lightbulb, Target } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 
 const LandingPage: React.FC = () => {
@@ -11,6 +13,10 @@ const LandingPage: React.FC = () => {
   const scrollToAbout = () => {
     aboutRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    AOS.init({ duration: 800, once: false });
+  }, []);
 
   const navigate = useNavigate();
 
@@ -23,16 +29,12 @@ const LandingPage: React.FC = () => {
       <Navbar onAboutClick={scrollToAbout} onHomeClick={scrollToTop} />
 
       {/* Hero Section */}
-      <div className="landing-container">
+      <div className="landing-container" >
         <div className="landing-text">
           <h1>Finish What You Start.</h1>
           <div className="sub-title">
             <h1>Collaborate, Refine, Succeed</h1>
           </div>
-          <p>
-            inProgress is a platform where student ideas grow from concept to incubator-ready projects
-            through the power of peer collaboration and feedback.
-          </p>
           <button className="join-btn" onClick={() => navigate("/auth")}>
             Join Now
           </button>
@@ -42,9 +44,9 @@ const LandingPage: React.FC = () => {
 
       {/* About Section */}
       <section ref={aboutRef} className="about-section">
-        <div className="about-inner">
+        <div className="about-inner" data-aos="fade-up">
           <h2>About</h2>
-          <div className="about-text">
+          <div className="about-text" data-aos="fade-up">
             <p>
               InProgress is a <span className="highlight-indigo">CPU-exclusive collaboration platform</span> designed for students who want to turn their unfinished ideas into completed projects. 
               Our platform empowers students to <span className="highlight-pink"> transform incomplete projects into successful achievements </span>through peer connection, structured teamwork, and meaningful feedback. 
@@ -58,19 +60,19 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section className="features">
         <div className="features-grid">
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up">
             <div className="feature-icon"><Users size={32} /></div>
             <h3>Connect & Collaborate</h3>
             <p>Find like-minded students across different colleges and disciplines to work on shared projects and ideas.</p>
           </div>
 
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up">
             <div className="feature-icon"><Lightbulb size={32} /></div>
             <h3>Share & Refine</h3>
             <p>Get structured feedback on your ideas and iterate with peer support to strengthen your project foundation.</p>
           </div>
 
-          <div className="feature-card">
+          <div className="feature-card" data-aos="fade-up">
             <div className="feature-icon"><Target size={32} /></div>
             <h3>Complete & Advance</h3>
             <p>Transform unfinished ideas into completed projects ready for institutional recognition or innovation incubation.</p>
