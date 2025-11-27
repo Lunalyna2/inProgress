@@ -13,30 +13,38 @@ import forumUpvoteRoutes from "./routes/forumUpvote";
 import projectRoutes from "./routes/createproject";
 import { AuthenticatedRequest, authMiddleware, JWT_SECRET } from "./shared";
 
+
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://inprogresss.netlify.app",  // your frontend
-];
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "https://inprogresss.netlify.app",  // your frontend
+// ];
+
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // Allow requests with no origin (mobile apps, curl)
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       } else {
+//         return callback(new Error("CORS blocked"));
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("CORS blocked"));
-      }
-    },
-    credentials: true,
+    origin: "*",
   })
 );
+
 
 
 // Middleware
