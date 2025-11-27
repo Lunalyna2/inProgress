@@ -78,9 +78,6 @@ const App: React.FC = () => {
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* Accept or Decline Collaborators */}
-        <Route path="/accept-decline" element={<AcceptOrDecline />} />
-
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
