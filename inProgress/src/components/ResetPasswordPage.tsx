@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { API_URL } from "@/config/api";
+import { API_URL } from "../config/api";
 
 interface ResetPasswordForm {
   newPassword: string;

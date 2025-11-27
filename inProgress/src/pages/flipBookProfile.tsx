@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
 import "./flipBookProfile.css";
 import DashNavbar from "./DashboardNavbar"; 
-import { API_URL } from "@/config/api";
+import { API_URL } from "../config/api";
 
 interface PaperProps {
   id: string

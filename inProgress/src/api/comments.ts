@@ -1,4 +1,4 @@
-import { API_URL } from "@/config/api";
+import { API_URL } from "../config/api";
 
 
 export const getComments = async (projectId: number) => {

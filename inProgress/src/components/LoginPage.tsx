@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import './login.css';
 import ForgotPasswordModal from './forgotPasswordModal';
 import { useNavigate } from "react-router-dom";
-import { API_URL } from '@/config/api';
+import { API_URL } from '../config/api';
 
 interface LoginPageProps {
   switchToSignup: () => void;

@@ -4,7 +4,7 @@ import "./projectInterface.css";
 import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./projectInterface.css";
-import { API_URL } from "@/config/api";
+import { API_URL } from "../config/api";
 
 // --- INTERFACES ---
 
