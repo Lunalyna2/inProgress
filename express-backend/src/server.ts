@@ -23,20 +23,31 @@ app.use(express.json());
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
 
-// Allow React dev server origin. Set credentials true if you later use cookies.
+const allowedOrigins = [
+  allowedOrigin,                     // from Render env var
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://inprogresss.netlify.app", // safety fallback
+];
+
 app.use(
   cors({
-    origin: [
-      allowedOrigin,
-    "http://localhost:3000",                    // for local development
-    "https://inprogress.netlify.app"            // ←for live frontend
-  ],
+    origin: (origin, callback) => {
+      // Allow tools with no origin (Postman, curl, mobile apps)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("CORS blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
-
 // -----------------
 // ROUTES
 // -----------------
