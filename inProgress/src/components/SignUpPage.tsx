@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { ChangeEvent, FormEvent, FocusEvent } from 'react'; 
 import './signup.css';
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../../../express-backend/src/config/api';
 
 interface SignUpPageProps {
     switchToLogin: () => void;
@@ -114,7 +115,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
         if (!validate() || rePasswordError) return;
 
         try {
-            const response = await fetch('http://localhost:5000/api/signup', {
+            const response = await fetch(`http://${API_URL}/api/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),

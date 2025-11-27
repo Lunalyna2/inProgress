@@ -4,6 +4,7 @@ import "./projectInterface.css";
 import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./projectInterface.css";
+import { API_URL } from "../../../express-backend/src/config/api";
 
 // --- INTERFACES ---
 
@@ -56,7 +57,7 @@ const COLLEGE_OPTIONS = [
     'College of Theology',
 ];
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = `http://${API_URL}/api`;
 
 export default function ProjectInterface() {
     const { projectId } = useParams<{ projectId: string }>();

@@ -1,6 +1,7 @@
 import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
+import { API_URL } from "../../../express-backend/src/config/api";
 
 // interfaces
 interface Role {
@@ -90,7 +91,7 @@ const CreateProjectForm: React.FC = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/projects/create",
+        `http://${API_URL}/api/projects/create`,
         {
           method: "POST",
           headers: {

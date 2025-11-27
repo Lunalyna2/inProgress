@@ -1,5 +1,6 @@
 // forgotPasswordModal.tsx
 import { useState } from "react";
+import {API_URL} from "../../../express-backend/src/config/api"
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/forgot-password", {
+      const response = await fetch(`http://${API_URL}/api/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
