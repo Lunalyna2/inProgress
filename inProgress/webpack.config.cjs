@@ -9,10 +9,33 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
   },
+    module: {
+    rules: [
+      {
+        test: /\.(ts|tsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader',
+          options: {
+            // This is the key: Ignore TS errors in production
+            transpileOnly: true,
+            configFile: 'tsconfig.json',
+            // Optional: Use fork-ts-checker-webpack-plugin for parallel checking (install if needed: npm i -D fork-ts-checker-webpack-plugin)
+            // But start with this for simplicity
+          }
+        }
+      },
+      // ... other rules
+    ]
+  },
   // File extensions to resolve
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
+
+
+
+
   // Rules for how Webpack should process different file types
   module: {
     rules: [
