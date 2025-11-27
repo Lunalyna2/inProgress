@@ -964,4 +964,12 @@
   cursor: not-allowed;
 }
 
+.no-collab-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+
 

@@ -115,7 +115,7 @@ const CreateProjectForm: React.FC = () => {
       resetForm();
 
       // Redirect to ProjectInterface
-      navigate(`/project/${projectId}`);
+      navigate(`/project-owner-folder/${projectId}`);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unexpected error");

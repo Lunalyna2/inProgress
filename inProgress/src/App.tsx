@@ -67,7 +67,7 @@ const App: React.FC = () => {
         <Route path="/project/:projectId" element={<ProjectInterface />} />
 
         {/* Project Owner Folder */}
-        <Route path="/project-owner-folder" element={<ProjectOwnerFolder />} />
+        <Route path="/project-owner-folder/:projectId" element={<ProjectOwnerFolder />} />
 
         {/* Joined Collaborator */}
         <Route path="/joined-collaborator-folder" element={<JoinedProjectFolder />} />
