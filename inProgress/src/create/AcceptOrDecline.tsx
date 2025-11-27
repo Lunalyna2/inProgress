@@ -110,7 +110,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
 
   return (
     <div className="accept-or-decline">
-      <h2>Pending Collaborators for Project {projectId}</h2>
+      <h2>Pending Collaborators</h2>
 
       {collaborators.length === 0 ? (
         <div className="no-collaborators">
