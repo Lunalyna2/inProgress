@@ -115,7 +115,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
         if (!validate() || rePasswordError) return;
 
         try {
-            const response = await fetch(`${API_URL}/api/signup`, {
+            const response = await fetch(`${API_URL}/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
