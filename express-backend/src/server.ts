@@ -21,10 +21,13 @@ const app = express();
 // Middleware
 app.use(express.json());
 
+const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
+
 // Allow React dev server origin. Set credentials true if you later use cookies.
 app.use(
   cors({
     origin: [
+      allowedOrigin,
     "http://localhost:3000",                    // for local development
     "https://inprogress.netlify.app"            // ←for live frontend
   ],
