@@ -157,11 +157,12 @@ body {
 }
 
 .form-buttons {
-  position: fixed;
-  bottom: 80px; 
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
 }
+
 
 .nav-buttons button,
 .save-btn,
@@ -296,4 +297,48 @@ body {
   outline: none;
   box-shadow: 0 2px 6px rgba(180, 68, 255, 0.3);
 }
+}
+
+/* About Myself Form Styling */
+.profile-form-right {
+  width: 100%;
+  max-width: 340px;
+  padding: 20px;
+}
+
+.profile-form-right > div {
+  margin-bottom: 20px;
+}
+
+.profile-form-right label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a4a4a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-form-right input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  background: transparent;
+  transition: all 0.3s ease;
+  color: #333;
+  font-family: inherit;
+}
+
+.profile-form-right input:focus {
+  border-bottom-color: #b044ff;
+  outline: none;
+  background: rgba(180, 68, 255, 0.05);
+}
+
+.profile-form-right input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.02);
 }
