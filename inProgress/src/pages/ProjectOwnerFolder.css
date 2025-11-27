@@ -124,6 +124,32 @@
   margin: 0 0 1rem 0;
 }
 
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.add-collaborator-btn {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-collaborator-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -159,14 +185,89 @@
 
 .roles-list {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-wrap: wrap;     
+  gap: 10px;           
+  align-items: flex-start;
+  justify-content: flex-start;  
+  width: 100%;
+
+   max-height: 100px;  
+  overflow-y: auto;     
+  padding-right: 4px;
 }
 
 .role-item {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.role-tag {
+  display: flex;
+  align-items: center;
+  background: #7ca2ee5b;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.role-tag input[type="text"] {
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.role-tag button {
+  background: none;
+  border: none;
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  color: #f20d0d;
+}
+
+.role-tag button:hover {
+  transform: scale(1.2);
+}
+
+.role-tag .edit-role-btn {
+  color: #2563eb; 
+}
+
+.add-role-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-role-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
+}
+
+@media (max-width: 600px) {
+  .roles-list {
+    gap: 6px;
+  }
+
+  .role-tag {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+
+  .add-role-btn {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 .role-info {
@@ -800,6 +901,67 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 10px rgba(0,0,0,0.15);
   background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+
+/* add task card */
+.content-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-card .card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.content-card form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.task-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db; 
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.task-input:focus {
+  border-color: #3b82f6; 
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.add-task-btn {
+  background-color: #3b82f6; 
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-task-btn:hover {
+  background-color: #2563eb;
+}
+
+.add-task-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 
 
