@@ -1,4 +1,8 @@
-const API_URL = "http://localhost:5000/api";
+import dotenv from "dotenv"
+
+dotenv.config()
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const getComments = async (projectId: number) => {
   const token = localStorage.getItem("userToken");

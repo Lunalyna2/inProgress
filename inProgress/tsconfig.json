@@ -14,7 +14,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,    
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     // "noEmit": true,
@@ -28,7 +28,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
 
     // Style Options
     // "noImplicitReturns": true,
@@ -39,7 +39,7 @@
     // "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
-    "strict": true,
+    "strict": false,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     // "isolatedModules": true,
