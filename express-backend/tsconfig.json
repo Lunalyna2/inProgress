@@ -7,15 +7,18 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
 
     "strict": true,
     "skipLibCheck": true,
     "isolatedModules": false,
 
-    "noEmit": true,
     "verbatimModuleSyntax": false,
     "lib": ["esnext"]
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
 }
+
+
