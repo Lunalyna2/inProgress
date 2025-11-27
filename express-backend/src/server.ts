@@ -18,9 +18,6 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-// Middleware
-app.use(express.json());
-
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:3000";
 
 const allowedOrigins = [
@@ -48,6 +45,11 @@ app.use(
     credentials: true,
   })
 );
+
+// Middleware
+app.use(express.json());
+
+
 // -----------------
 // ROUTES
 // -----------------
