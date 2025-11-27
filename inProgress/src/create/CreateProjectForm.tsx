@@ -91,7 +91,7 @@ const CreateProjectForm: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${API_URL}/projects/create`,
+        `${API_URL}/api/projects/create`,
         {
           method: "POST",
           headers: {

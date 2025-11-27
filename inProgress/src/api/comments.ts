@@ -3,7 +3,7 @@ import { API_URL } from "../config/api";
 
 export const getComments = async (projectId: number) => {
   const token = localStorage.getItem("userToken");
-  const res = await fetch(`${API_URL}/projects/${projectId}/comments`, {
+  const res = await fetch(`${API_URL}/api/projects/${projectId}/comments`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -16,7 +16,7 @@ export const getComments = async (projectId: number) => {
 
 export const postComment = async (projectId: number, text: string) => {
   const token = localStorage.getItem("userToken");
-  const res = await fetch(`${API_URL}/projects/${projectId}/comments`, {
+  const res = await fetch(`${API_URL}/api/projects/${projectId}/comments`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export const postComment = async (projectId: number, text: string) => {
 
 export const editComment = async (commentId: number, text: string) => {
   const token = localStorage.getItem("userToken");
-  const res = await fetch(`${API_URL}/comments/${commentId}`, {
+  const res = await fetch(`${API_URL}/api/comments/${commentId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const editComment = async (commentId: number, text: string) => {
 export const deleteComment = async (commentId: number) => {
   const token = localStorage.getItem("userToken");
 
-  const res = await fetch(`${API_URL}/comments/${commentId}`, {
+  const res = await fetch(`${API_URL}/api/comments/${commentId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
