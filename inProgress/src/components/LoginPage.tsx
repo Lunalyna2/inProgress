@@ -60,7 +60,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch(`http://${API_URL}/api/login`, {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpuEmail: formData.cpuEmail, password: formData.password }),
@@ -75,7 +75,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
         localStorage.setItem("email", data.user.email);
 
         // Check if profile exists
-        const profileRes = await fetch(`http://${API_URL}/profile/${data.user.id}`);
+        const profileRes = await fetch(`${API_URL}/${data.user.id}`);
 
         if (profileRes.ok) {
           const profileData = await profileRes.json();

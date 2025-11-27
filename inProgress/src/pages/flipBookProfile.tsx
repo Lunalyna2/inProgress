@@ -123,7 +123,7 @@ const FlipBookProfile: FC = () => {
         return;
       }
 
-      const res = await fetch(`http://${API_URL}/profile/${userId}`, {
+      const res = await fetch(`${API_URL}/${userId}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -189,7 +189,7 @@ const FlipBookProfile: FC = () => {
     }
 
     try {
-      const res = await fetch(`http://${API_URL}/profile/${userId}`, {
+      const res = await fetch(`${API_URL}/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -57,7 +57,7 @@ const COLLEGE_OPTIONS = [
     'College of Theology',
 ];
 
-const API_BASE_URL = `http://${API_URL}/api`;
+const API_BASE_URL = `${API_URL}/api`;
 
 export default function ProjectInterface() {
     const { projectId } = useParams<{ projectId: string }>();

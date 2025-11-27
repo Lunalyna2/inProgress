@@ -33,7 +33,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
           return;
         }
 
-        const res = await fetch(`http://${API_URL}/api/collaborators/pending/${projectId}`, {
+        const res = await fetch(`${API_URL}/collaborators/pending/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -61,7 +61,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
       const token = localStorage.getItem("userToken") || "";
       if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch(`http://${API_URL}/api/collaborators/${id}/accept`, {
+      const res = await fetch(`${API_URL}/collaborators/${id}/accept`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -84,7 +84,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
       const token = localStorage.getItem("userToken") || "";
       if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch(`http://${API_URL}/api/collaborators/${id}/decline`, {
+      const res = await fetch(`${API_URL}/collaborators/${id}/decline`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
