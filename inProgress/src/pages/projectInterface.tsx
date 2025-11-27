@@ -350,6 +350,10 @@ export default function ProjectInterface() {
           project.tasks.length) *
         100;
 
+  if (!projectId) {
+      return <p>Loading project ID...</p>;
+  }
+
   return (
    <FolderBackground>
   <div className="folder-content-grid">
@@ -496,7 +500,7 @@ export default function ProjectInterface() {
       </div>
 
       {/* REQUESTS → AcceptOrDecline */}
-      <AcceptOrDecline />
+      <AcceptOrDecline projectId={projectId} />
     </div>
 
     {/* Message Bar for Success/Error */}
