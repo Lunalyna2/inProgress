@@ -64,7 +64,7 @@ const App: React.FC = () => {
         <Route path="/create-project-form" element={<CreateProjectForm />} />
 
         {/* Project Interface */}
-        <Route path="/projectinterface" element={<ProjectInterface />} />
+        <Route path="/project/:projectId" element={<ProjectInterface />} />
 
         {/* Project Owner Folder */}
         <Route path="/project-owner-folder" element={<ProjectOwnerFolder />} />
