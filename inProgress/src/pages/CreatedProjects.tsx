@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CreatedProjects.css";
 import DashNavbar from "./DashboardNavbar";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import ProjectCommentsModal from "./ProjectCommentsModal";
+import { getComments } from "../api/comments";
 
 interface Project {
   id: number;
@@ -15,14 +16,31 @@ const CreatedProjects: React.FC = () => {
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
-
-  const currentUserId = Number(localStorage.getItem("userId"));
+  const [commentsCount, setCommentsCount] = useState<{ [key: number]: number }>({});
 
   const projects: Project[] = [
     { id: 1, title: "E-Commerce Platform", description: "A full-stack e-commerce application with payment integration and inventory management.", image: "https://via.placeholder.com/400x200" },
     { id: 2, title: "Task Management App", description: "A collaborative tool with drag-and-drop functionality and team workspaces.", image: "https://via.placeholder.com/400x200" },
     { id: 3, title: "Weather Dashboard", description: "An interactive weather app with real-time forecasts and alerts.", image: "https://via.placeholder.com/400x200" },
   ];
+
+  // Load initial comment counts for all projects
+  useEffect(() => {
+    const loadCounts = async () => {
+      const counts: { [key: number]: number } = {};
+      for (const project of projects) {
+        const comments = await getComments(project.id);
+        counts[project.id] = comments.length;
+      }
+      setCommentsCount(counts);
+    };
+    loadCounts();
+  }, []);
+
+  // Callback to update comment count for a project
+  const handleCommentsUpdate = (projectId: number, newCount: number) => {
+    setCommentsCount(prev => ({ ...prev, [projectId]: newCount }));
+  };
 
   return (
     <div className="projects-container">
@@ -54,7 +72,7 @@ const CreatedProjects: React.FC = () => {
                 className="action-icon"
                 onClick={() => setSelectedProjectIdForComments(project.id)}
               />
-              <span className="comment-count">0</span>
+              <span className="comment-count">{commentsCount[project.id] || 0}</span>
             </div>
           </div>
         ))}
@@ -66,6 +84,9 @@ const CreatedProjects: React.FC = () => {
           projectTitle={projects.find(p => p.id === selectedProjectIdForComments)?.title || "No title"}
           projectDescription={projects.find(p => p.id === selectedProjectIdForComments)?.description || "No description"}
           onClose={() => setSelectedProjectIdForComments(null)}
+          onCommentsChange={(newCount: number) =>
+            handleCommentsUpdate(selectedProjectIdForComments, newCount)
+          }
         />
       )}
     </div>
