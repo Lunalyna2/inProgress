@@ -107,13 +107,6 @@ const CreatedProjects: React.FC = () => {
             <div className="empty-illustration">No projects yet</div>
             <h3>No projects created yet</h3>
             <p>Start building something amazing today!</p>
-            <button
-              className="create-project-btn large"
-              onClick={() => navigate("/create-project-form")}
-            >
-              <Plus size={24} />
-              Create Your First Project
-            </button>
           </div>
         ) : (
           <div className="projects-grid">

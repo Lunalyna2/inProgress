@@ -33,18 +33,26 @@ const Dashboard: React.FC = () => {
   const [upvotingInProgress, setUpvotingInProgress] = useState<Set<number>>(new Set());
 
   const token = localStorage.getItem("userToken");
-  const currentUserId = Number(localStorage.getItem("userId"));
+  const currentUserId = Number(localStorage.getItem("userId")) || 0;
 
-  const departments = [
-    "All Departments", "Senior High School", "College of Arts & Sciences",
-    "College of Business & Accountancy", "College of Computer Studies",
-    "College of Education", "College of Engineering", "College of Hospitality Management",
-    "College of Nursing", "College of Pharmacy", "College of Law", "College of Medicine",
-  ];
+const departments = [
+  "All Departments",
+  "Not specified",
+  "Senior High School",
+  "College of Arts & Sciences",
+  "College of Business & Accountancy",
+  "College of Computer Studies",
+  "College of Education",
+  "College of Engineering",
+  "College of Hospitality Management",
+  "College of Nursing",
+  "College of Pharmacy",
+  "College of Law",
+  "College of Medicine",
+];
 
   const filters = ["All", "Recent", "Popular", "Trending"];
 
-  // FETCH ONLY OTHER PEOPLE'S PROJECTS (NOT YOUR OWN)
 const fetchAllProjects = async () => {
   if (!token) { setLoading(false); return; }
   try {
@@ -58,16 +66,19 @@ const fetchAllProjects = async () => {
     }
 
     const data: Project[] = await res.json();
+    
+    console.log("🔍 RAW PROJECTS FROM API:", data);
+    console.log("📊 College values:", data.map(p => ({ title: p.title, college: p.college })));
+    
     const normalized = data.map(p => ({
       ...p,
       collaborators: p.collaborators ?? [],
       upvotes: p.upvotes ?? 0,
-      upvoted_by: [], // we don't use this anymore
+      upvoted_by: [],
     }));
     setAllProjects(normalized);
   } catch (err: any) {
     console.error("Failed to fetch public projects:", err);
-    postMessage({ text: "Failed to load projects. Please refresh.", type: "error" });
   } finally {
     setLoading(false);
   }
@@ -111,18 +122,30 @@ const fetchAllProjects = async () => {
   useEffect(() => { if (allProjects.length) loadCommentCounts(); }, [allProjects, loadCommentCounts]);
 
   // FILTERED PROJECTS
-  const pickedProjects = useMemo(() => {
-    let list = allProjects
-      .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
-      .filter(p => selectedDepartment === "All Departments" || p.college === selectedDepartment);
+// ✅ FIXED FILTERING LOGIC
+const pickedProjects = useMemo(() => {
+  let list = allProjects
+    .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(p => {
+      const projectCollege = p.college || "Not specified"; // ✅ Handles NULL/undefined
+      return selectedDepartment === "All Departments" || 
+             projectCollege === selectedDepartment;
+    });
 
-    switch (selectedFilter) {
-      case "Recent": return [...list].sort((a, b) => b.id - a.id);
-      case "Popular": return [...list].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-      case "Trending": return [...list].sort((a, b) => ((b.upvotes || 0) * 2 + (commentCounts[b.id] || 0)) - ((a.upvotes || 0) * 2 + (commentCounts[a.id] || 0)));
-      default: return list;
-    }
-  }, [allProjects, searchQuery, selectedDepartment, selectedFilter, commentCounts]);
+  switch (selectedFilter) {
+    case "Recent": 
+      return [...list].sort((a, b) => b.id - a.id);
+    case "Popular": 
+      return [...list].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    case "Trending": 
+      return [...list].sort((a, b) => 
+        ((b.upvotes || 0) * 2 + (commentCounts[b.id] || 0)) - 
+        ((a.upvotes || 0) * 2 + (commentCounts[a.id] || 0))
+      );
+    default: 
+      return list;
+  }
+}, [allProjects, searchQuery, selectedDepartment, selectedFilter, commentCounts]);
 
   const joinedProjects = useMemo(() => {
     return allProjects

@@ -82,10 +82,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
       if (response.ok) {
         // Save token and user data
         localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userId", data.user.id.toString());
         localStorage.setItem("username", data.user.username);
         localStorage.setItem("email", data.user.email);
         localStorage.setItem("name", data.user.fullname);
+        localStorage.setItem("userToken", data.token);
+        localStorage.setItem("userId", data.user.id.toString());
+        localStorage.setItem("userId", String(data.user.id));
 
         // Always go to dashboard after login
         navigate("/dashboard");

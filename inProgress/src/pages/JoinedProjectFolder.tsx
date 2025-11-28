@@ -65,7 +65,7 @@ const JoinedProjectFolder: React.FC = () => {
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<number | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null); // ← NOW STRING
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | "unassigned">("all");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
@@ -106,7 +106,7 @@ const JoinedProjectFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ roleId: selectedRole }),
+        body: JSON.stringify({ roleId: Number(selectedRole) }),
       });
 
       if (!res.ok) {
@@ -118,7 +118,7 @@ const JoinedProjectFolder: React.FC = () => {
       setHasPendingRequest(true);
       setShowJoinModal(false);
       setSelectedRole(null);
-      fetchProject(); // refresh to update filled count
+      fetchProject();
     } catch (err: any) {
       setMessage({ text: err.message, type: "error" });
     } finally {
@@ -243,7 +243,6 @@ const JoinedProjectFolder: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Approved collaborator → show stats + team */}
                 <div className="content-card stats-card">
                   <h3 className="card-title">Your Progress</h3>
                   <div className="stats-grid">
@@ -292,12 +291,15 @@ const JoinedProjectFolder: React.FC = () => {
                         type="radio"
                         name="role"
                         value={role.id}
-                        checked={selectedRole === role.id}
-                        onChange={() => setSelectedRole(role.id)}
+                        checked={selectedRole === String(role.id)}
+                        onChange={() => setSelectedRole(String(role.id))}
                       />
                       <span>{role.roleName} ({role.filled}/{role.count} filled)</span>
                     </label>
                   ))}
+                {project.roles.filter(r => r.filled < r.count).length === 0 && (
+                  <p className="no-data">No open roles available.</p>
+                )}
               </div>
               <div className="modal-actions">
                 <button className="btn-modal-cancel" onClick={() => setShowJoinModal(false)}>Cancel</button>

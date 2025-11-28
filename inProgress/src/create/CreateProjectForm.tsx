@@ -10,10 +10,25 @@ interface Role {
   count: number;
 }
 
+const departments = [
+  "Senior High School",
+  "College of Arts & Sciences",
+  "College of Business & Accountancy",
+  "College of Computer Studies",
+  "College of Education",
+  "College of Engineering",
+  "College of Hospitality Management",
+  "College of Nursing",
+  "College of Pharmacy",
+  "College of Law",
+  "College of Medicine",
+];
+
 const CreateProjectForm: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [college, setCollege] = useState(""); // ← NEW
   const [roleInput, setRoleInput] = useState("");
   const [roleCount, setRoleCount] = useState(1);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -31,11 +46,21 @@ const CreateProjectForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!title.trim() || !description.trim()) {
+      setError("Title and description are required");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     const token = localStorage.getItem("userToken");
-    const projectData = { title: title.trim(), description: description.trim(), roles };
+    const projectData = {
+      title: title.trim(),
+      description: description.trim(),
+      college: college || "Not specified", // ← NOW SENT!
+      roles,
+    };
 
     try {
       const res = await fetch("http://localhost:5000/api/projects/create", {
@@ -53,6 +78,7 @@ const CreateProjectForm: React.FC = () => {
       setCreatedProjectId(result.projectId);
       setTitle("");
       setDescription("");
+      setCollege("");
       setRoles([]);
     } catch (err: any) {
       setError(err.message);
@@ -87,6 +113,23 @@ const CreateProjectForm: React.FC = () => {
               placeholder="Describe your project idea..."
               required
             />
+          </div>
+
+          {/* ← NEW: College Dropdown */}
+          <div className="field">
+            <label>College / Department</label>
+            <select
+              value={college}
+              onChange={(e) => setCollege(e.target.value)}
+              className="college-select"
+            >
+              <option value="">Not specified</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="field">

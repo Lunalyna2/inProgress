@@ -3,10 +3,9 @@
 import React, {
   useState,
   useEffect,
-  useMemo,
   useCallback,
 } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ← useNavigate added
+import { useParams, useNavigate } from "react-router-dom";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./ProjectOwnerFolder.css";
 import { Pencil, Trash2, Plus, X, Check, Calendar, User } from "lucide-react";
@@ -59,9 +58,8 @@ const FolderBackground: React.FC<{ children: React.ReactNode }> = ({ children })
 
 const ProjectOwnerFolder: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate(); // ← ADDED
+  const navigate = useNavigate();
   const token = localStorage.getItem("userToken");
-  const currentUserId = localStorage.getItem("userId");
 
   const [project, setProject] = useState<Project | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -260,14 +258,6 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  const myTasksCount = useMemo(() => {
-    return project?.tasks?.filter(t => t.assignedTo === currentUserId).length || 0;
-  }, [project?.tasks, currentUserId]);
-
-  const completedTasksCount = useMemo(() => {
-    return project?.tasks?.filter(t => t.assignedTo === currentUserId && t.status === "completed").length || 0;
-  }, [project?.tasks, currentUserId]);
-
   if (!project) return <div className="loading">Loading project...</div>;
 
   const formatDate = (dateStr: string) => {
@@ -438,20 +428,7 @@ const ProjectOwnerFolder: React.FC = () => {
 
           {/* Right Column */}
           <div className="content-column-right">
-            {/* Progress Stats */}
-            <div className="content-card stats-card">
-              <h3 className="card-title">Your Progress</h3>
-              <div className="stats-grid">
-                <div className="stat-item">
-                  <span className="stat-number">{myTasksCount}</span>
-                  <span className="stat-label">Tasks Assigned</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">{completedTasksCount}</span>
-                  <span className="stat-label">Completed</span>
-                </div>
-              </div>
-            </div>
+            {/* ✅ PROGRESS STATS CARD COMPLETELY REMOVED */}
 
             {/* Status Toggle */}
             <div className="content-card">
@@ -507,7 +484,7 @@ const ProjectOwnerFolder: React.FC = () => {
               className="save-project-btn"
               onClick={async () => {
                 await saveProject();
-                navigate("/created-projects"); // ← REDIRECT TO MY PROJECTS
+                navigate("/created-projects");
               }}
             >
               Save All Changes
