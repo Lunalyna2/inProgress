@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Dashboard.tsx
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
-import { Search, ArrowBigUp, MessageCircle } from "lucide-react";
+import { Search, ArrowBigUp, MessageCircle, Plus, Users, Building2 } from "lucide-react";
 import DashNavbar from "./DashboardNavbar";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 import { getComments } from "../api/comments";
@@ -10,15 +11,12 @@ interface Project {
   id: number;
   title: string;
   description?: string;
-  course: string;
-}
-
-interface JoinedProject {
-  id: number;
-  title: string;
-  course: string;
-  progress: number;
-  description?: string;
+  college: string;
+  creator_id: number;
+  creator_username?: string;
+  collaborators?: { userId: number; approved?: boolean }[];
+  upvotes?: number;
+  upvoted_by?: number[];
 }
 
 const Dashboard: React.FC = () => {
@@ -30,77 +28,138 @@ const Dashboard: React.FC = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
 
-  const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
-  const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
-  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({}); // ✅ store comment counts
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [upvotingInProgress, setUpvotingInProgress] = useState<Set<number>>(new Set());
 
-  const departments = [
-    "All Departments",
-    "Senior High School",
-    "College of Arts & Sciences",
-    "College of Business & Accountancy",
-    "College of Computer Studies",
-    "College of Education",
-    "College of Engineering",
-    "College of Hospitality Management",
-    "College of Nursing",
-    "College of Pharmacy",
-    "College of Law",
-    "College of Medicine",
-  ];
+  const token = localStorage.getItem("userToken");
+  const currentUserId = Number(localStorage.getItem("userId")) || 0;
+
+const departments = [
+  "All Departments",
+  "Not specified",
+  "Senior High School",
+  "College of Arts & Sciences",
+  "College of Business & Accountancy",
+  "College of Computer Studies",
+  "College of Education",
+  "College of Engineering",
+  "College of Hospitality Management",
+  "College of Nursing",
+  "College of Pharmacy",
+  "College of Law",
+  "College of Medicine",
+];
 
   const filters = ["All", "Recent", "Popular", "Trending"];
 
-  const [pickedProjects] = useState<Project[]>([
-    { id: 1, title: "Build a Social Media App", course: "Mobile Development", description: "An app that allows users to connect and share content." },
-    { id: 2, title: "E-commerce Website", course: "Web Development", description: "An online platform for buying and selling products." },
-    { id: 3, title: "Data Visualization Dashboard", course: "Data Science", description: "Interactive dashboard to visualize complex datasets." },
-    { id: 4, title: "Portfolio Website", course: "Design", description: "A personal website to showcase projects and skills." },
-  ]);
+const fetchAllProjects = async () => {
+  if (!token) { setLoading(false); return; }
+  try {
+    const res = await fetch("http://localhost:5000/api/projects/public", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const [joinedProjects] = useState<JoinedProject[]>([
-    { id: 101, title: "Website Redesign", course: "Web Development", progress: 65 },
-    { id: 102, title: "Mobile App", course: "Mobile Development", progress: 30 },
-    { id: 103, title: "Marketing Dashboard", course: "Data Science", progress: 85 },
-    { id: 104, title: "UI Design System", course: "Design", progress: 50 },
-  ]);
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errorText}`);
+    }
 
-  const loadCommentCounts = async () => {
-    const allProjects = [...pickedProjects, ...joinedProjects];
+    const data: Project[] = await res.json();
+    
+    console.log("🔍 RAW PROJECTS FROM API:", data);
+    console.log("📊 College values:", data.map(p => ({ title: p.title, college: p.college })));
+    
+    const normalized = data.map(p => ({
+      ...p,
+      collaborators: p.collaborators ?? [],
+      upvotes: p.upvotes ?? 0,
+      upvoted_by: [],
+    }));
+    setAllProjects(normalized);
+  } catch (err: any) {
+    console.error("Failed to fetch public projects:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // UPVOTE
+  const handleUpvote = async (projectId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (upvotingInProgress.has(projectId)) return;
+    setUpvotingInProgress(prev => new Set(prev).add(projectId));
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/upvote`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAllProjects(prev =>
+          prev.map(p => p.id === projectId ? { ...p, upvotes: updated.upvotes, upvoted_by: updated.upvoted_by } : p)
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpvotingInProgress(prev => { const n = new Set(prev); n.delete(projectId); return n; });
+    }
+  };
+
+  // COMMENT COUNTS
+  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({});
+  const loadCommentCounts = useCallback(async () => {
+    if (!allProjects.length) return;
     const counts: { [key: number]: number } = {};
-    await Promise.all(
-      allProjects.map(async (project) => {
-        try {
-          const comments = await getComments(project.id);
-          counts[project.id] = comments.length;
-        } catch {
-          counts[project.id] = 0;
-        }
-      })
-    );
+    const results = await Promise.all(allProjects.map(p => getComments(p.id).catch(() => [])));
+    allProjects.forEach((p, i) => counts[p.id] = results[i]?.length || 0);
     setCommentCounts(counts);
+  }, [allProjects]);
+
+  useEffect(() => { fetchAllProjects(); }, [token]);
+  useEffect(() => { if (allProjects.length) loadCommentCounts(); }, [allProjects, loadCommentCounts]);
+
+  // FILTERED PROJECTS
+// ✅ FIXED FILTERING LOGIC
+const pickedProjects = useMemo(() => {
+  let list = allProjects
+    .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(p => {
+      const projectCollege = p.college || "Not specified"; // ✅ Handles NULL/undefined
+      return selectedDepartment === "All Departments" || 
+             projectCollege === selectedDepartment;
+    });
+
+  switch (selectedFilter) {
+    case "Recent": 
+      return [...list].sort((a, b) => b.id - a.id);
+    case "Popular": 
+      return [...list].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    case "Trending": 
+      return [...list].sort((a, b) => 
+        ((b.upvotes || 0) * 2 + (commentCounts[b.id] || 0)) - 
+        ((a.upvotes || 0) * 2 + (commentCounts[a.id] || 0))
+      );
+    default: 
+      return list;
+  }
+}, [allProjects, searchQuery, selectedDepartment, selectedFilter, commentCounts]);
+
+  const joinedProjects = useMemo(() => {
+    return allProjects
+      .filter(p => Array.isArray(p.collaborators) && p.collaborators.some(c => c.userId === currentUserId && c.approved))
+      .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [allProjects, searchQuery, currentUserId]);
+
+  const modalProject = allProjects.find(p => p.id === selectedProjectIdForComments);
+
+  const goToProject = (projectId: number, isCollaborator: boolean = false) => {
+    navigate(`/joined-collaborator-folder/${projectId}`, { state: { isCollaborator } });
   };
 
-  useEffect(() => {
-    loadCommentCounts();
-  }, []);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const filteredPickedProjects = pickedProjects.filter(
-    (project) =>
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedDepartment === "All Departments" || project.course === selectedDepartment)
-  );
-
-  const filteredJoinedProjects = joinedProjects.filter((project) =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const allProjectsForModal = [...pickedProjects, ...joinedProjects];
-  const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
+  if (loading) return <div className="loading">Loading dashboard...</div>;
 
   return (
     <div className="dashboard">
@@ -114,23 +173,22 @@ const Dashboard: React.FC = () => {
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Search className="search-icon" />
             </div>
-            <button className="create-btn" onClick={() => navigate("/create-project")}>
-              MAKE<br />PROJECT
+            <button className="create-btn" onClick={() => navigate("/create-project-form")}>
+              <Plus size={20} /> CREATE PROJECT
             </button>
           </div>
         </div>
       </div>
 
       <main className="dashboard-main">
-        {/* Filters */}
         <div className="dashboard-filters-top">
           <div className="dropdown">
             <button onClick={() => { setShowDepartmentDropdown(!showDepartmentDropdown); setShowFilterDropdown(false); }}>
-              DEPARTMENT
+              {selectedDepartment} ▼
             </button>
             {showDepartmentDropdown && (
               <div className="dropdown-menu">
@@ -142,9 +200,10 @@ const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
+
           <div className="dropdown">
             <button onClick={() => { setShowFilterDropdown(!showFilterDropdown); setShowDepartmentDropdown(false); }}>
-              FILTER
+              {selectedFilter} ▼
             </button>
             {showFilterDropdown && (
               <div className="dropdown-menu">
@@ -158,82 +217,98 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Picked Projects */}
-        <section className="picked-projects">
+        {/* Picked Out For You */}
+        <section className="project-section">
           <h2>Picked Out For You</h2>
-          <div className="project-grid">
-            {filteredPickedProjects.map(project => (
-              <div key={project.id} className="project-wrapper">
-                <div className="project-card">{project.title}</div>
-
-                <div className="action-icons">
-                  <div
-                    className="upvote-wrapper"
-                    onClick={() => {
-                      if (!hasUpvoted[project.id]) {
-                        setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                        setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                      }
-                    }}
-                  >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
-                    <span className="upvote-count">{upvotes[project.id] || 0}</span>
+          <div className="horizontal-scroll">
+            {pickedProjects.length === 0 ? (
+              <p className="no-data">No projects match your filters.</p>
+            ) : (
+              pickedProjects.map(project => (
+                <div
+                  key={project.id}
+                  className="project-card-modern"
+                  onClick={() => goToProject(project.id)}
+                >
+                  <div className="card-gradient" />
+                  <div className="card-content">
+                    <h3 className="card-title">{project.title}</h3>
+                    <div className="card-college">
+                      <Building2 size={14} />
+                      <span>{project.college}</span>
+                    </div>
+                    <div className="card-actions">
+                      <div className="action-item" onClick={e => { e.stopPropagation(); handleUpvote(project.id, e); }}>
+                        <ArrowBigUp className={project.upvoted_by?.includes(currentUserId) ? "upvoted" : ""} size={18} />
+                        <span>{project.upvotes || 0}</span>
+                      </div>
+                      <div className="action-item" onClick={e => { e.stopPropagation(); setSelectedProjectIdForComments(project.id); }}>
+                        <MessageCircle size={18} />
+                        <span>{commentCounts[project.id] || 0}</span>
+                      </div>
+                      <div className="action-item">
+                        <Users size={18} />
+                        <span>{project.collaborators?.filter(c => c.approved).length || 0}</span>
+                      </div>
+                    </div>
                   </div>
-
-                  <MessageCircle
-                    className="action-icon"
-                    onClick={() => setSelectedProjectIdForComments(project.id)}
-                  />
-                  <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 
         {/* Joined Projects */}
-        <section className="joined-projects">
+        <section className="project-section">
           <h2>Joined Projects</h2>
-          <div className="project-grid">
-            {filteredJoinedProjects.map(project => (
-              <div key={project.id} className="project-wrapper">
-                <div className="project-card">{project.title}</div>
-
-                <div className="action-icons">
-                  <div
-                    className="upvote-wrapper"
-                    onClick={() => {
-                      if (!hasUpvoted[project.id]) {
-                        setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                        setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                      }
-                    }}
-                  >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
-                    <span className="upvote-count">{upvotes[project.id] || 0}</span>
+          <div className="horizontal-scroll">
+            {joinedProjects.length === 0 ? (
+              <p className="no-data">You haven't joined any projects yet.</p>
+            ) : (
+              joinedProjects.map(project => (
+                <div
+                  key={project.id}
+                  className="project-card-modern joined"
+                  onClick={() => goToProject(project.id, true)}
+                >
+                  <div className="card-gradient joined" />
+                  <div className="card-content">
+                    <div className="joined-badge">Joined</div>
+                    <h3 className="card-title">{project.title}</h3>
+                    <div className="card-college">
+                      <Building2 size={14} />
+                      <span>{project.college}</span>
+                    </div>
+                    <div className="card-actions">
+                      <div className="action-item" onClick={e => { e.stopPropagation(); handleUpvote(project.id, e); }}>
+                        <ArrowBigUp className={project.upvoted_by?.includes(currentUserId) ? "upvoted" : ""} size={18} />
+                        <span>{project.upvotes || 0}</span>
+                      </div>
+                      <div className="action-item" onClick={e => { e.stopPropagation(); setSelectedProjectIdForComments(project.id); }}>
+                        <MessageCircle size={18} />
+                        <span>{commentCounts[project.id] || 0}</span>
+                      </div>
+                      <div className="action-item">
+                        <Users size={18} />
+                        <span>{project.collaborators?.filter(c => c.approved).length || 0}</span>
+                      </div>
+                    </div>
                   </div>
-
-                  <MessageCircle
-                    className="action-icon"
-                    onClick={() => setSelectedProjectIdForComments(project.id)}
-                  />
-                  <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
       </main>
 
-      {/* Comments Modal */}
-      {selectedProjectIdForComments !== null && projectForModal && (
+      {selectedProjectIdForComments && modalProject && (
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
-          projectTitle={projectForModal.title}
-          projectDescription={projectForModal.description || "No description available."}
+          projectTitle={modalProject.title}
+          projectDescription={modalProject.description || "No description"}
           onClose={() => {
             setSelectedProjectIdForComments(null);
-            loadCommentCounts(); // ✅ refresh comment counts after modal closes
+            loadCommentCounts();
           }}
         />
       )}

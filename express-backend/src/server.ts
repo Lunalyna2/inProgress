@@ -1,11 +1,9 @@
-// src/server.ts
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-import pool from "./pool"; // keep your pool.ts as-is
+import pool from "./pool";
 import profileRoutes from "./flipbookProfile";
 import authForgotRoutes from "./routes/authForgot";
 import collaboratorRoutes from "./routes/collaborators";
@@ -15,7 +13,6 @@ import { AuthenticatedRequest, authMiddleware, JWT_SECRET } from "./shared";
 
 
 dotenv.config();
-
 const PORT = process.env.PORT || 5000;
 const app = express();
 
@@ -24,6 +21,7 @@ const allowedOrigins = [
   "https://inprogresss.netlify.app",  // your frontend
 ];
 
+// Middleware
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -39,31 +37,20 @@ app.use(
   })
 );
 
-
-// Middleware
-app.use(express.json());
-
-
-// -----------------
 // ROUTES
-// -----------------
-// Protect profile route with authMiddleware
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
 app.use("/api/forum-upvotes", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);
 
-// -----------------
-// COMMENTS routes (unchanged logic but typed)
-// -----------------
+// COMMENTS routes
 app.get(
   "/api/projects/:projectId/comments",
   authMiddleware,
   async (req: AuthenticatedRequest, res) => {
     const projectId = Number(req.params.projectId);
     if (isNaN(projectId)) return res.status(400).json({ message: "Invalid project ID." });
-
     try {
       const result = await pool.query(
         `SELECT c.id, c.project_id, c.user_id, c.username, c.text, c.created_at, c.updated_at, up.avatar
@@ -89,15 +76,12 @@ app.post(
     const { text } = req.body;
     const userId = req.userId;
     const username = req.username;
-
     if (!text || !userId || !username) {
       return res.status(400).json({ message: "Missing comment text or user info" });
     }
-
     try {
       const projectCheck = await pool.query("SELECT id FROM projects WHERE id = $1", [projectId]);
       if (projectCheck.rowCount === 0) return res.status(404).json({ message: "Project not found" });
-
       const result = await pool.query(
         `INSERT INTO comments (project_id, user_id, username, text)
          VALUES ($1, $2, $3, $4)
@@ -119,9 +103,7 @@ app.put(
     const commentId = Number(req.params.id);
     const { text } = req.body;
     const userId = req.userId;
-
     if (isNaN(commentId) || !text) return res.status(400).json({ message: "Invalid comment ID or missing text" });
-
     try {
       const result = await pool.query(
         `UPDATE comments
@@ -130,7 +112,6 @@ app.put(
          RETURNING id, text, updated_at`,
         [text, commentId, userId]
       );
-
       if (result.rowCount === 0) return res.status(403).json({ message: "Not authorized or comment not found" });
       res.json(result.rows[0]);
     } catch (error: unknown) {
@@ -146,9 +127,7 @@ app.delete(
   async (req: AuthenticatedRequest, res) => {
     const commentId = Number(req.params.id);
     const userId = req.userId;
-
     if (isNaN(commentId)) return res.status(400).json({ message: "Invalid comment ID." });
-
     try {
       const result = await pool.query("DELETE FROM comments WHERE id = $1 AND user_id = $2", [commentId, userId]);
       if (result.rowCount === 0) return res.status(403).json({ message: "Not authorized or comment not found" });
@@ -161,9 +140,8 @@ app.delete(
 );
 
 // -----------------
-// Signup & Login (fixed)
+// SIGNUP & LOGIN (FIXED)
 // -----------------
-
 interface SignUpFormData {
   fullName: string;
   username: string;
@@ -180,58 +158,59 @@ interface ValidationResult {
 const validateSignUpData = (data: SignUpFormData): ValidationResult => {
   const errors: Record<string, string> = {};
   const { fullName, username, cpuEmail, password, rePassword } = data;
-
-  if (!fullName) errors.fullName = "Full name is required.";
-  if (!username) errors.username = "Username is required.";
-  if (!cpuEmail) errors.cpuEmail = "CPU email is required.";
+  
+  if (!fullName.trim()) errors.fullName = "Full name is required.";
+  if (!username.trim()) errors.username = "Username is required.";
+  if (!cpuEmail.trim()) errors.cpuEmail = "CPU email is required.";
   if (!password) errors.password = "Password is required.";
   if (!rePassword) errors.rePassword = "Re-enter password is required.";
-
-  if (cpuEmail && !cpuEmail.endsWith("@cpu.edu.ph")) {
+  
+  if (cpuEmail && !cpuEmail.trim().endsWith("@cpu.edu.ph")) {
     errors.cpuEmail = "Must use CPU email address!";
   }
-
+  
   if (password && rePassword && password !== rePassword) {
     errors.rePassword = "Passwords do not match!";
   }
-
+  
   return { isValid: Object.keys(errors).length === 0, errors };
 };
 
-const validateLoginData = (data: Pick<SignUpFormData, "cpuEmail" | "password">): ValidationResult => {
+const validateLoginData = (data: { cpuEmail: string; password: string }): ValidationResult => {
   const { cpuEmail, password } = data;
   const errors: Record<string, string> = {};
-
-  if (!cpuEmail) errors.cpuEmail = "Email is required";
+  
+  if (!cpuEmail.trim()) errors.cpuEmail = "Email is required";
   if (!password) errors.password = "Password is required";
-
+  
   return { isValid: Object.keys(errors).length === 0, errors };
 };
 
-// --- SIGNUP (now returns token) ---
+// --- SIGNUP ---
 app.post("/api/signup", async (req, res) => {
   const data: SignUpFormData = req.body;
   const { isValid, errors } = validateSignUpData(data);
+  
   if (!isValid) return res.status(400).json({ message: "Validation failed.", errors });
-
+  
   try {
     const { fullName, cpuEmail, username, password } = data;
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    
     const result = await pool.query(
-      `INSERT INTO users (fullname, username, email, password) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO users (fullname, username, email, password)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, username, email, fullname`,
-      [fullName, username, cpuEmail, hashedPassword]
+      [fullName.trim(), username.trim(), cpuEmail.trim(), hashedPassword]
     );
-
+    
     const createdUser = result.rows[0];
     const token = jwt.sign(
       { id: createdUser.id, username: createdUser.username, email: createdUser.email },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
-
+    
     res.status(201).json({
       message: "Sign-up successful!",
       token,
@@ -251,30 +230,60 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// --- LOGIN ---
+// --- LOGIN (FIXED WITH DEBUG) ---
 app.post("/api/login", async (req, res) => {
-  const data: Pick<SignUpFormData, "cpuEmail" | "password"> = req.body;
+  const data = req.body;
+  
+  // 🔍 DEBUG LOGS
+  console.log("🔍 === LOGIN ATTEMPT ===");
+  console.log("🔍 Received body:", data);
+  console.log("🔍 cpuEmail:", data.cpuEmail);
+  console.log("🔍 password length:", data.password?.length || 0);
+  
   const { isValid, errors } = validateLoginData(data);
-  if (!isValid) return res.status(400).json({ message: "Validation failed.", errors });
-
+  if (!isValid) {
+    console.log("🔍 Validation failed:", errors);
+    return res.status(400).json({ message: "Validation failed.", errors });
+  }
+  
   const { cpuEmail, password } = data;
-
+  
   try {
+    // 🔍 CASE-INSENSITIVE EMAIL LOOKUP
     const userResult = await pool.query(
-      "SELECT id, username, email, fullname, password FROM users WHERE email = $1",
+      `SELECT id, username, email, fullname, password 
+       FROM users 
+       WHERE LOWER(email) = LOWER($1)`,
       [cpuEmail]
     );
-
-    if (userResult.rows.length === 0) return res.status(401).json({ message: "Invalid Credentials." });
-
+    
+    console.log("🔍 DB Query - Rows found:", userResult.rows.length);
+    console.log("🔍 DB Query - First row email:", userResult.rows[0]?.email);
+    
+    if (userResult.rows.length === 0) {
+      console.log("🔍 ❌ No user found for email:", cpuEmail);
+      return res.status(401).json({ message: "Invalid Credentials." });
+    }
+    
     const user = userResult.rows[0];
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) return res.status(401).json({ message: "Invalid Credentials." });
-
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, {
-      expiresIn: "1d",
-    });
-
+    
+    console.log("🔍 Password match:", passwordMatch);
+    
+    if (!passwordMatch) {
+      console.log("🔍 ❌ Password mismatch");
+      return res.status(401).json({ message: "Invalid Credentials." });
+    }
+    
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email }, 
+      JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
+    
+    console.log("✅ LOGIN SUCCESSFUL for user:", user.username);
+    console.log("🔍 === LOGIN END ===\n");
+    
     res.status(200).json({
       message: "Login successful!",
       token,
@@ -286,7 +295,7 @@ app.post("/api/login", async (req, res) => {
       },
     });
   } catch (error: unknown) {
-    if (error instanceof Error) console.error("❌ Error during login:", error.message);
+    console.error("❌ Error during login:", error);
     res.status(500).json({ message: "Server error during login." });
   }
 });

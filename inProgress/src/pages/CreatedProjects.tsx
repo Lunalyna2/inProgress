@@ -1,7 +1,9 @@
+// src/pages/CreatedProjects.tsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./CreatedProjects.css";
 import DashNavbar from "./DashboardNavbar";
-import { ArrowBigUp, MessageCircle } from "lucide-react";
+import { ArrowBigUp, MessageCircle, Plus, Users } from "lucide-react";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 import { getComments } from "../api/comments";
 
@@ -9,87 +11,177 @@ interface Project {
   id: number;
   title: string;
   description: string;
-  image?: string;
+  college: string;
+  status: "ongoing" | "done";
+  collaboratorCount?: number;
+  upvotes?: number;
 }
 
 const CreatedProjects: React.FC = () => {
-  const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
-  const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
-  const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
-  const [commentsCount, setCommentsCount] = useState<{ [key: number]: number }>({});
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({});
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const projects: Project[] = [
-    { id: 1, title: "E-Commerce Platform", description: "A full-stack e-commerce application with payment integration and inventory management.", image: "https://via.placeholder.com/400x200" },
-    { id: 2, title: "Task Management App", description: "A collaborative tool with drag-and-drop functionality and team workspaces.", image: "https://via.placeholder.com/400x200" },
-    { id: 3, title: "Weather Dashboard", description: "An interactive weather app with real-time forecasts and alerts.", image: "https://via.placeholder.com/400x200" },
-  ];
+  const token = localStorage.getItem("userToken");
 
-  // Load initial comment counts for all projects
-  useEffect(() => {
-    const loadCounts = async () => {
-      const counts: { [key: number]: number } = {};
-      for (const project of projects) {
-        const comments = await getComments(project.id);
-        counts[project.id] = comments.length;
-      }
-      setCommentsCount(counts);
-    };
-    loadCounts();
-  }, []);
+  const fetchProjects = async () => {
+    if (!token) return;
+    try {
+      setIsLoading(true);
+      const res = await fetch("http://localhost:5000/api/projects", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
 
-  // Callback to update comment count for a project
-  const handleCommentsUpdate = (projectId: number, newCount: number) => {
-    setCommentsCount(prev => ({ ...prev, [projectId]: newCount }));
+      const enhanced = data.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description || "No description provided.",
+        college: p.college?.trim() || "", // ← will be empty string if missing
+        status: p.status || "ongoing",
+        collaboratorCount: p.collaborators?.filter((c: any) => c.status === "accepted").length || 0,
+        upvotes: p.upvotes || 0,
+      }));
+      setProjects(enhanced);
+    } catch (err) {
+      console.error("Failed to load projects:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const loadCommentCounts = async () => {
+    const counts: { [key: number]: number } = {};
+    for (const p of projects) {
+      try {
+        const comments = await getComments(p.id);
+        counts[p.id] = comments.length;
+      } catch {
+        counts[p.id] = 0;
+      }
+    }
+    setCommentCounts(counts);
+  };
+
+  useEffect(() => {
+    fetchProjects();
+    const handleFocus = () => fetchProjects();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
+
+  useEffect(() => {
+    if (projects.length > 0) loadCommentCounts();
+  }, [projects]);
+
   return (
-    <div className="projects-container">
+    <>
       <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
-      <h1 className="projects-title">My Projects</h1>
 
-      <div className="projects-grid">
-        {projects.map(project => (
-          <div key={project.id} className="project-card">
-            {project.image && <img src={project.image} alt={project.title} />}
-            <h2>{project.title}</h2>
-            <p>{project.description}</p>
-
-            <div className="action-icons">
-              <div
-                className="upvote-wrapper"
-                onClick={() => {
-                  if (!hasUpvoted[project.id]) {
-                    setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                    setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                  }
-                }}
-              >
-                <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
-                <span className="upvote-count">{upvotes[project.id] || 0}</span>
-              </div>
-
-              <MessageCircle
-                className="action-icon"
-                onClick={() => setSelectedProjectIdForComments(project.id)}
-              />
-              <span className="comment-count">{commentsCount[project.id] || 0}</span>
-            </div>
+      {/* ← Added top padding so title is not under navbar */}
+      <div className="created-projects-page">
+        <header className="page-header">
+          <div>
+            <h1 className="page-title">My Projects</h1>
+            <p className="page-subtitle">Manage and grow your ideas</p>
           </div>
-        ))}
+          <button
+            className="create-project-btn"
+            onClick={() => navigate("/create-project-form")}
+          >
+            <Plus size={20} />
+            Create New Project
+          </button>
+        </header>
+
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="spinner" />
+            <p>Loading your projects...</p>
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-illustration">No projects yet</div>
+            <h3>No projects created yet</h3>
+            <p>Start building something amazing today!</p>
+          </div>
+        ) : (
+          <div className="projects-grid">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                className="project-card"
+                onClick={() => navigate(`/project-owner-folder/${project.id}`)}
+              >
+                <div className="card-header">
+                  <h3 className="project-title">{project.title}</h3>
+                  <span className={`status-badge ${project.status}`}>
+                    {project.status === "ongoing" ? "Active" : "Completed"}
+                  </span>
+                </div>
+
+                <p className="project-description">
+                  {project.description.length > 120
+                    ? `${project.description.substring(0, 120)}...`
+                    : project.description}
+                </p>
+
+                <div className="project-meta">
+                  {/* Only show college if it exists */}
+                  {project.college && (
+                    <div className="meta-item">
+                      <span className="college-icon" />
+                      <span>{project.college}</span>
+                    </div>
+                  )}
+                  <div className="meta-item">
+                    <Users size={16} />
+                    <span>
+                      {project.collaboratorCount} {project.collaboratorCount === 1 ? "member" : "members"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="card-footer">
+                  <div className="interaction-item">
+                    <ArrowBigUp size={18} className="icon" />
+                    <span>{project.upvotes || 0}</span>
+                  </div>
+                  <div
+                    className="interaction-item"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedProjectId(project.id);
+                    }}
+                  >
+                    <MessageCircle size={18} className="icon" />
+                    <span>{commentCounts[project.id] || 0}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {selectedProjectIdForComments !== null && (
+      {selectedProjectId && (
         <ProjectCommentsModal
-          projectId={selectedProjectIdForComments}
-          projectTitle={projects.find(p => p.id === selectedProjectIdForComments)?.title || "No title"}
-          projectDescription={projects.find(p => p.id === selectedProjectIdForComments)?.description || "No description"}
-          onClose={() => setSelectedProjectIdForComments(null)}
-          onCommentsChange={(newCount: number) =>
-            handleCommentsUpdate(selectedProjectIdForComments, newCount)
-          }
+          projectId={selectedProjectId}
+          projectTitle={projects.find(p => p.id === selectedProjectId)?.title || ""}
+          projectDescription={projects.find(p => p.id === selectedProjectId)?.description || ""}
+          onClose={() => setSelectedProjectId(null)}
+          onCommentsChange={(count) => {
+            if (selectedProjectId) {
+              setCommentCounts(prev => ({ ...prev, [selectedProjectId]: count }));
+            }
+            setSelectedProjectId(null);
+          }}
         />
       )}
-    </div>
+    </>
   );
 };
 

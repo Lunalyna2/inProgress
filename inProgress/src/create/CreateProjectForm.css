@@ -1,83 +1,188 @@
+/* src/pages/CreateProjectForm.css */
+.create-project-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 7rem 1rem 4rem; /* same top padding as My Projects */
+}
+
+.create-project-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  background: white;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
 .create-project-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  align-items: flex-start;
-  width: 100%;
-  max-width: 700px;
+  gap: 1.6rem;
 }
 
-.create-project-form label {
+.field label {
+  display: block;
   font-weight: 600;
-  color: #666666;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
-.create-project-form input,
-.create-project-form textarea {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
+.field input,
+.field textarea {
   width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .roles-row {
   display: flex;
-  gap: 0.5rem;
-  width: 100%;
+  gap: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.roles-row input {
+.roles-row input[type="text"] {
   flex: 1;
-}
-
-.add-btn {
-  background: linear-gradient(to right, #4a90e2, #8e44ad);
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.add-btn:hover {
-  opacity: 0.9;
-}
-
-.role-list {
-  width: 100%;
-}
-
-.role-list ul {
-  padding-left: 1.2rem;
-}
-
-.submit-row {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.submit-btn {
-  background-color: #ff5c8a;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
   min-width: 200px;
+}
+
+.roles-row input[type="number"] {
+  width: 80px;
   text-align: center;
 }
 
-.submit-btn:hover {
-  background-color: #e14b76;
+.add-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.error-text {
-  color: red;
-  font-weight: bold;
-  margin-top: 0.5rem;
+.add-btn:hover {
+  background: #2563eb;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.role-tag {
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 0.5rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #bfdbfe;
+}
+
+.role-tag button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.error-msg {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.submit-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.submit-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.success-msg {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 1.2rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 1.5rem;
+  font-weight: 500;
+}
+
+.view-btn {
+  margin-top: 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.view-btn:hover {
+  background: #2563eb;
+}
+
+.college-select {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.college-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
