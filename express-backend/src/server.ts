@@ -18,7 +18,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://inprogresss.netlify.app",  // your frontend
+  "https://inprogress-4l7v.onrender.com",
 ];
 
 // Middleware
