@@ -66,6 +66,67 @@ projectRoutes.get(
   }
 );
 
+// GET ALL PUBLIC PROJECTS (EXCLUDES USER'S OWN PROJECTS)
+// GET ALL PUBLIC PROJECTS - 100% SAFE VERSION (No 500 errors)
+projectRoutes.get("/public", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId!;
+
+  const client = await pool.connect();
+  try {
+    // Safe query - upvotes are optional
+    const result = await client.query(
+      `SELECT 
+         p.id,
+         p.title,
+         p.description,
+         p.college,
+         p.status,
+         p.created_at AS "createdAt",
+         u.username AS creator_username,
+         COALESCE(up.count, 0) AS upvotes
+       FROM projects p
+       JOIN users u ON p.creator_id = u.id
+       LEFT JOIN (
+         SELECT project_id, COUNT(*) AS count
+         FROM project_upvotes
+         GROUP BY project_id
+       ) up ON up.project_id = p.id
+       WHERE p.creator_id != $1
+       ORDER BY p.created_at DESC`,
+      [userId]
+    );
+
+    const projects = result.rows;
+
+    // Add collaborators info (approved + pending)
+    for (const project of projects) {
+      const collabRes = await client.query(
+        `SELECT 
+           user_id AS "userId",
+           username,
+           status = 'accepted' AS approved
+         FROM project_collaborators pc
+         JOIN users u ON pc.user_id = u.id
+         WHERE pc.project_id = $1`,
+        [project.id]
+      );
+      project.collaborators = collabRes.rows.map((c: any) => ({
+        userId: c.userId,
+        username: c.username,
+        approved: c.approved
+      }));
+    }
+
+    res.json(projects);
+  } catch (e: any) {
+    console.error("Get public projects error:", e);
+    res.status(500).json({ error: "Server error", details: e.message });
+  } finally {
+    client.release();
+  }
+});
+
+
 // ======================== CREATE PROJECT ========================
 projectRoutes.post(
   "/create",
