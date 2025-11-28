@@ -19,32 +19,25 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "https://inprogresss.netlify.app",  // your frontend
-// ];
-
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       // Allow requests with no origin (mobile apps, curl)
-//       if (!origin) return callback(null, true);
-//       if (allowedOrigins.includes(origin)) {
-//         return callback(null, true);
-//       } else {
-//         return callback(new Error("CORS blocked"));
-//       }
-//     },
-//     credentials: true,
-//   })
-// );
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://inprogress-4l7v.onrender.com",  // your frontend
+];
 
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("CORS blocked"));
+      }
+    },
+    credentials: true,
   })
 );
-
 
 
 // Middleware
