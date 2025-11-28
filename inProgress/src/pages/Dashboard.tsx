@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
-import { Search, ArrowBigUp, MessageCircle } from "lucide-react";
+import { Search, ArrowBigUp, MessageCircle, Plus } from "lucide-react";
 import DashNavbar from "./DashboardNavbar";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 import { getComments } from "../api/comments";
@@ -32,7 +32,10 @@ const Dashboard: React.FC = () => {
 
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
-  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({}); // ✅ store comment counts
+  const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({});
+
+  const [myProjects, setMyProjects] = useState<Project[]>([]);
+  const [pickedProjects, setPickedProjects] = useState<Project[]>([]);
 
   const departments = [
     "All Departments",
@@ -51,30 +54,46 @@ const Dashboard: React.FC = () => {
 
   const filters = ["All", "Recent", "Popular", "Trending"];
 
-  const [pickedProjects] = useState<Project[]>([
-    { id: 1, title: "Build a Social Media App", course: "Mobile Development", description: "An app that allows users to connect and share content." },
-    { id: 2, title: "E-commerce Website", course: "Web Development", description: "An online platform for buying and selling products." },
-    { id: 3, title: "Data Visualization Dashboard", course: "Data Science", description: "Interactive dashboard to visualize complex datasets." },
-    { id: 4, title: "Portfolio Website", course: "Design", description: "A personal website to showcase projects and skills." },
-  ]);
+  // Fetch my projects
+  const fetchMyProjects = async () => {
+    const token = localStorage.getItem("userToken");
+    try {
+      const res = await fetch("http://localhost:5000/api/projects", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMyProjects(data.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          course: p.college || "Unknown",
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to load my projects");
+    }
+  };
 
-  const [joinedProjects] = useState<JoinedProject[]>([
-    { id: 101, title: "Website Redesign", course: "Web Development", progress: 65 },
-    { id: 102, title: "Mobile App", course: "Mobile Development", progress: 30 },
-    { id: 103, title: "Marketing Dashboard", course: "Data Science", progress: 85 },
-    { id: 104, title: "UI Design System", course: "Design", progress: 50 },
-  ]);
+  // Fetch picked projects (simulate or use real API later)
+  const fetchPickedProjects = async () => {
+    const mock = [
+      { id: 1, title: "Build a Social Media App", course: "Mobile Development", description: "..." },
+      { id: 2, title: "E-commerce Website", course: "Web Development", description: "..." },
+    ];
+    setPickedProjects(mock);
+  };
 
   const loadCommentCounts = async () => {
-    const allProjects = [...pickedProjects, ...joinedProjects];
+    const all = [...myProjects, ...pickedProjects];
     const counts: { [key: number]: number } = {};
     await Promise.all(
-      allProjects.map(async (project) => {
+      all.map(async (p) => {
         try {
-          const comments = await getComments(project.id);
-          counts[project.id] = comments.length;
+          const c = await getComments(p.id);
+          counts[p.id] = c.length;
         } catch {
-          counts[project.id] = 0;
+          counts[p.id] = 0;
         }
       })
     );
@@ -82,25 +101,26 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    loadCommentCounts();
+    fetchMyProjects();
+    fetchPickedProjects();
   }, []);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  useEffect(() => {
+    if (myProjects.length || pickedProjects.length) loadCommentCounts();
+  }, [myProjects, pickedProjects]);
 
-  const filteredPickedProjects = pickedProjects.filter(
-    (project) =>
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedDepartment === "All Departments" || project.course === selectedDepartment)
+  const filteredPicked = pickedProjects.filter(
+    (p) =>
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedDepartment === "All Departments" || p.course === selectedDepartment)
   );
 
-  const filteredJoinedProjects = joinedProjects.filter((project) =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMy = myProjects.filter((p) =>
+    p.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const allProjectsForModal = [...pickedProjects, ...joinedProjects];
-  const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
+  const allProjects = [...pickedProjects, ...myProjects];
+  const modalProject = allProjects.find(p => p.id === selectedProjectIdForComments);
 
   return (
     <div className="dashboard">
@@ -114,12 +134,12 @@ const Dashboard: React.FC = () => {
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Search className="search-icon" />
             </div>
             <button className="create-btn" onClick={() => navigate("/create-project")}>
-              MAKE<br />PROJECT
+              <Plus size={20} /> MAKE PROJECT
             </button>
           </div>
         </div>
@@ -162,27 +182,32 @@ const Dashboard: React.FC = () => {
         <section className="picked-projects">
           <h2>Picked Out For You</h2>
           <div className="project-grid">
-            {filteredPickedProjects.map(project => (
-              <div key={project.id} className="project-wrapper">
+            {filteredPicked.map(project => (
+              <div
+                key={project.id}
+                className="project-wrapper clickable"
+                onClick={() => navigate(`/project/${project.id}`)}
+              >
                 <div className="project-card">{project.title}</div>
-
                 <div className="action-icons">
-                  <div
-                    className="upvote-wrapper"
-                    onClick={() => {
-                      if (!hasUpvoted[project.id]) {
-                        setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                        setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                      }
-                    }}
-                  >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
+                  <div className="upvote-wrapper" onClick={(e) => e.stopPropagation()}>
+                    <ArrowBigUp
+                      className={hasUpvoted[project.id] ? "upvoted" : ""}
+                      onClick={() => {
+                        if (!hasUpvoted[project.id]) {
+                          setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
+                          setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
+                        }
+                      }}
+                    />
                     <span className="upvote-count">{upvotes[project.id] || 0}</span>
                   </div>
-
                   <MessageCircle
                     className="action-icon"
-                    onClick={() => setSelectedProjectIdForComments(project.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedProjectIdForComments(project.id);
+                    }}
                   />
                   <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
@@ -191,31 +216,35 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* Joined Projects */}
         <section className="joined-projects">
-          <h2>Joined Projects</h2>
+          <h2>My Projects</h2>
           <div className="project-grid">
-            {filteredJoinedProjects.map(project => (
-              <div key={project.id} className="project-wrapper">
+            {filteredMy.map(project => (
+              <div
+                key={project.id}
+                className="project-wrapper clickable"
+                onClick={() => navigate(`/project-owner-folder/${project.id}`)}
+              >
                 <div className="project-card">{project.title}</div>
-
                 <div className="action-icons">
-                  <div
-                    className="upvote-wrapper"
-                    onClick={() => {
-                      if (!hasUpvoted[project.id]) {
-                        setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                        setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                      }
-                    }}
-                  >
-                    <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
+                  <div className="upvote-wrapper" onClick={e => e.stopPropagation()}>
+                    <ArrowBigUp
+                      className={hasUpvoted[project.id] ? "upvoted" : ""}
+                      onClick={() => {
+                        if (!hasUpvoted[project.id]) {
+                          setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
+                          setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
+                        }
+                      }}
+                    />
                     <span className="upvote-count">{upvotes[project.id] || 0}</span>
                   </div>
-
                   <MessageCircle
                     className="action-icon"
-                    onClick={() => setSelectedProjectIdForComments(project.id)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedProjectIdForComments(project.id);
+                    }}
                   />
                   <span className="comment-count">{commentCounts[project.id] || 0}</span>
                 </div>
@@ -223,17 +252,19 @@ const Dashboard: React.FC = () => {
             ))}
           </div>
         </section>
+
+
+
       </main>
 
-      {/* Comments Modal */}
-      {selectedProjectIdForComments !== null && projectForModal && (
+      {selectedProjectIdForComments && modalProject && (
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
-          projectTitle={projectForModal.title}
-          projectDescription={projectForModal.description || "No description available."}
+          projectTitle={modalProject.title}
+          projectDescription={modalProject.description || "No description"}
           onClose={() => {
             setSelectedProjectIdForComments(null);
-            loadCommentCounts(); // ✅ refresh comment counts after modal closes
+            loadCommentCounts();
           }}
         />
       )}
