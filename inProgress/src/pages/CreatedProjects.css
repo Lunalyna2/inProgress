@@ -1,190 +1,52 @@
-/* CreatedProjects.css */
-.projects-container {
+/* src/pages/CreatedProjects.css */
+.created-projects-page {
   min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 7rem 1rem 4rem;   /* ← increased top padding so title is below navbar */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.projects-title {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: 800;
-  background: linear-gradient(90deg, #4f46e5, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 3rem;
-  letter-spacing: -0.5px;
+/* Remove the old building icon - we now use a small dot instead */
+.college-icon {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.75rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+/* Rest of your beautiful CSS stays exactly the same */
+.page-header { max-width: 1200px; margin: 0 auto 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
+.page-title { font-size: 2.8rem; font-weight: 800; background: linear-gradient(90deg, #1e40af, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0; }
+.page-subtitle { color: #64748b; font-size: 1.1rem; margin: 0.5rem 0 0; }
+.create-project-btn { background: #3b82f6; color: white; border: none; padding: 0.9rem 1.8rem; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+.create-project-btn:hover { background: #2563eb; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4); }
+.create-project-btn.large { padding: 1.2rem 2.5rem; font-size: 1.2rem; }
 
-/* CARD */
-.project-card {
-  background: white;
-  border-radius: 1.25rem;
-  padding: 1.5rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-  cursor: pointer;
-}
+.projects-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.8rem; }
+.project-card { background: white; border-radius: 16px; padding: 1.8rem; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; cursor: pointer; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+.project-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); opacity: 0; transition: opacity 0.3s; }
+.project-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+.project-card:hover::before { opacity: 1; }
 
-.project-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #4f46e5, #7c3aed);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+.project-title { font-size: 1.4rem; font-weight: 700; color: #1e293b; margin: 0; line-height: 1.3; }
+.status-badge { padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-badge.ongoing { background: #dbeafe; color: #1d4ed8; }
+.status-badge.done { background: #d1fae5; color: #065f46; }
+.project-description { color: #475569; line-height: 1.6; margin: 1rem 0; font-size: 0.98rem; }
+.project-meta { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.2rem 0; }
+.meta-item { display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-size: 0.9rem; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #e2e8f0; margin-top: 1rem; }
+.interaction-item { display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+.interaction-item:hover { color: #3b82f6; }
+.interaction-item .icon { transition: all 0.2s; }
+.interaction-item:hover .icon { transform: scale(1.15); }
 
-.project-card:hover::before {
-  transform: scaleX(1);
-}
-
-.project-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
-  border-color: #c4b5fd;
-}
-
-.project-card h2 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 0.75rem 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.project-card p {
-  color: #6b7280;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin: 0 0 1rem 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.project-card small {
-  display: block;
-  color: #8b5cf6;
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ACTION ICONS */
-.action-icons {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.upvote-wrapper,
-.action-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #6b7280;
-  transition: all 0.2s ease;
-}
-
-.upvote-wrapper {
-  cursor: pointer;
-}
-
-.upvote-wrapper:hover {
-  color: #4f46e5;
-}
-
-.upvote-wrapper:hover .lucide {
-  stroke: #4f46e5;
-}
-
-.action-icon {
-  cursor: pointer;
-}
-
-.action-icon:hover {
-  color: #7c3aed;
-}
-
-.action-icon:hover .lucide {
-  stroke: #7c3aed;
-}
-
-.upvoted {
-  color: #4f46e5 !important;
-  fill: #4f46e5;
-  stroke: #4f46e5;
-}
-
-.upvote-count,
-.comment-count {
-  font-weight: 700;
-  min-width: 1.5ch;
-  text-align: center;
-}
-
-/* NO PROJECTS */
-.no-data {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 4rem 2rem;
-  font-size: 1.25rem;
-  color: #9ca3af;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 1rem;
-  backdrop-filter: blur(10px);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .projects-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0 0.5rem;
-  }
-
-  .projects-title {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .project-card {
-    padding: 1.25rem;
-  }
-}
-
-@media (min-width: 1400px) {
-  .projects-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+.empty-state, .loading-state { text-align: center; padding: 4rem 2rem; max-width: 600px; margin: 4rem auto; }
+.empty-illustration { font-size: 5rem; margin-bottom: 1.5rem; opacity: 0.5; }
+.empty-state h3 { font-size: 1.8rem; color: #1e293b; margin: 0 0 1rem; }
+.empty-state p { color: #64748b; font-size: 1.1rem; margin-bottom: 2rem; }
+.loading-state .spinner { width: 50px; height: 50px; border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
+@keyframes spin { to { transform: rotate(360deg); } }

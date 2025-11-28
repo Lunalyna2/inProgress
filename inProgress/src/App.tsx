@@ -1,10 +1,10 @@
+// src/App.tsx
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import FlipBookProfile from "./pages/flipBookProfile";
 import SignUpPage from "./components/SignUpPage";
 import LoginPage from "./components/LoginPage";
 import CreateProject from "./pages/CreateProject";
-import CreatedProjects from "./pages/CreatedProjects";
 import FolderPage from "./pages/FolderPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import LandingPage from "./pages/LandingPage";
@@ -14,8 +14,9 @@ import ProjectInterface from "./pages/projectInterface";
 import CreateProjectForm from "./create/CreateProjectForm";
 import JoinedProjectFolder from "./pages/JoinedProjectFolder";
 import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
+import CreatedProjects from "./pages/CreatedProjects";
 
-// // Define interfaces for props
+// Define interfaces for props
 export interface LoginPageProps {
   switchToSignup: () => void;
 }
@@ -55,27 +56,24 @@ const App: React.FC = () => {
         <Route path="/flipbook" element={<FlipBookProfile />} />
 
         {/* Create Project */}
-        <Route path="/create-project" element={<CreateProject />} />
-
-        {/* Created Projects */}
         <Route path="/created-projects" element={<CreatedProjects />} />
 
-        {/*create project form*/}
+        {/* Create Project Form */}
         <Route path="/create-project-form" element={<CreateProjectForm />} />
 
-        {/* Project Interface */}
+        {/* Project Interface (Owner View) */}
         <Route path="/project/:projectId" element={<ProjectInterface />} />
 
         {/* Project Owner Folder */}
         <Route path="/project-owner-folder/:projectId" element={<ProjectOwnerFolder />} />
 
-        {/* Joined Collaborator */}
-        <Route path="/joined-collaborator-folder" element={<JoinedProjectFolder />} />
+        {/* Joined Collaborator Folder */}
+        <Route path="/joined-collaborator-folder/:projectId" element={<JoinedProjectFolder />} />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
 
-        {/* Dashboard */}
+        {/* Dashboard — Shows My Projects, Joined, Recommendations */}
         <Route path="/dashboard" element={<Dashboard />} />
 
         {/* Catch-all */}
@@ -86,5 +84,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-

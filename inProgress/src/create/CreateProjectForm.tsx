@@ -1,36 +1,14 @@
-import React, { useState, type FormEvent, type ChangeEvent } from "react";
+// src/pages/CreateProjectForm.tsx
+import React, { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
+import FolderBackground from "../layouts/FolderBackground";
 
 interface Role {
   name: string;
   count: number;
 }
-interface ProjectData {
-  title: string;
-  description: string;
-  roles: Role[];
-}
-
-const InputField: React.FC<{
-  id: string;
-  label: string;
-  value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  type?: string;
-  rows?: number;
-  required?: boolean;
-}> = ({ id, label, value, onChange, type = "text", rows, required = true }) => (
-  <>
-    <label htmlFor={id}>{label}</label>
-    {rows ? (
-      <textarea id={id} value={value} onChange={onChange} rows={rows} required={required} />
-    ) : (
-      <input id={id} type={type} value={value} onChange={onChange} required={required} />
-    )}
-  </>
-);
 
 const CreateProjectForm: React.FC = () => {
   const navigate = useNavigate();
@@ -42,14 +20,6 @@ const CreateProjectForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdProjectId, setCreatedProjectId] = useState<number | null>(null);
-
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setRoles([]);
-    setRoleInput("");
-    setRoleCount(1);
-  };
 
   const handleAddRole = () => {
     const trimmed = roleInput.trim();
@@ -65,7 +35,7 @@ const CreateProjectForm: React.FC = () => {
     setIsSubmitting(true);
 
     const token = localStorage.getItem("userToken");
-    const projectData: ProjectData = { title, description, roles };
+    const projectData = { title: title.trim(), description: description.trim(), roles };
 
     try {
       const res = await fetch("http://localhost:5000/api/projects/create", {
@@ -78,11 +48,12 @@ const CreateProjectForm: React.FC = () => {
       });
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed");
+      if (!res.ok) throw new Error(result.error || "Failed to create project");
 
       setCreatedProjectId(result.projectId);
-      alert(`Project created! ID: ${result.projectId}`);
-      resetForm();
+      setTitle("");
+      setDescription("");
+      setRoles([]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -91,72 +62,92 @@ const CreateProjectForm: React.FC = () => {
   };
 
   return (
-    <form className="create-project-form" onSubmit={handleSubmit}>
-      <InputField id="title" label="Title" value={title} onChange={e => setTitle(e.target.value)} />
-      <InputField id="description" label="Description" value={description} onChange={e => setDescription(e.target.value)} rows={4} />
+    <FolderBackground>
+      <div className="create-project-wrapper">
+        <h1 className="page-title">Create New Project</h1>
 
-      <label>Roles Needed</label>
-      <div className="roles-row">
-        <input
-          type="text"
-          value={roleInput}
-          onChange={e => setRoleInput(e.target.value)}
-          placeholder="Backend Developer"
-          className="role-name-input"
-        />
-        <input
-          type="number"
-          min="1"
-          value={roleCount}
-          onChange={e => setRoleCount(Math.max(1, +e.target.value))}
-          className="role-count-input"
-        />
-        <button type="button" onClick={handleAddRole} className="add-role-btn">
-          Add Role
-        </button>
-      </div>
+        <form className="create-project-form" onSubmit={handleSubmit}>
+          <div className="field">
+            <label>Title *</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Campus Event Management System"
+              required
+            />
+          </div>
 
-      {roles.length > 0 && (
-        <div className="role-list">
-          <ul>
-            {roles.map((r, i) => (
-              <li key={i} className="role-item">
-                <span className="role-name">{r.name}</span>
-                <span className="role-count">({r.count})</span>
-                <button
-                  type="button"
-                  onClick={() => setRoles(p => p.filter((_, idx) => idx !== i))}
-                  className="remove-role-btn"
-                  title="Remove role"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+          <div className="field">
+            <label>Description *</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={5}
+              placeholder="Describe your project idea..."
+              required
+            />
+          </div>
 
-      {error && <p className="error-text">{error}</p>}
+          <div className="field">
+            <label>Roles Needed</label>
+            <div className="roles-row">
+              <input
+                type="text"
+                value={roleInput}
+                onChange={(e) => setRoleInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddRole())}
+                placeholder="e.g. UI/UX Designer"
+              />
+              <input
+                type="number"
+                min="1"
+                value={roleCount}
+                onChange={(e) => setRoleCount(Math.max(1, +e.target.value || 1))}
+                style={{ width: "70px" }}
+              />
+              <button type="button" onClick={handleAddRole} className="add-btn">
+                <Plus size={18} /> Add
+              </button>
+            </div>
 
-      <div className="submit-row">
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Project"}
-        </button>
-      </div>
+            {roles.length > 0 && (
+              <div className="roles-list">
+                {roles.map((role, i) => (
+                  <span key={i} className="role-tag">
+                    {role.name} ×{role.count}
+                    <button
+                      type="button"
+                      onClick={() => setRoles(roles.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {createdProjectId && (
-        <div className="success-banner">
-          <p>Project created successfully!</p>
-          <button
-            className="view-project-btn"
-            onClick={() => navigate(`/project-owner-folder/${createdProjectId}`)}
-          >
-            Go to Project
+          {error && <div className="error-msg">{error}</div>}
+
+          <button type="submit" disabled={isSubmitting} className="submit-btn">
+            {isSubmitting ? "Creating..." : "Create Project"}
           </button>
-        </div>
-      )}
-    </form>
+
+          {createdProjectId && (
+            <div className="success-msg">
+              Project created successfully!
+              <button
+                onClick={() => navigate(`/project-owner-folder/${createdProjectId}`)}
+                className="view-btn"
+              >
+                Go to Project
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+    </FolderBackground>
   );
 };
 
