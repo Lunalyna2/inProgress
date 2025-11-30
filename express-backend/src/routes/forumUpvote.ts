@@ -14,7 +14,7 @@ interface UpvoteResponse {
 
 // return current upvote count
 router.get(
-  "/:projectId",
+  "/:projectId/upvotes",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     const { projectId } = req.params;
@@ -52,7 +52,7 @@ router.get(
 
 // add upvote for a project
 router.post(
-  "/:projectId",
+  "/:projectId/upvotes",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     const { projectId } = req.params;
@@ -99,7 +99,7 @@ router.post(
 
 // remove upvote - when clicked again by user
 router.delete(
-  "/:projectId",
+  "/:projectId/upvotes",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     const { projectId } = req.params;
