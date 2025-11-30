@@ -4,11 +4,14 @@ import pool from "../pool";
 
 const projectRoutes = Router();
 
-// -- INTERFACES --
-
 interface Role {
   name: string;
   count: number;
+}
+
+// For existing roles
+interface RoleWithId extends Role {
+  id: number;
 }
 
 interface CreateProjectRequestBody {
@@ -23,6 +26,7 @@ interface UpdateProjectRequestBody {
   college: string;
   newRoles: Role[];
   removedRoleIds: number[];
+  updatedRoles: RoleWithId[];
   collaboratorsToAdd: number[];
   collaboratorsToRemove: number[];
   status: "ongoing" | "done";
@@ -58,7 +62,8 @@ projectRoutes.post(
       await client.query("BEGIN");
 
       // Insert Project Details
-      const projectInsertQuery = `INSERT INTO projects(title, description, creator_id, college, status) VALUES($1, $2, $3, $4, $5) RETURNING id, created_at`;
+      const projectInsertQuery = `INSERT INTO projects(title, description, creator_id, college, status) VALUES($1, $2, $3, $4, 
+$5) RETURNING id, created_at`;
       const projectResult = await client.query(projectInsertQuery, [
         title,
         description,
@@ -83,20 +88,18 @@ projectRoutes.post(
             return `($${v1}, $${v2}, $${v3})`;
           })
           .join(", ");
-
         const roleInsertQuery = `INSERT INTO project_roles(project_id, role_name, count) VALUES ${roleValues}`;
 
-        const roleParams: (string | number)[] = roles.flatMap((role) => [
-          newProjectId,
-          role.name,
-          role.count,
-        ]);
-
+        const roleParams: (string | number)[] = [];
+        roles.forEach((role) => {
+          roleParams.push(newProjectId);
+          roleParams.push(role.name);
+          roleParams.push(role.count);
+        });
         await client.query(roleInsertQuery, roleParams);
       }
 
       await client.query("COMMIT");
-
       res.status(201).json({
         message: "Project created successfully",
         projectId: newProjectId,
@@ -113,7 +116,6 @@ projectRoutes.post(
     }
   }
 );
-
 // Fetch Project by ID Route
 projectRoutes.get(
   "/:projectId",
@@ -148,7 +150,6 @@ projectRoutes.get(
     }
   }
 );
-
 // Update Project Route
 projectRoutes.put(
   "/:projectId",
@@ -162,6 +163,7 @@ projectRoutes.put(
       college,
       newRoles,
       removedRoleIds,
+      updatedRoles,
       collaboratorsToAdd,
       collaboratorsToRemove,
       status,
@@ -201,7 +203,6 @@ projectRoutes.put(
         status,
         projectId,
       ]);
-
       // Delete Removed Collaborators
       if (collaboratorsToRemove && collaboratorsToRemove.length > 0) {
         const numericUserIds = collaboratorsToRemove
@@ -212,18 +213,18 @@ projectRoutes.put(
             return id;
           })
           .filter((id) => !isNaN(id));
-
         if (numericUserIds.length === 0) {
           console.log("No valid user IDs found for removal.");
         } else {
           const userPlaceholders = numericUserIds
             .map((_, i) => `$${i + 2}`)
             .join(",");
-
           const deleteCollaboratorsQuery = `DELETE FROM project_collaborators WHERE project_id = $1 AND user_id IN (${userPlaceholders})`;
 
-          const deleteParams = [parseInt(projectId), ...numericUserIds];
-
+          const deleteParams = [
+            parseInt(projectId as string),
+            ...numericUserIds,
+          ];
           const deleteResult = await client.query(
             deleteCollaboratorsQuery,
             deleteParams
@@ -244,11 +245,9 @@ projectRoutes.put(
             return `($${v1}, $${v2})`;
           })
           .join(", ");
-
         const insertCollaboratorsQuery = `INSERT INTO project_collaborators(project_id, user_id) VALUES ${collabValues} ON CONFLICT DO NOTHING`;
-
         const collabParams: number[] = collaboratorsToAdd.flatMap((userId) => [
-          parseInt(projectId),
+          parseInt(projectId as string),
           userId,
         ]);
         await client.query(insertCollaboratorsQuery, collabParams);
@@ -264,8 +263,17 @@ projectRoutes.put(
         }`;
         await client.query(deleteRolesQuery, [
           ...removedRoleIds,
-          parseInt(projectId),
+          parseInt(projectId as string),
         ]);
+      }
+      if (updatedRoles && updatedRoles.length > 0) {
+        const updatePromises = updatedRoles.map((role) => {
+          return client.query(
+            `UPDATE project_roles SET count = $1, role_name = $2 WHERE id = $3 AND project_id = $4`,
+            [role.count, role.name, role.id, projectId]
+          );
+        });
+        await Promise.all(updatePromises.filter((p) => p !== undefined));
       }
 
       // Insert New Roles with count
@@ -276,7 +284,6 @@ projectRoutes.put(
             typeof role.name === "string" &&
             role.name.trim() !== ""
         );
-
         if (validNewRoles.length > 0) {
           let paramIndex = 1;
           const roleValues = validNewRoles
@@ -286,11 +293,15 @@ projectRoutes.put(
               const v3 = paramIndex++;
               return `($${v1}, $${v2}, $${v3})`;
             })
+
             .join(", ");
           const roleInsertQuery = `INSERT INTO project_roles(project_id, role_name, count) VALUES ${roleValues}`;
-          const roleParams: (string | number)[] = validNewRoles.flatMap(
-            (role) => [parseInt(projectId), role.name.trim(), role.count]
-          );
+          const roleParams: (string | number)[] = [];
+          validNewRoles.forEach((role) => {
+            roleParams.push(parseInt(projectId as string));
+            roleParams.push(role.name.trim());
+            roleParams.push(role.count);
+          });
           await client.query(roleInsertQuery, roleParams);
 
           if (validNewRoles.length !== newRoles.length) {
