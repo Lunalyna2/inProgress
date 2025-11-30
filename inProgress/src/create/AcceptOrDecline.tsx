@@ -8,7 +8,7 @@ type Collaborator = {
   avatarUrl?: string;
   approved?: boolean;
   role?: string;
-  decline?: boolean; // used for slide-out animation
+  decline?: boolean; 
   project?: string;
 };
 
@@ -77,7 +77,6 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
     }
   };
 
-  // Decline collaborator
   const handleDecline = async (id: string) => {
     try {
       const token = localStorage.getItem("userToken") || "";
@@ -90,12 +89,11 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
 
       if (!res.ok) throw new Error("Failed to decline collaborator");
 
-      // Trigger animation
       setCollaborators(prev =>
         prev.map(c => (c.id === id ? { ...c, decline: true } : c))
       );
 
-      // Remove after animation
+
       setTimeout(() => {
         setCollaborators(prev => prev.filter(c => c.id !== id));
       }, 350);
@@ -105,7 +103,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
   };
 
   if (loading) {
-    return <p className="loading-text">Loading pending collaborators… 💌</p>;
+    return <p className="loading-text">Loading pending collaborators…</p>;
   }
 
   return (
@@ -119,7 +117,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
           alt="No requests"
           className="no-collab-img"
           />
-          <p>No pending requests right now 💖</p>
+          <p>No pending requests right now</p>
           <p>Invite peers or share your project!</p>
         </div>
       ) : (

@@ -2,7 +2,7 @@
   max-width: 650px;
   margin: 2rem auto;
   padding: 1.5rem;
-  background-color: #fff0f6;
+  background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
@@ -10,7 +10,7 @@
 }
 
 .accept-or-decline h2 {
-  color: #7546c7;
+  color: #3b82f6;
   margin-bottom: 1rem;
   font-weight: 600;
 }
@@ -27,7 +27,7 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #debef2;
+  background-color: #ffffff;
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -73,21 +73,21 @@ ul {
 }
 
 .btn-accept {
-  background-color: #7546c7;
+  background-color: #3b82f6;
   color: white;
 }
 
 .btn-accept:hover {
-  background-color: #7546c7;
+  background-color: #2563eb;
 }
 
 .btn-decline {
-  background-color: #debef2;
-  color: #721c24;
+  background-color: #f3f4f6;
+  color: #b5c6e1;
 }
 
 .btn-decline:hover {
-  background-color: #debef2;
+  background-color: #e5e7eb;
 }
 
 .no-collaborators {
@@ -96,7 +96,7 @@ ul {
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
-  color: #495057;
+  color: #3b82f6;
 }
 
 .no-collab-img {
@@ -107,7 +107,7 @@ ul {
 .loading-text {
   text-align: center;
   margin-top: 2rem;
-  color: #d6336c;
+  color: #3b82f6;
   font-weight: 500;
 }
 
@@ -120,7 +120,6 @@ ul {
   to   { opacity: 0; transform: translateX(-40px); }
 }
 
-/* Pop-in animation for Approved */
 .pop-in {
   animation: popIn 0.35s ease-out;
 }
@@ -131,33 +130,13 @@ ul {
   100% { transform: scale(1); }
 }
 
-/* Approved badge style */
 .approved-badge {
   padding: 6px 12px;
-  background: #d4ffc4;
-  color: #2b7a0b;
+  background: #dbeafe;  
+  color: #3b82f6;       
   font-weight: bold;
   border-radius: 6px;
-  border: 1px solid #9ed48e;
+  border: 1px solid #3b82f6; 
 }
 
-/* Buttons */
-.btn-accept {
-  background: #4ca574;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
 
-.btn-decline {
-  background: #cf6969;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.collaborator-card {
-  transition: all 0.3s ease;
-}
