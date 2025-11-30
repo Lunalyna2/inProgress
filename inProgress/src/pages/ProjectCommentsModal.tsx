@@ -16,7 +16,7 @@ interface LocalComment {
   avatar?: string | null;
   text: string;
   created_at: string;
-  updated_at: string; // now always string
+  updated_at: string; 
 }
 
 interface ProjectCommentsModalProps {
@@ -36,7 +36,6 @@ const formatTimestamp = (ts: string) => {
   );
 };
 
-// --- Reducer Setup ---
 interface State {
   comments: LocalComment[];
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./CreatedProjects.css";
 import DashNavbar from "./DashboardNavbar";
-import { ArrowBigUp, MessageCircle } from "lucide-react";
+import FolderProjectCard from "./FolderProjectCard"; 
 import ProjectCommentsModal from "./ProjectCommentsModal";
 import { getComments } from "../api/comments";
 
@@ -9,83 +9,70 @@ interface Project {
   id: number;
   title: string;
   description: string;
-  image?: string;
 }
 
 const CreatedProjects: React.FC = () => {
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
-  const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
   const [commentsCount, setCommentsCount] = useState<{ [key: number]: number }>({});
+  const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
 
   const projects: Project[] = [
-    { id: 1, title: "E-Commerce Platform", description: "A full-stack e-commerce application with payment integration and inventory management.", image: "https://via.placeholder.com/400x200" },
-    { id: 2, title: "Task Management App", description: "A collaborative tool with drag-and-drop functionality and team workspaces.", image: "https://via.placeholder.com/400x200" },
-    { id: 3, title: "Weather Dashboard", description: "An interactive weather app with real-time forecasts and alerts.", image: "https://via.placeholder.com/400x200" },
+    { id: 1, title: "E-Commerce Platform", description: "A full-stack e-commerce application..." },
+    { id: 2, title: "Task Management App", description: "A collaborative tool with drag-and-drop..." },
+    { id: 3, title: "Weather Dashboard", description: "An interactive weather app..." },
   ];
 
-  // Load initial comment counts for all projects
   useEffect(() => {
     const loadCounts = async () => {
       const counts: { [key: number]: number } = {};
-      for (const project of projects) {
-        const comments = await getComments(project.id);
-        counts[project.id] = comments.length;
+      for (const p of projects) {
+        const comments = await getComments(p.id);
+        counts[p.id] = comments.length;
       }
       setCommentsCount(counts);
     };
     loadCounts();
   }, []);
 
-  // Callback to update comment count for a project
-  const handleCommentsUpdate = (projectId: number, newCount: number) => {
-    setCommentsCount(prev => ({ ...prev, [projectId]: newCount }));
+  const handleUpvote = (projectId: number) => {
+    if (!hasUpvoted[projectId]) {
+      setUpvotes(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + 1 }));
+      setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
+    }
   };
 
   return (
     <div className="projects-container">
-      <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
+      <DashNavbar />
+
       <h1 className="projects-title">My Projects</h1>
 
       <div className="projects-grid">
         {projects.map(project => (
-          <div key={project.id} className="project-card">
-            {project.image && <img src={project.image} alt={project.title} />}
-            <h2>{project.title}</h2>
-            <p>{project.description}</p>
-
-            <div className="action-icons">
-              <div
-                className="upvote-wrapper"
-                onClick={() => {
-                  if (!hasUpvoted[project.id]) {
-                    setUpvotes(prev => ({ ...prev, [project.id]: (prev[project.id] || 0) + 1 }));
-                    setHasUpvoted(prev => ({ ...prev, [project.id]: true }));
-                  }
-                }}
-              >
-                <ArrowBigUp className={hasUpvoted[project.id] ? "upvoted" : ""} />
-                <span className="upvote-count">{upvotes[project.id] || 0}</span>
-              </div>
-
-              <MessageCircle
-                className="action-icon"
-                onClick={() => setSelectedProjectIdForComments(project.id)}
-              />
-              <span className="comment-count">{commentsCount[project.id] || 0}</span>
-            </div>
-          </div>
+          <FolderProjectCard
+            key={project.id}
+            project={project}
+            upvotes={upvotes[project.id] || 0}
+            hasUpvoted={!!hasUpvoted[project.id]}
+            commentCount={commentsCount[project.id] || 0}
+            onUpvote={handleUpvote}
+            onOpenComments={(id) => setSelectedProjectIdForComments(id)}
+          />
         ))}
       </div>
 
       {selectedProjectIdForComments !== null && (
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
-          projectTitle={projects.find(p => p.id === selectedProjectIdForComments)?.title || "No title"}
-          projectDescription={projects.find(p => p.id === selectedProjectIdForComments)?.description || "No description"}
+          projectTitle={projects.find(p => p.id === selectedProjectIdForComments)?.title || ""}
+          projectDescription={projects.find(p => p.id === selectedProjectIdForComments)?.description || ""}
           onClose={() => setSelectedProjectIdForComments(null)}
           onCommentsChange={(newCount: number) =>
-            handleCommentsUpdate(selectedProjectIdForComments, newCount)
+            setCommentsCount(prev => ({
+              ...prev,
+              [selectedProjectIdForComments]: newCount
+            }))
           }
         />
       )}
