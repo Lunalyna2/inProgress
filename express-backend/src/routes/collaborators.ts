@@ -8,7 +8,7 @@ interface AuthRequest extends Request {
   user?: { id: string };
 }
 
-// Middleware to verify JWT
+// middleware to verify JWT
 const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: "No token provided" });
@@ -23,10 +23,7 @@ const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   }
 };
 
-/* ----------------------------------------------------
-   GET /api/collaborators/pending
-   Fetch pending collaborator requests for projects owned by the user
----------------------------------------------------- */
+
 router.get("/pending/:projectId", auth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -64,9 +61,6 @@ router.get("/pending/:projectId", auth, async (req: AuthRequest, res: Response) 
   }
 });
 
-/* ----------------------------------------------------
-   POST /api/collaborators/:id/accept
----------------------------------------------------- */
 router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
   try {
     const collabId = req.params.id;
@@ -88,7 +82,7 @@ router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Collaborator not found or not authorized" });
     }
 
-    // Fetch collaborator details for frontend update
+    // fetch collaborator details
     const collabUser = await pool.query(
       `SELECT u.fullname, up.skill, up.avatar
        FROM users u
@@ -115,9 +109,8 @@ router.post("/:id/accept", auth, async (req: AuthRequest, res: Response) => {
   }
 });
 
-/* ----------------------------------------------------
-   POST /api/collaborators/:id/decline
----------------------------------------------------- */
+//post /api/collaborators/:id/decline
+
 router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
   try {
     const collabId = req.params.id;
@@ -142,7 +135,7 @@ router.post("/:id/decline", auth, async (req: AuthRequest, res: Response) => {
     return res.json({ id: collabId, message: "Collaborator declined" });
   } catch (err) {
     console.error("Decline collaborator error:", err);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(404).json({ error: "Server error" });
   }
 });
 

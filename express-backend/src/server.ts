@@ -1,16 +1,16 @@
-// src/server.ts
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import pool from "./pool"; // keep your pool.ts as-is
+import pool from "./pool"; 
 import profileRoutes from "./routes/flipbookProfile";
 import authForgotRoutes from "./routes/authForgot";
 import collaboratorRoutes from "./routes/collaborators";
 import forumUpvoteRoutes from "./routes/forumUpvote";
 import projectRoutes from "./routes/createproject";
+import commentsRoutes from "./routes/comments"; 
 import { AuthenticatedRequest, authMiddleware, JWT_SECRET } from "./shared";
 
 dotenv.config();
@@ -18,10 +18,7 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-// Middleware
 app.use(express.json());
-
-// Allow React dev server origin. Set credentials true if you later use cookies.
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -31,10 +28,6 @@ app.use(
   })
 );
 
-// -----------------
-// ROUTES
-// -----------------
-// Protect profile route with authMiddleware
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
@@ -174,6 +167,7 @@ app.delete(
 // -----------------
 // Signup & Login (fixed)
 // -----------------
+app.use("/api", commentsRoutes); 
 
 interface SignUpFormData {
   fullName: string;
@@ -221,7 +215,7 @@ const validateLoginData = (
   return { isValid: Object.keys(errors).length === 0, errors };
 };
 
-// --- SIGNUP (now returns token) ---
+// --- SIGNUP ---
 app.post("/api/signup", async (req, res) => {
   const data: SignUpFormData = req.body;
   const { isValid, errors } = validateSignUpData(data);

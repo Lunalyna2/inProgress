@@ -26,7 +26,6 @@ const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
 );
 
 interface ProjectRole {
-  role: string | number | readonly string[] | undefined;
   isEditing: any;
   id: number;
   role_name: string;
@@ -81,24 +80,6 @@ interface Message {
   type: "success" | "error";
 }
 
-const COLLEGE_OPTIONS = [
-  "",
-  "Senior High School",
-  "College of Agriculture, Resources and Environmental Sciences",
-  "College of Arts & Sciences",
-  "College of Business & Accountancy",
-  "College of Computer Studies",
-  "College of Education",
-  "College of Engineering",
-  "College of Hospitality Management",
-  "College of Medical Laboratory Science",
-  "College of Nursing",
-  "College of Pharmacy",
-  "College of Law",
-  "College of Medicine",
-  "College of Theology",
-];
-
 const API_BASE_URL = "http://localhost:5000/api";
 
 const ProjectOwnerFolder: React.FC = () => {
@@ -122,7 +103,6 @@ const ProjectOwnerFolder: React.FC = () => {
     collaborators: [],
   });
 
-  const [projectRoles, setProjectRoles] = useState<ProjectRole[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
 
   // Get the auth token and user ID once
@@ -132,6 +112,25 @@ const ProjectOwnerFolder: React.FC = () => {
   const updateField = (field: string, value: any) => {
     setProject((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Local UI States for Editing Project Details
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(project.title);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState(project.description);
+
+  // Local UI States for Adding Roles/Tasks
+  const [taskInput, setTaskInput] = useState("");
+  const [roleInput, setRoleInput] = useState("");
+  const [roleCountInput, setRoleCountInput] = useState(1);
+
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>(
+    "all"
+  );
+
+  // Local state for editable progress (synced with task data)
+  const [editableProgress, setEditableProgress] = useState<number>(0);
 
   // --- FETCH HANDLERS ---
 
@@ -163,6 +162,15 @@ const ProjectOwnerFolder: React.FC = () => {
         return;
       }
 
+      // Map API roles to ProjectRole interface for display
+      const fetchedRoles: ProjectRole[] = (data.roles || []).map((r: any) => ({
+        id: r.id,
+        role_name: r.role_name,
+        count: r.count,
+        filled: 0,
+        isEditing: false,
+      }));
+
       setProject({
         title: data.title || "",
         description: data.description || "",
@@ -172,9 +180,8 @@ const ProjectOwnerFolder: React.FC = () => {
         tasks: data.tasks || [],
         createdBy: data.createdBy || "",
         createdAt: data.createdAt || new Date().toISOString(),
-        rolesNeeded: data.rolesNeeded || [],
+        rolesNeeded: fetchedRoles,
       });
-      setProjectRoles(data.roles || []);
     } catch (error) {
       console.error("Fetch error:", error);
       setMessage({
@@ -188,11 +195,56 @@ const ProjectOwnerFolder: React.FC = () => {
     fetchProjectData();
   }, [fetchProjectData]);
 
+  // Sync local UI states with fetched data (safely, only if not currently editing)
+  useEffect(() => {
+    if (!isEditingTitle) setEditedTitle(project.title);
+    if (!isEditingDescription) setDescriptionValue(project.description);
+  }, [
+    project.title,
+    project.description,
+    isEditingTitle,
+    isEditingDescription,
+  ]);
+
+  // --- TASK & PROGRESS COMPUTATION ---
+
+  const myTasksCount = useMemo(
+    () => project.tasks.filter((t) => t.assignedTo === currentUser.name).length,
+    [project.tasks, currentUser.name]
+  );
+
+  const completedTasksCount = useMemo(
+    () =>
+      project.tasks.filter(
+        (t) => t.status === "completed" && t.assignedTo === currentUser.name
+      ).length,
+    [project.tasks, currentUser.name]
+  );
+
+  // Sync editableProgress with the project task data on load/fetch
+  useEffect(() => {
+    setEditableProgress(
+      myTasksCount > 0
+        ? Math.round((completedTasksCount / myTasksCount) * 100)
+        : 0
+    );
+  }, [myTasksCount, completedTasksCount]);
+
   // --- ROLE HANDLERS ---
 
   const addRequiredRole = async () => {
-    const role_name = prompt("Enter required role (e.g., UI/UX Designer):");
-    if (!role_name || role_name.trim() === "") return;
+    const role_name = roleInput.trim();
+    const count = roleCountInput;
+
+    // Client-side validation
+    if (!role_name || role_name === "") {
+      setMessage({ text: "Role name cannot be empty.", type: "error" });
+      return;
+    }
+    if (count < 1 || isNaN(count)) {
+      setMessage({ text: "Role count must be 1 or greater.", type: "error" });
+      return;
+    }
 
     try {
       const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
@@ -202,20 +254,21 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: project.title,
-          description: project.description,
+          title: editedTitle,
+          description: descriptionValue,
           college: project.college,
           status: project.status,
-          newRoles: [role_name.trim()],
+          newRoles: [{ name: role_name, count: count }],
           removedRoleIds: [],
           collaboratorsToAdd: [],
           collaboratorsToRemove: [],
         }),
       });
-
       if (res.ok) {
+        setRoleInput("");
+        setRoleCountInput(1);
         setMessage({
-          text: "Role added successfully! (Please refresh if not immediately visible)",
+          text: "Role added successfully!",
           type: "success",
         });
         fetchProjectData();
@@ -227,13 +280,15 @@ const ProjectOwnerFolder: React.FC = () => {
         });
       }
     } catch (error) {
-      setMessage({ text: "Network error adding role.", type: "error" });
+      setMessage({
+        text: "Network error adding role. Please check server logs.",
+        type: "error",
+      });
     }
   };
 
   const removeRequiredRole = async (roleId: number) => {
     if (!window.confirm("Are you sure you want to remove this role?")) return;
-
     try {
       const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
         method: "PUT",
@@ -242,8 +297,8 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: project.title,
-          description: project.description,
+          title: editedTitle,
+          description: descriptionValue,
           college: project.college,
           status: project.status,
           newRoles: [],
@@ -252,7 +307,6 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToRemove: [],
         }),
       });
-
       if (res.ok) {
         setMessage({ text: "Role removed successfully!", type: "success" });
         fetchProjectData();
@@ -268,7 +322,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  // --- MAIN PROJECT SAVE HANDLER ---
+  // --- MAIN PROJECT SAVE HANDLER (Called by 'Save Project Details') ---
   const saveProject = useCallback(async () => {
     if (!projectId || !token) {
       setMessage({
@@ -286,10 +340,10 @@ const ProjectOwnerFolder: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: project.title,
-          description: project.description,
+          title: editedTitle,
+          description: descriptionValue,
           college: project.college,
-          status: project.status,
+          status: project.status, // Current status is saved
           newRoles: [],
           removedRoleIds: [],
           collaboratorsToAdd: [],
@@ -307,6 +361,8 @@ const ProjectOwnerFolder: React.FC = () => {
         return;
       }
 
+      fetchProjectData();
+
       setMessage({
         text: "Project details saved successfully!",
         type: "success",
@@ -318,16 +374,83 @@ const ProjectOwnerFolder: React.FC = () => {
   }, [
     projectId,
     token,
-    project.title,
-    project.description,
+    editedTitle,
+    descriptionValue,
     project.college,
     project.status,
+    fetchProjectData,
   ]);
+
+  // --- PROJECT STATUS CHANGE HANDLER (FIXED: Added Rollback) ---
+  const handleProjectStatusChange = async (newStatus: "ongoing" | "done") => {
+    const originalStatus = project.status;
+
+    // 1. Optimistic Update (For instant visual feedback)
+    setProject((prev) => ({ ...prev, status: newStatus }));
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        // Sending all editable fields for a complete status change persistence
+        body: JSON.stringify({
+          title: editedTitle,
+          description: descriptionValue,
+          college: project.college,
+          status: newStatus,
+          newRoles: [],
+          removedRoleIds: [],
+          collaboratorsToAdd: [],
+          collaboratorsToRemove: [],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // 2. Rollback on API failure
+        setProject((prev) => ({ ...prev, status: originalStatus }));
+        setMessage({
+          text:
+            data.message ||
+            `Failed to change status to ${newStatus}. Status reverted.`,
+          type: "error",
+        });
+        return;
+      }
+
+      // 3. Success
+      fetchProjectData();
+      setMessage({
+        text: `Project status changed to ${newStatus.toUpperCase()} successfully!`,
+        type: "success",
+      });
+    } catch (error) {
+      // 4. Rollback on Network failure
+      setProject((prev) => ({ ...prev, status: originalStatus }));
+      console.error("Status change network error:", error);
+      setMessage({
+        text: "Network error changing project status. Status reverted.",
+        type: "error",
+      });
+    }
+  };
+
+  // --- TASK HANDLERS (FIXED: Changed 'label' to 'title' in API body) ---
 
   // Add Task
   const addTask = async () => {
-    const label = prompt("Task name:");
-    if (!label) return;
+    const title = taskInput.trim(); // Renamed local variable for clarity and API consistency
+
+    // Client-side validation
+    if (!title) {
+      setMessage({ text: "Task title cannot be empty.", type: "error" });
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
         method: "POST",
@@ -335,12 +458,12 @@ const ProjectOwnerFolder: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ label: label.trim() }),
+        body: JSON.stringify({ title }), // Sending 'title' instead of 'label' for API consistency
       });
-
       if (res.ok) {
+        setTaskInput(""); // Clear input on success
         setMessage({ text: "Task added successfully!", type: "success" });
-        fetchProjectData();
+        fetchProjectData(); // Re-fetch to update task list
       } else {
         const errData = await res.json();
         setMessage({
@@ -349,16 +472,26 @@ const ProjectOwnerFolder: React.FC = () => {
         });
       }
     } catch (error) {
-      setMessage({ text: "Network error adding task.", type: "error" });
+      // NOTE: If this error persists, it is definitely a server issue (CORS, server offline, malformed API endpoint).
+      setMessage({
+        text: "Network error adding task. Please check server logs for /tasks/:projectId.",
+        type: "error",
+      });
     }
   };
 
-  // Toggle Task Status
+  // Toggle Task Status (Used for setting task.done status)
   const toggleTask = async (taskId: number, doneStatus: boolean) => {
+    const originalTasks = project.tasks;
+
+    // 1. Optimistic local update (Stops jarring re-render)
     const updatedTasks = project.tasks.map((t) =>
-      t.id === taskId ? { ...t, done: doneStatus } : t
+      t.id === taskId
+        ? { ...t, done: doneStatus, status: doneStatus ? "completed" : "to-do" }
+        : t
     );
     updateField("tasks", updatedTasks);
+
     try {
       const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/toggle`, {
         method: "PUT",
@@ -370,7 +503,8 @@ const ProjectOwnerFolder: React.FC = () => {
       });
 
       if (!res.ok) {
-        updateField("tasks", project.tasks);
+        // Rollback optimistic update
+        updateField("tasks", originalTasks);
         const errData = await res.json();
         setMessage({
           text: errData.message || "Failed to toggle task status.",
@@ -378,7 +512,8 @@ const ProjectOwnerFolder: React.FC = () => {
         });
       }
     } catch (error) {
-      updateField("tasks", project.tasks);
+      // Rollback optimistic update
+      updateField("tasks", originalTasks);
       setMessage({
         text: "Network error toggling task status.",
         type: "error",
@@ -386,12 +521,23 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
+  // Unified handler for status change in the UI (calls API)
+  const handleTaskStatusChange = async (
+    taskId: number,
+    newStatus: TaskStatus
+  ) => {
+    const isDone = newStatus === "completed";
+    await toggleTask(taskId, isDone);
+  };
+
+  // --- COLLABORATOR HANDLERS (Omitted for brevity, unchanged) ---
+
   // Add collaborator
   const addCollaborator = async () => {
     const username = prompt("Collaborator username or ID:");
     if (!username) return;
 
-    // **In a real app:** You would first call a backend endpoint to look up the username/email // and get the corresponding `userId`. For now, we'll prompt for the ID.
+    // For now, we'll prompt for the ID.
     const userIdToAdd = parseInt(
       prompt(`Enter User ID for ${username}`) || "0"
     );
@@ -408,8 +554,8 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: project.title,
-          description: project.description,
+          title: editedTitle,
+          description: descriptionValue,
           college: project.college,
           status: project.status,
           newRoles: [],
@@ -418,7 +564,6 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToRemove: [],
         }),
       });
-
       if (res.ok) {
         setMessage({
           text: `User ${userIdToAdd} added as collaborator!`,
@@ -441,7 +586,6 @@ const ProjectOwnerFolder: React.FC = () => {
   const removeCollaborator = async (userIdToRemove: number) => {
     if (!window.confirm("Are you sure you want to remove this collaborator?"))
       return;
-
     try {
       const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
         method: "PUT",
@@ -450,8 +594,8 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: project.title,
-          description: project.description,
+          title: editedTitle,
+          description: descriptionValue,
           college: project.college,
           status: project.status,
           newRoles: [],
@@ -460,7 +604,6 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToRemove: [userIdToRemove],
         }),
       });
-
       if (res.ok) {
         setMessage({
           text: "Collaborator removed successfully!",
@@ -482,40 +625,13 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  // Calculate progress percent
-  const progress =
-    project.tasks.length === 0
-      ? 0
-      : (project.tasks.filter((t) => t.done).length / project.tasks.length) *
-        100;
-
   if (!projectId) {
     return <p>Loading project ID...</p>;
   }
 
-  const [tasks, setTasks] = useState<ProjectTask[]>([]);
-
-  const [selectedRole, setSelectedRole] = useState<string>("");
-  const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>(
-    "all"
-  );
-  const [projectProgress, setProjectProgress] = useState<number>(0);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(project.title);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [descriptionValue, setDescriptionValue] = useState(project.description);
-  const [nextTaskId, setNextTaskId] = useState(tasks.length + 1);
-
-  const handleUpdateTaskStatus = (taskId: number, newStatus: TaskStatus) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
-    );
-  };
-
+  // Use project.tasks for filtering
   const filteredTasks: ProjectTask[] = useMemo(() => {
-    return tasks.filter((task) => {
+    return project.tasks.filter((task) => {
       if (taskFilter === "all") return true;
       if (taskFilter === "my-tasks")
         return task.assignedTo === currentUser.name;
@@ -524,7 +640,7 @@ const ProjectOwnerFolder: React.FC = () => {
       if (taskFilter === "completed") return task.status === "completed";
       return true;
     });
-  }, [tasks, taskFilter, currentUser.name]);
+  }, [project.tasks, taskFilter, currentUser.name]);
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
@@ -552,24 +668,6 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  const myTasksCount = useMemo(
-    () => tasks.filter((t) => t.assignedTo === currentUser.name).length,
-    [tasks, currentUser.name]
-  );
-  const completedTasksCount = useMemo(
-    () =>
-      tasks.filter(
-        (t) => t.status === "completed" && t.assignedTo === currentUser.name
-      ).length,
-    [tasks, currentUser.name]
-  );
-
-  const [editableProgress, setEditableProgress] = useState<number>(
-    myTasksCount > 0
-      ? Math.round((completedTasksCount / myTasksCount) * 100)
-      : 0
-  );
-
   return (
     <FolderBackground>
       <div className="project-header-compact">
@@ -588,8 +686,11 @@ const ProjectOwnerFolder: React.FC = () => {
           <button
             className="edit-btn"
             onClick={() => {
-              if (isEditingTitle)
+              // Only update the main project state locally on save button click
+              if (isEditingTitle) {
                 setProject((prev) => ({ ...prev, title: editedTitle }));
+                // Persistence is handled by the main 'Save Project Details' button
+              }
               setIsEditingTitle(!isEditingTitle);
             }}
           >
@@ -621,12 +722,13 @@ const ProjectOwnerFolder: React.FC = () => {
                 <button
                   className="edit-btn"
                   onClick={() => {
-                    if (isEditingDescription)
+                    if (isEditingDescription) {
                       setProject((prev) => ({
                         ...prev,
                         description: descriptionValue,
                       }));
-                    else setDescriptionValue(project.description);
+                      // Persistence is handled by the main 'Save Project Details' button
+                    }
                     setIsEditingDescription(!isEditingDescription);
                   }}
                 >
@@ -642,74 +744,41 @@ const ProjectOwnerFolder: React.FC = () => {
               <div className="roles-list">
                 {project.rolesNeeded.map((role) => (
                   <div key={role.id} className="role-tag">
-                    {role.isEditing ? (
-                      <input
-                        type="text"
-                        value={role.role}
-                        autoFocus
-                        onChange={(e) =>
-                          setProject((prev) => ({
-                            ...prev,
-                            rolesNeeded: prev.rolesNeeded.map((r) =>
-                              r.id === role.id
-                                ? { ...r, role: e.target.value }
-                                : r
-                            ),
-                          }))
-                        }
-                        onBlur={() =>
-                          setProject((prev) => ({
-                            ...prev,
-                            rolesNeeded: prev.rolesNeeded.map((r) =>
-                              r.id === role.id ? { ...r, isEditing: false } : r
-                            ),
-                          }))
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.currentTarget.blur();
-                        }}
-                      />
-                    ) : (
-                      <>
-                        <span>{role.role}</span>
-                        <button
-                          onClick={() =>
-                            setProject((prev) => ({
-                              ...prev,
-                              rolesNeeded: prev.rolesNeeded.filter(
-                                (r) => r.id !== role.id
-                              ),
-                            }))
-                          }
-                          className="remove-role-btn"
-                        >
-                          &times;
-                        </button>
-                      </>
-                    )}
+                    <span>
+                      {role.role_name} (Qty: {role.count})
+                    </span>
+                    <button
+                      onClick={() => removeRequiredRole(role.id)}
+                      className="remove-role-btn"
+                    >
+                      &times;
+                    </button>
                   </div>
                 ))}
               </div>
 
-              <button
-                onClick={() => {
-                  const newRole = {
-                    id: project.rolesNeeded.length + 1,
-                    role: "",
-                    role_name: "",
-                    count: 1,
-                    filled: 0,
-                    isEditing: true,
-                  };
-                  setProject((prev) => ({
-                    ...prev,
-                    rolesNeeded: [...prev.rolesNeeded, newRole],
-                  }));
-                }}
-                className="add-role-btn"
-              >
-                + Add Role
-              </button>
+              {/* Add Role Controls */}
+              <div className="add-role-controls">
+                <input
+                  type="text"
+                  placeholder="New Role Name"
+                  value={roleInput}
+                  onChange={(e) => setRoleInput(e.target.value)}
+                  className="role-input-field"
+                />
+                <input
+                  type="number"
+                  min="1"
+                  value={roleCountInput}
+                  onChange={(e) =>
+                    setRoleCountInput(parseInt(e.target.value) || 1)
+                  }
+                  className="role-count-input-field"
+                />
+                <button onClick={addRequiredRole} className="add-role-btn">
+                  + Add Role
+                </button>
+              </div>
             </div>
 
             {/* Add Task */}
@@ -718,26 +787,7 @@ const ProjectOwnerFolder: React.FC = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  const form = e.currentTarget;
-                  const taskInput = form.elements.namedItem(
-                    "taskTitle"
-                  ) as HTMLInputElement;
-                  if (!taskInput.value) return;
-
-                  const newTask: ProjectTask = {
-                    id: nextTaskId,
-                    title: taskInput.value,
-                    status: "to-do",
-                    assignedTo: null,
-                    dueDate: new Date().toISOString().split("T")[0] ?? "",
-                    priority: "medium",
-                    done: false,
-                    label: "",
-                  };
-
-                  setTasks((prev) => [...prev, newTask]);
-                  setNextTaskId((prev) => prev + 1);
-                  form.reset();
+                  addTask();
                 }}
               >
                 <input
@@ -745,6 +795,8 @@ const ProjectOwnerFolder: React.FC = () => {
                   name="taskTitle"
                   placeholder="Task title"
                   className="task-input"
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
                 />
                 <button type="submit" className="add-task-btn">
                   Add Task
@@ -755,7 +807,7 @@ const ProjectOwnerFolder: React.FC = () => {
             {/* Tasks */}
             <div className="content-card">
               <div className="card-header">
-                <h2 className="card-title">Tasks ({tasks.length})</h2>
+                <h2 className="card-title">Tasks ({project.tasks.length})</h2>
               </div>
               <div className="task-filters">
                 <button
@@ -764,7 +816,7 @@ const ProjectOwnerFolder: React.FC = () => {
                   }`}
                   onClick={() => setTaskFilter("all")}
                 >
-                  All ({tasks.length})
+                  All ({project.tasks.length})
                 </button>
                 <button
                   className={`filter-chip ${
@@ -792,7 +844,9 @@ const ProjectOwnerFolder: React.FC = () => {
                           <div
                             className="task-priority-dot"
                             style={{
-                              backgroundColor: getPriorityColor(task.priority),
+                              backgroundColor: getPriorityColor(
+                                task.priority as TaskPriority
+                              ),
                             }}
                           ></div>
                           <h3 className="task-title">{task.title}</h3>
@@ -801,14 +855,15 @@ const ProjectOwnerFolder: React.FC = () => {
                           className="task-status-dropdown"
                           value={task.status}
                           onChange={(e) =>
-                            handleUpdateTaskStatus(
+                            handleTaskStatusChange(
                               task.id,
                               e.target.value as TaskStatus
                             )
                           }
                           style={{
-                            backgroundColor: getStatusColor(task.status) + "20",
-                            color: getStatusColor(task.status),
+                            backgroundColor:
+                              getStatusColor(task.status as TaskStatus) + "20",
+                            color: getStatusColor(task.status as TaskStatus),
                           }}
                         >
                           <option value="to-do">To Do</option>
@@ -817,7 +872,7 @@ const ProjectOwnerFolder: React.FC = () => {
                         </select>
                       </div>
                       <div className="task-meta">
-                        <span>👤 {task.assignedTo || "to-do"}</span>
+                        <span>👤 {task.assignedTo || "Unassigned"}</span>
                         <span>
                           📅 {new Date(task.dueDate).toLocaleDateString()}
                         </span>
@@ -875,7 +930,9 @@ const ProjectOwnerFolder: React.FC = () => {
               </div>
             </div>
 
-            {/* status togglr */}
+            <hr />
+
+            {/* status toggler */}
             <div className="status-section">
               <label>Status:</label>
               <div
@@ -886,33 +943,41 @@ const ProjectOwnerFolder: React.FC = () => {
               />
 
               <button
-                onClick={async () => {
-                  setProject((prev) => ({ ...prev, status: "ongoing" }));
+                style={{
+                  backgroundColor:
+                    project.status === "ongoing" ? "#3b82f6" : "#d1d5db",
+                  color: project.status === "ongoing" ? "white" : "#1f2937",
+                  cursor: project.status === "ongoing" ? "default" : "pointer",
                 }}
+                onClick={() => handleProjectStatusChange("ongoing")}
                 disabled={project.status === "ongoing"}
               >
                 Ongoing
               </button>
 
               <button
-                onClick={async () => {
-                  setProject((prev) => ({ ...prev, status: "done" }));
+                style={{
+                  backgroundColor:
+                    project.status === "done" ? "#3b82f6" : "#d1d5db",
+                  color: project.status === "done" ? "white" : "#1f2937",
+                  cursor: project.status === "done" ? "default" : "pointer",
                 }}
+                onClick={() => handleProjectStatusChange("done")}
                 disabled={project.status === "done"}
               >
                 Done
               </button>
             </div>
 
+            <hr />
+
             {/* Collaborators */}
             <div className="content-card">
               <div className="card-title-row">
-                <h2 className="card-title">
-                  Team 
-                </h2>
+                <h2 className="card-title">Team </h2>
                 <button
                   className="add-collaborator-btn"
-                  onClick={() => console.log("Add collaborator clicked")}
+                  onClick={addCollaborator}
                 >
                   + Collaborator
                 </button>
@@ -946,12 +1011,7 @@ const ProjectOwnerFolder: React.FC = () => {
                             <button
                               className="remove-role-btn"
                               onClick={() =>
-                                setProject((prev) => ({
-                                  ...prev,
-                                  collaborators: prev.collaborators.filter(
-                                    (c) => c.userId !== collaborator.userId
-                                  ),
-                                }))
+                                removeCollaborator(collaborator.userId)
                               }
                             >
                               &times;
@@ -1028,10 +1088,12 @@ const ProjectOwnerFolder: React.FC = () => {
             <div className="join-requests-section">
               <AcceptOrDecline projectId={projectId} />
             </div>
+
             {/* SAVE BUTTON */}
             <button className="save-project-btn" onClick={saveProject}>
               Save Project Details
             </button>
+
             {/* Message Bar for Success/Error */}
             {message && (
               <div className={`message-bar ${message.type}`}>
