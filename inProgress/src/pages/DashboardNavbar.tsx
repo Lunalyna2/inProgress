@@ -16,6 +16,15 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
     callback?.();
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+
+    navigate("/login");
+  };
+
   return (
     <div className="top-container">
       <div className="logo-section">
@@ -41,6 +50,12 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
           onClick={() => handleNavigate("/flipbook?source=profile")}
         >
           Profile
+        </button>
+        <button
+          className="menu-button"
+          onClick={handleLogout}
+        >
+          Logout
         </button>
       </div>
     </div>
