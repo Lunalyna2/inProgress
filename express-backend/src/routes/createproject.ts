@@ -62,8 +62,7 @@ projectRoutes.post(
       await client.query("BEGIN");
 
       // Insert Project Details
-      const projectInsertQuery = `INSERT INTO projects(title, description, creator_id, college, status) VALUES($1, $2, $3, $4, 
-$5) RETURNING id, created_at`;
+      const projectInsertQuery = `INSERT INTO projects(title, description, creator_id, college, status) VALUES($1, $2, $3, $4, $5) RETURNING id, created_at`;
       const projectResult = await client.query(projectInsertQuery, [
         title,
         description,
