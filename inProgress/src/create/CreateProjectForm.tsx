@@ -2,6 +2,8 @@ import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 // interfaces
 interface Role {
   name: string;
@@ -57,11 +59,12 @@ const InputField: React.FC<InputProps> = ({
 );
 
 const CreateProjectForm: React.FC = () => {
-  const navigate = useNavigate(); // <- use navigate for redirect
+  const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [roleInput, setRoleInput] = useState("");
+  const [roleCountInput, setRoleCountInput] = useState(1);
   const [roles, setRoles] = useState<Role[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,13 +74,20 @@ const CreateProjectForm: React.FC = () => {
     setDescription("");
     setRoles([]);
     setRoleInput("");
+    setRoleCountInput(1);
+  };
+
+  const handleCountChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setRoleCountInput(isNaN(value) || value < 1 ? 1 : value);
   };
 
   const handleAddRole = () => {
     const trimmed = roleInput.trim();
     if (!trimmed) return;
-    setRoles((prev) => [...prev, { name: trimmed, count: 1 }]);
+    setRoles((prev) => [...prev, { name: trimmed, count: roleCountInput }]);
     setRoleInput("");
+    setRoleCountInput(1);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -89,17 +99,15 @@ const CreateProjectForm: React.FC = () => {
     const projectData: ProjectData = { title, description, roles };
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/projects/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(projectData),
-        }
-      );
+      const createProjectUrl = `${API_BASE_URL}/projects/create`;
+      const response = await fetch(createProjectUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(projectData),
+      });
 
       if (!response.ok) {
         const errData = await response.json();
@@ -109,7 +117,7 @@ const CreateProjectForm: React.FC = () => {
       }
 
       const result = await response.json();
-      const projectId = result.projectId; // get ID from API
+      const projectId = result.projectId;
 
       alert(`Project created successfully! ID: ${projectId}`);
       resetForm();
@@ -148,6 +156,14 @@ const CreateProjectForm: React.FC = () => {
           value={roleInput}
           onChange={(e) => setRoleInput(e.target.value)}
           placeholder="e.g., Backend Developer"
+        />
+        <input
+          type="number"
+          min="1"
+          value={roleCountInput}
+          onChange={handleCountChange}
+          aria-label="Number of roles needed"
+          className="role-count-input"
         />
         <button type="button" onClick={handleAddRole}>
           Add Role
