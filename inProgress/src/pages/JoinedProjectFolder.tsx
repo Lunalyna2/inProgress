@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import "./JoinedProjectFolder.css"
 
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -15,20 +14,11 @@ const FolderBackground: React.FC<{ children: React.ReactNode }> = ({ children })
   </div>
 )
 
-// (All type definitions remain the same: Role, Collaborator, Task, etc.)
-
 interface Role {
   id: number
   role: string
   count: number
   filled: number
-}
-
-interface Notification {
-    id: number
-    text: string
-    time: string
-    type: string
 }
 
 interface Collaborator {
@@ -39,171 +29,121 @@ interface Collaborator {
 }
 
 type TaskStatus = "completed" | "in-progress" | "assigned" | "unassigned"
-type TaskPriority = "high" | "medium" | "low"
 
 interface Task {
   id: number
   title: string
   status: TaskStatus
   assignedTo: string | null
-  dueDate: string
-  priority: TaskPriority
-}
-
-interface Milestone {
-  id: number
-  name: string
-  targetDate: string
-  status: "pending" | "in-progress" | "completed"
 }
 
 interface Project {
+  id: number
   title: string
   description: string
   createdBy: string
   createdAt: string
   rolesNeeded: Role[]
   collaborators: Collaborator[]
+  isCollaborator: boolean
 }
 
 interface CurrentUser {
+  id: number
   name: string
   avatar: string
 }
 
-// --- Component Definition ---
-
-const JoinedProjectFolder: React.FC = () => {
-  const currentUser: CurrentUser = {
-    name: "Current User",
-    avatar: "CU",
-  }
-
-  const [project] = useState<Project>({
-    title: "Farm Management System",
-    description:
-      "A comprehensive farm management application to help farmers track crops, livestock, and resources. This project aims to digitize traditional farming practices and provide data-driven insights for better decision making.",
-    createdBy: "John Farmer",
-    createdAt: "2024-01-15",
-    rolesNeeded: [
-      { id: 1, role: "Frontend Developer", count: 2, filled: 1 },
-      { id: 2, role: "Backend Developer", count: 1, filled: 0 },
-      { id: 3, role: "UI/UX Designer", count: 1, filled: 1 },
-      { id: 4, role: "Project Manager", count: 1, filled: 1 },
-    ],
-    collaborators: [
-      { id: 1, name: "John Farmer", role: "Project Manager", avatar: "JF" },
-      { id: 2, name: "Sarah Green", role: "Frontend Developer", avatar: "SG" },
-      { id: 3, name: "Mike Brown", role: "UI/UX Designer", avatar: "MB" },
-    ],
-  })
-
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: "Design login page",
-      status: "completed",
-      assignedTo: "Mike Brown",
-      dueDate: "2024-02-01",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "Implement user authentication",
-      status: "in-progress",
-      assignedTo: "Current User",
-      dueDate: "2024-02-15",
-      priority: "high",
-    },
-    {
-      id: 3,
-      title: "Create database schema",
-      status: "in-progress",
-      assignedTo: "Sarah Green",
-      dueDate: "2024-02-10",
-      priority: "medium",
-    },
-    {
-      id: 4,
-      title: "Build crop tracking module",
-      status: "unassigned",
-      assignedTo: null,
-      dueDate: "2024-02-20",
-      priority: "medium",
-    },
-    {
-      id: 5,
-      title: "Implement notification system",
-      status: "unassigned",
-      assignedTo: null,
-      dueDate: "2024-02-25",
-      priority: "low",
-    },
-    {
-      id: 6,
-      title: "Write API documentation",
-      status: "unassigned",
-      assignedTo: null,
-      dueDate: "2024-02-28",
-      priority: "low",
-    },
-    {
-      id: 7,
-      title: "Setup CI/CD pipeline",
-      status: "assigned",
-      assignedTo: "John Farmer",
-      dueDate: "2024-02-12",
-      priority: "high",
-    },
-  ])
-
-  const [isCollaborator, setIsCollaborator] = useState<boolean>(false)
+//  Component 
+const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUser }> = ({
+  projectId,
+  currentUser,
+}) => {
+  const [project, setProject] = useState<Project | null>(null)
+  const [tasks, setTasks] = useState<Task[]>([])
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false)
   const [selectedRole, setSelectedRole] = useState<string>("")
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>("all")
-  const [projectProgress, setProjectProgress] = useState<number>(0)
+  const [isCollaborator, setIsCollaborator] = useState<boolean>(false)
 
-  const notifications: Notification[] = [
-    { id: 1, text: "Sarah Green completed a task", time: "5 min ago", type: "task" },
-    { id: 2, text: "New comment from John Farmer", time: "1 hour ago", type: "comment" },
-    { id: 3, text: "Task deadline approaching", time: "2 hours ago", type: "alert" },
-  ]
+  //  API BASE 
+  const API_BASE = "/api/collaborators"
 
-  const handleJoinProject = (): void => {
-    setShowJoinModal(true)
-  }
-
-  const handleJoinConfirm = (): void => {
-    if (selectedRole) {
-      setIsCollaborator(true)
-      setShowJoinModal(false)
-      setSelectedRole("")
-      console.log("Joined project with role:", selectedRole)
+  //  Fetch Project 
+  const fetchProject = async () => {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/joined-view`)
+      const data = await res.json()
+      setProject({ ...data.project, id: projectId, isCollaborator: data.isCollaborator })
+      setTasks(data.tasks)
+      setIsCollaborator(data.isCollaborator)
+    } catch (err) {
+      console.error("Failed to fetch project:", err)
     }
   }
 
-  const handleClaimTask = (taskId: number): void => {
-    setTasks(
-      tasks.map((task) => (task.id === taskId ? { ...task, assignedTo: currentUser.name, status: "assigned" } : task)),
-    )
-    console.log("Claimed task:", taskId)
+  useEffect(() => {
+    fetchProject()
+  }, [])
+
+  //  Join Project 
+  const applyJoin = async () => {
+    if (!selectedRole) return
+    try {
+      await fetch(`${API_BASE}/${projectId}/apply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selectedRole }),
+      })
+      setIsCollaborator(true)
+      setShowJoinModal(false)
+      setSelectedRole("")
+      fetchProject()
+    } catch (err) {
+      console.error("Join failed:", err)
+    }
   }
 
-  const handleUpdateTaskStatus = (taskId: number, newStatus: TaskStatus): void => {
-    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
-    console.log("Updated task status:", taskId, newStatus)
+  //  Cancel Application 
+  const cancelJoin = async () => {
+    try {
+      await fetch(`${API_BASE}/${projectId}/cancel`, {
+        method: "DELETE",
+      })
+      setIsCollaborator(false)
+      fetchProject()
+    } catch (err) {
+      console.error("Cancel join failed:", err)
+    }
   }
 
-  const handleCompleteTask = (taskId: number): void => {
-    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: "completed" } : task)))
-    console.log("Completed task:", taskId)
+  // Claim Task 
+  const claimTask = async (taskId: number) => {
+    try {
+      await fetch(`${API_BASE}/tasks/${taskId}/claim`, { method: "POST" })
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, assignedTo: currentUser.name, status: "assigned" } : t))
+      )
+    } catch (err) {
+      console.error("Claim failed:", err)
+    }
   }
 
-  const handleProjectProgressChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const newProgress = Math.min(100, Math.max(0, Number.parseInt(e.target.value) || 0))
-    setProjectProgress(newProgress)
+  //  Update Task Status 
+  const updateTaskStatus = async (taskId: number, status: TaskStatus) => {
+    try {
+      await fetch(`${API_BASE}/tasks/${taskId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)))
+    } catch (err) {
+      console.error("Update status failed:", err)
+    }
   }
 
+  //  Filters 
   const filteredTasks: Task[] = useMemo(() => {
     return tasks.filter((task) => {
       if (taskFilter === "all") return true
@@ -217,19 +157,21 @@ const JoinedProjectFolder: React.FC = () => {
     })
   }, [tasks, taskFilter, currentUser.name])
 
-  const formatTimestamp = (timestamp: string): string => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
+  const myTasksCount = useMemo(
+    () => tasks.filter((t) => t.assignedTo === currentUser.name).length,
+    [tasks, currentUser.name]
+  )
 
-    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`
-    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`
-    if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`
-    return date.toLocaleDateString()
-  }
+  const completedTasksCount = useMemo(
+    () => tasks.filter((t) => t.status === "completed" && t.assignedTo === currentUser.name).length,
+    [tasks, currentUser.name]
+  )
+
+  const [editableProgress, setEditableProgress] = useState<number>(
+    myTasksCount > 0 ? Math.round((completedTasksCount / myTasksCount) * 100) : 0
+  )
+
+  if (!project) return <div>Loading...</div>
 
   const getStatusColor = (status: TaskStatus): string => {
     switch (status) {
@@ -246,43 +188,15 @@ const JoinedProjectFolder: React.FC = () => {
     }
   }
 
-  const getPriorityColor = (priority: TaskPriority): string => {
-    switch (priority) {
-      case "high":
-        return "#ef4444"
-      case "medium":
-        return "#f59e0b"
-      case "low":
-        return "#10b981"
-      default:
-        return "#6b7280"
-    }
-  }
-
-  const getStatusLabel = (status: TaskStatus): string => {
-    return status
+  const getStatusLabel = (status: TaskStatus): string =>
+    status
       .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ")
-  }
-
-  const myTasksCount = useMemo(
-    () => tasks.filter((t) => t.assignedTo === currentUser.name).length,
-    [tasks, currentUser.name],
-  )
-  const completedTasksCount = useMemo(
-    () => tasks.filter((t) => t.status === "completed" && t.assignedTo === currentUser.name).length,
-    [tasks, currentUser.name],
-  )
-
-  const [editableProgress, setEditableProgress] = useState<number>(
-    myTasksCount > 0 ? Math.round((completedTasksCount / myTasksCount) * 100) : 0,
-  )
 
   return (
     <FolderBackground>
       <div className="joined-project-wrapper">
-        {/* Header */}
         <div className="project-header-compact">
           <h1 className="project-title-main">{project.title}</h1>
           <p className="project-meta-info">
@@ -290,16 +204,16 @@ const JoinedProjectFolder: React.FC = () => {
           </p>
         </div>
 
-        {/* Main Content - Two Column Layout */}
         <div className="project-main-content">
           {/* Left Column */}
           <div className="content-column-left">
-            {/* About Section */}
+            {/* About */}
             <div className="content-card">
               <h2 className="card-title">About This Project</h2>
               <p className="project-description">{project.description}</p>
             </div>
 
+            {/* Roles Needed */}
             {!isCollaborator && (
               <div className="content-card">
                 <h2 className="card-title">Roles Needed</h2>
@@ -316,7 +230,7 @@ const JoinedProjectFolder: React.FC = () => {
                         <div
                           className="role-progress-fill"
                           style={{ width: `${(role.filled / role.count) * 100}%` }}
-                        ></div>
+                        />
                       </div>
                     </div>
                   ))}
@@ -324,13 +238,10 @@ const JoinedProjectFolder: React.FC = () => {
               </div>
             )}
 
-            {/* Tasks Section */}
+            {/* Tasks */}
             {isCollaborator && (
               <div className="content-card">
-                <div className="card-header">
-                  <h2 className="card-title">Tasks ({tasks.length})</h2>
-                </div>
-
+                <h2 className="card-title">Tasks ({tasks.length})</h2>
                 <div className="task-filters">
                   <button
                     className={`filter-chip ${taskFilter === "all" ? "active" : ""}`}
@@ -352,19 +263,12 @@ const JoinedProjectFolder: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Tasks List */}
                 <div className="tasks-grid">
                   {filteredTasks.length > 0 ? (
                     filteredTasks.map((task) => (
                       <div key={task.id} className="task-card">
                         <div className="task-header">
-                          <div className="task-title-section">
-                            <div
-                              className="task-priority-dot"
-                              style={{ backgroundColor: getPriorityColor(task.priority) }}
-                            ></div>
-                            <h3 className="task-title">{task.title}</h3>
-                          </div>
+                          <h3 className="task-title">{task.title}</h3>
                           <span
                             className="task-status-badge"
                             style={{
@@ -378,13 +282,11 @@ const JoinedProjectFolder: React.FC = () => {
 
                         <div className="task-meta">
                           <span>👤 {task.assignedTo || "Unassigned"}</span>
-                          <span>📅 {new Date(task.dueDate).toLocaleDateString()}</span>
                         </div>
 
-                        {/* Task Actions */}
                         <div className="task-actions">
                           {task.status === "unassigned" && (
-                            <button className="btn-action btn-claim" onClick={() => handleClaimTask(task.id)}>
+                            <button className="btn-action btn-claim" onClick={() => claimTask(task.id)}>
                               Claim
                             </button>
                           )}
@@ -394,13 +296,16 @@ const JoinedProjectFolder: React.FC = () => {
                               {task.status === "assigned" && (
                                 <button
                                   className="btn-action btn-start"
-                                  onClick={() => handleUpdateTaskStatus(task.id, "in-progress")}
+                                  onClick={() => updateTaskStatus(task.id, "in-progress")}
                                 >
                                   Start
                                 </button>
                               )}
                               {task.status === "in-progress" && (
-                                <button className="btn-action btn-complete" onClick={() => handleCompleteTask(task.id)}>
+                                <button
+                                  className="btn-action btn-complete"
+                                  onClick={() => updateTaskStatus(task.id, "completed")}
+                                >
                                   Complete
                                 </button>
                               )}
@@ -417,34 +322,32 @@ const JoinedProjectFolder: React.FC = () => {
             )}
           </div>
 
-          {/* Right Column - Sidebar */}
           <div className="content-column-right">
             {!isCollaborator ? (
               <div className="content-card join-card">
                 <h3 className="card-title">Join This Project</h3>
                 <p className="join-description">Select a role and contribute to the team!</p>
-                <button className="btn-join" onClick={handleJoinProject}>
+                <button className="btn-join" onClick={() => setShowJoinModal(true)}>
                   Join Now
                 </button>
               </div>
             ) : (
-              <>
-                {/* Stats Dashboard */}
-                <div className="content-card stats-card">
-                  <h3 className="card-title">Your Progress</h3>
-                  <div className="stats-grid">
-                    <div className="stat-item">
-                      <span className="stat-number">{myTasksCount}</span>
-                      <span className="stat-label">Tasks</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-number">{completedTasksCount}</span>
-                      <span className="stat-label">Done</span>
-                    </div>
+              <div className="content-card stats-card">
+                <h3 className="card-title">Your Progress</h3>
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <span className="stat-number">{myTasksCount}</span>
+                    <span className="stat-label">Tasks</span>
                   </div>
-                  <div className="progress-section">
-                    <div className="progress-header">
-                      <span>Completion</span>
+                  <div className="stat-item">
+                    <span className="stat-number">{completedTasksCount}</span>
+                    <span className="stat-label">Done</span>
+                  </div>
+                </div>
+                <div className="progress-section">
+                  <div className="progress-header">
+                    <span>Completion</span>
+                    <div>
                       <input
                         type="number"
                         min="0"
@@ -457,37 +360,40 @@ const JoinedProjectFolder: React.FC = () => {
                       />
                       %
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${editableProgress}%` }}></div>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${editableProgress}%` }}></div>
+                  </div>
+                </div>
+
+                <button className="btn-cancel-application" onClick={cancelJoin}>
+                  Cancel My Application
+                </button>
+              </div>
+            )}
+
+            {/* Collaborators */}
+            <div className="content-card">
+              <h2 className="card-title">Team ({project.collaborators.length})</h2>
+              <div className="collaborators-list">
+                {project.collaborators.map((collab) => (
+                  <div key={collab.id} className="collaborator-item">
+                    <div className="collab-avatar">{collab.avatar}</div>
+                    <div className="collab-info">
+                      <p className="collab-name">{collab.name}</p>
+                      <p className="collab-role">{collab.role}</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Collaborators */}
-                <div className="content-card">
-                  <h2 className="card-title">Team ({project.collaborators.length})</h2>
-
-                  <div className="collaborators-list">
-                    {project.collaborators.map((collaborator) => (
-                      <div key={collaborator.id} className="collaborator-item">
-                        <div className="collab-avatar">{collaborator.avatar}</div>
-                        <div className="collab-info">
-                          <p className="collab-name">{collaborator.name}</p>
-                          <p className="collab-role">{collaborator.role}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Join Project Modal */}
+        {/* Join Modal */}
         {showJoinModal && (
           <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
-            <div className="modal-content" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2 className="modal-title">Join Project</h2>
               <p className="modal-description">Select your role:</p>
               <div className="role-selection">
@@ -500,7 +406,7 @@ const JoinedProjectFolder: React.FC = () => {
                         name="role"
                         value={role.role}
                         checked={selectedRole === role.role}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedRole(e.target.value)}
+                        onChange={(e) => setSelectedRole(e.target.value)}
                       />
                       <span>{role.role}</span>
                     </label>
@@ -510,7 +416,7 @@ const JoinedProjectFolder: React.FC = () => {
                 <button className="btn-modal-cancel" onClick={() => setShowJoinModal(false)}>
                   Cancel
                 </button>
-                <button className="btn-modal-confirm" onClick={handleJoinConfirm} disabled={!selectedRole}>
+                <button className="btn-modal-confirm" onClick={applyJoin} disabled={!selectedRole}>
                   Join
                 </button>
               </div>

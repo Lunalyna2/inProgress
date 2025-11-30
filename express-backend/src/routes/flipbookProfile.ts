@@ -1,5 +1,5 @@
 import { Router } from "express";
-import pool from "./pool";
+import pool from "../pool";
 import type { Request, Response } from "express";
 
 const router = Router();
@@ -47,9 +47,9 @@ router.get("/:userId", async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error loading profile:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error loading profile",
-      error: error.message 
+      error: error.message,
     });
   }
 });
@@ -62,13 +62,7 @@ router.put("/:userId", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const {
-      avatar,
-      description,
-      course,
-      contact_no,
-      skill,
-    } = req.body as {
+    const { avatar, description, course, contact_no, skill } = req.body as {
       avatar?: string;
       description?: string;
       course?: string;
@@ -87,7 +81,14 @@ router.put("/:userId", async (req: Request, res: Response) => {
         `INSERT INTO userprofile 
            (user_id, avatar, description, course, contact_no, skill, updated_at) 
          VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-        [userId, avatar || null, description || null, course || null, contact_no || null, skill || null]
+        [
+          userId,
+          avatar || null,
+          description || null,
+          course || null,
+          contact_no || null,
+          skill || null,
+        ]
       );
     } else {
       // UPDATE — unchanged
@@ -100,7 +101,14 @@ router.put("/:userId", async (req: Request, res: Response) => {
              skill = $5,
              updated_at = NOW()
          WHERE user_id = $6`,
-        [avatar || null, description || null, course || null, contact_no || null, skill || null, userId]
+        [
+          avatar || null,
+          description || null,
+          course || null,
+          contact_no || null,
+          skill || null,
+          userId,
+        ]
       );
     }
 

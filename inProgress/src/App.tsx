@@ -15,6 +15,8 @@ import CreateProjectForm from "./create/CreateProjectForm";
 import JoinedProjectFolder from "./pages/JoinedProjectFolder";
 import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
 
+import JoinedProjectFolderWrapper from "./pages/JoinedProjectFolderWrapper";
+
 // // Define interfaces for props
 export interface LoginPageProps {
   switchToSignup: () => void;
@@ -70,7 +72,11 @@ const App: React.FC = () => {
         <Route path="/project-owner-folder/:projectId" element={<ProjectOwnerFolder />} />
 
         {/* Joined Collaborator */}
-        <Route path="/joined-collaborator-folder" element={<JoinedProjectFolder />} />
+        <Route
+  path="/joined-collaborator-folder/:projectId"
+  element={<JoinedProjectFolderWrapper />}
+/>
+
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
