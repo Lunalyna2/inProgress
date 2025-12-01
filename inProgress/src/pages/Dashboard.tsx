@@ -6,6 +6,7 @@ import ProjectCommentsModal from "./ProjectCommentsModal";
 import FolderProjectCard from "./FolderProjectCard";
 import { getComments } from "../api/comments";
 import "./Dashboard.css";
+import { getUpvotes, addUpvote, removeUpvote } from "../api/upvotes"; 
 
 interface Project {
   id: number;
@@ -70,8 +71,31 @@ const Dashboard: React.FC = () => {
     setCommentCounts(counts);
   };
 
+  const loadUpvotes = async () => {
+    const allProjects = [...pickedProjects, ...joinedProjects];
+    const counts: { [key: number]: number } = {};
+    const statuses: { [key: number]: boolean } = {};
+
+    await Promise.all(
+      allProjects.map(async (project) => {
+        try {
+          const data = await getUpvotes(project.id);
+          counts[project.id] = data.upvotes;
+          statuses[project.id] = data.hasUpvoted;
+        } catch {
+          counts[project.id] = 0;
+          statuses[project.id] = false;
+        }
+      })
+    );
+
+    setUpvotes(counts);
+    setHasUpvoted(statuses);
+  };
+
   useEffect(() => {
     loadCommentCounts();
+    loadUpvotes();
   }, [pickedProjects, joinedProjects]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +114,22 @@ const Dashboard: React.FC = () => {
 
   const allProjectsForModal = [...pickedProjects, ...joinedProjects];
   const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
+ 
+  const toggleUpvote = async (projectId: number) => {
+    try {
+      if (hasUpvoted[projectId]) {
+        const data = await removeUpvote(projectId);
+        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
+        setHasUpvoted(prev => ({ ...prev, [projectId]: false }));
+      } else {
+        const data = await addUpvote(projectId);
+        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
+        setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
+      }
+    } catch (err) {
+      console.error("Upvote action failed:", err);
+    }
+  };
 
   return (
     <div className="dashboard">
@@ -157,12 +197,7 @@ const Dashboard: React.FC = () => {
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => {
-                  if (!hasUpvoted[id]) {
-                    setUpvotes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-                    setHasUpvoted(prev => ({ ...prev, [id]: true }));
-                  }
-                }}
+                onUpvote={(id) => toggleUpvote(id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
                 onClick={() => navigate(`/projects/${project.id}`)}
               />
@@ -181,12 +216,7 @@ const Dashboard: React.FC = () => {
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => {
-                  if (!hasUpvoted[id]) {
-                    setUpvotes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-                    setHasUpvoted(prev => ({ ...prev, [id]: true }));
-                  }
-                }}
+                onUpvote={(id) => toggleUpvote(id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
                 onClick={() => navigate(`/projects/${project.id}`)}
               />
