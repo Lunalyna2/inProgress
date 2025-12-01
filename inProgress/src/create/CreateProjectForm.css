@@ -47,24 +47,34 @@
 
 .roles-row .role-count-input {
   max-width: 80px;
-  background-color: #fff6e0;
-  border: 1px solid #ffe5a1;
+  background-color: #b3dcfd7e;
+  border: 1px solid  #96d0ff;
 }
 
 .roles-row button {
-  background-color: #c3f0ca; 
-  color: #333;
+  background: linear-gradient(135deg, #7ec2fa, #4fa0e2);
+  color: #1f2937; 
   border: none;
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .roles-row button:hover {
-  background-color: #a6e6a0;
+  background: linear-gradient(135deg, #679ecb, #4488c0);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
+
+.roles-row button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
 
 .role-list {
   width: 100%;
@@ -81,20 +91,30 @@
 }
 
 .submit-row button {
-  background-color: #ffd1dc; 
-  color: #333;
+  background: linear-gradient(135deg, #ffd1dc, #ffb3c1);
+  color: #1f2937;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   min-width: 200px;
-  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .submit-row button:hover {
-  background-color: #ffb3c1;
+  background: linear-gradient(135deg, #ffb3c1, #ff9aa3);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
+
+.submit-row button:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+}
+
 
 .error-text {
   color: #ff6b6b;
