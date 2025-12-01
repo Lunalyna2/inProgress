@@ -17,7 +17,7 @@ interface Props {
   onUpvote: (id: number) => void;
   onOpenComments: (id: number) => void;
   viewType: "created" | "dashboard" | "joined";
-  onClick?: () => void; 
+  onClick?: () => void;
 }
 
 const FolderProjectCard: React.FC<Props> = ({
@@ -34,19 +34,19 @@ const FolderProjectCard: React.FC<Props> = ({
 
   const handleCardClick = () => {
     if (onClick) {
-      onClick(); 
+      onClick();
       return;
     }
 
     switch (viewType) {
       case "created":
-        navigate(`/projectownerfolder/${project.id}`);
+        navigate(`/project-owner-folder/${project.id}`);
         break;
       case "dashboard":
-        navigate(`/joinprojectsfolder/${project.id}`);
+        navigate(`/project/${project.id}`);
         break;
       case "joined":
-        navigate(`/joinedprojectsfolder/${project.id}`);
+        navigate(`/joined-collaborator-folder/${project.id}`);
         break;
       default:
         break;

@@ -2,7 +2,8 @@ import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
-const API_BASE_URL = "http://localhost:5000/api";
+// Use environment variable for API base URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
 
 // interfaces
 interface Role {
@@ -11,6 +12,7 @@ interface Role {
 }
 
 interface ProjectData {
+  id?: number;
   title: string;
   description: string;
   roles: Role[];
@@ -58,7 +60,13 @@ const InputField: React.FC<InputProps> = ({
   </>
 );
 
-const CreateProjectForm: React.FC = () => {
+interface CreateProjectFormProps {
+  onProjectCreated?: (project: ProjectData) => void;
+}
+
+const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
+  onProjectCreated,
+}) => {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -119,10 +127,15 @@ const CreateProjectForm: React.FC = () => {
       const result = await response.json();
       const projectId = result.projectId;
 
-      alert(`Project created successfully! ID: ${projectId}`);
+      // Update parent with the new project
+      const newProject: ProjectData = { id: projectId, title, description, roles };
+      if (onProjectCreated) {
+        onProjectCreated(newProject);
+      }
+
       resetForm();
 
-      // Redirect to ProjectInterface
+      // Redirect to ProjectOwnerFolder page
       navigate(`/project-owner-folder/${projectId}`);
     } catch (err) {
       console.error(err);
