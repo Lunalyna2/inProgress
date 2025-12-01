@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
         const token = localStorage.getItem("userToken");
         if (!token) return;
         try {
-          const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvote-status`, {
+          const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvotes`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
           if (upvoteRes.ok) {
@@ -115,7 +115,11 @@ const Dashboard: React.FC = () => {
       const token = localStorage.getItem("userToken");
       if (!token) return;
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      await fetch(`${API_URL}/projects/${projectId}/upvote`, { method, headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       await loadProjectMeta();
     } catch (err) {
       console.error(err);

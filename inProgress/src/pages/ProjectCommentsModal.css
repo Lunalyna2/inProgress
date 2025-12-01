@@ -3,12 +3,12 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 90vh;
+  height: 100vh; 
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 50px;
-  background: transparent; 
+  background: rgba(0, 0, 0, 0.3); 
+  z-index: 1000;
 }
 
 .project-comments-modal {
@@ -20,50 +20,55 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  transform-origin: center center; 
   animation: slideUpIn 0.4s ease-out forwards;
 }
 
 @keyframes slideUpIn {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -40%);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .project-comments-modal.closing {
-    animation: slideDownOut 0.4s ease-in forwards;
+  animation: slideDownOut 0.4s ease-in forwards;
 }
 
 @keyframes slideDownOut {
-    0% {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -40%);
-    }
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
 }
+
 
 .close-button {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #f5f5f5;
   border: none;
   border-radius: 50%;
   padding: 5px;
-  transition: 0.2s;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s ease;
+  color: #020202; 
+  font-weight: bold;
 }
 
 .close-button:hover {
-  background: #e01c1c;
+  background: rgba(224, 28, 28, 0.2); 
+  transform: scale(1.1);
 }
+
 
 .modal-title {
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
@@ -256,7 +261,7 @@
   align-items: center;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #e3e3e3;
+  border-top: 1px solid #9c9797;
 }
 
 .chat-input {
@@ -264,7 +269,7 @@
   margin-bottom: 5px;
   flex: 1;
   border: none;
-  background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
+  background: white;
   padding: 12px 16px;
   border-radius: 20px;
   outline: none;
@@ -273,19 +278,27 @@
 }
 
 .send-btn {
-  margin-right: 5px;
-  margin-left:5px;
-  margin-bottom: 5px;
-  background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
+  margin: 0 5px 5px 5px;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa); /* blue gradient */
   border: none;
   padding: 10px 12px;
   border-radius: 50%;
-  transition: 0.2s;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+  transition: all 0.25s ease;
 }
 
 .send-btn:hover {
-  opacity: 0.8;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
 }
+
+.send-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.25);
+}
+
 
 @keyframes slideOutLeft {
   0% {
