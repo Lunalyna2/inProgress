@@ -13,6 +13,7 @@ import projectRoutes from "./routes/createproject";
 import commentsRoutes from "./routes/comments"; 
 import { AuthenticatedRequest, authMiddleware, JWT_SECRET } from "./shared";
 import { validatePassword } from "./validatePassword";
+import tasksRoutes from "./routes/tasks";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/collaborators", collaboratorRoutes);
 app.use("/api/forum-upvotes", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api", authForgotRoutes);
+app.use("/api/tasks", authMiddleware, tasksRoutes);
 
 
 // signup and login validation
@@ -316,3 +318,5 @@ app.use("/api", commentsRoutes);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+export { AuthenticatedRequest };
+
