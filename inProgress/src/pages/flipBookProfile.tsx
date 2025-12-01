@@ -78,11 +78,9 @@ const FlipBookProfile: FC = () => {
   const [savedPic, setSavedPic] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
 
-  // ✅ NEW: Check if accessed from profile page
   const urlParams = new URLSearchParams(window.location.search);
   const isFromProfile = urlParams.get("source") === "profile";
 
-  // ✅ CHANGED: If from profile, start in view mode (not editing)
   const [isEditing, setIsEditing] = useState(!isFromProfile);
 
   const [profileInfo, setProfileInfo] = useState<ProfileInfo>({
@@ -101,12 +99,12 @@ const FlipBookProfile: FC = () => {
     { id: "avatar5", image: "/assets/characters/char5.png" },
   ])
 
-  // ✅ CHANGED: Load profile data if from profile page, otherwise use localStorage
+ 
   useEffect(() => {
     if (isFromProfile) {
-      loadUserProfile();
+      loadUserProfile();    
     } else {
-      const savedName = localStorage.getItem("name") || "";
+      const savedName = localStorage.getItem("name") || ""; 
       setProfileInfo((prev) => ({ ...prev, name: savedName }));
       setSavedPic(profilePics[0]?.image || null);
     }
@@ -117,14 +115,14 @@ const FlipBookProfile: FC = () => {
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("userToken");
 
-      if (!userId || !token) {
-        setMessage({ text: "Not logged in. Please sign up again.", type: "error" });
+      if (!userId || !token) { 
+        setMessage({ text: "Not logged in. Please sign up again.", type: "error" }); 
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/profile/${userId}`, {
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, { 
         headers: {
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,  
           "Content-Type": "application/json",
         },
       });
@@ -136,7 +134,7 @@ const FlipBookProfile: FC = () => {
         return;
       }
 
-      const data = await res.json();
+      const data = await res.json(); 
       setProfileInfo({
         name: data.name || "",
         description: data.description || "",
@@ -156,7 +154,7 @@ const FlipBookProfile: FC = () => {
   const next = () => page < total + 1 && setPage(page + 1)
   const prev = () => page > 1 && setPage(page - 1)
 
-  const handlePicSelect = (image: string) => setSelectedPic(image)
+  const handlePicSelect = (image: string) => setSelectedPic(image) // 
   const handleSavePic = () => {
     if (!selectedPic) {
       setMessage({ text: "Please select an avatar first.", type: "info" })
@@ -171,11 +169,22 @@ const FlipBookProfile: FC = () => {
     setProfileInfo((prev) => ({ ...prev, [name]: value }))
   }
 
+  const isValidPHNumber = (num: string) => /^09\d{9}$/.test(num);
+
+
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!savedPic) {
       setMessage({ text: "Please select an avatar before saving.", type: "error" });
+      return;
+    }
+
+    if (!isValidPHNumber(profileInfo.contactNo)) {
+      setMessage({
+        text: "Invalid contact number. Must start with 09 and be 11 digits.",
+        type: "error",
+      });
       return;
     }
 
@@ -213,7 +222,7 @@ const FlipBookProfile: FC = () => {
       setMessage({ text: "Profile saved successfully!", type: "success" });
       setIsEditing(false);
       
-      // Only set isSaved for signup flow
+      
       if (!isFromProfile) {
         setIsSaved(true);
       }
@@ -223,7 +232,7 @@ const FlipBookProfile: FC = () => {
     }
   };
 
-  // ✅ NEW: Function to enable edit mode
+  
   const handleEditProfile = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsEditing(true);
@@ -346,10 +355,8 @@ const FlipBookProfile: FC = () => {
               />
             </div>
 
-            {/* ✅ CHANGED: Different button logic based on source */}
             <div className="form-buttons">
               {isFromProfile ? (
-                // Profile page mode: Edit/Save toggle
                 isEditing ? (
                   <button 
                     type="submit" 
@@ -367,7 +374,6 @@ const FlipBookProfile: FC = () => {
                   </button>
                 )
               ) : (
-                // Signup flow mode: Save/Proceed
                 !isEditing && isSaved ? (
                   <button 
                     onClick={() => (window.location.href = "/dashboard")} 

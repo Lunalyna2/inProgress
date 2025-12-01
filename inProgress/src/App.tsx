@@ -16,6 +16,7 @@ import JoinedProjectFolder from "./pages/JoinedProjectFolder";
 import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
 
 import JoinedProjectFolderWrapper from "./pages/JoinedProjectFolderWrapper";
+import ProtectedRoute from "./components/protectedRoutes";
 
 // // Define interfaces for props
 export interface LoginPageProps {
@@ -54,35 +55,34 @@ const App: React.FC = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* FlipBook */}
-        <Route path="/flipbook" element={<FlipBookProfile />} />
+        <Route path="/flipbook" element={<ProtectedRoute> <FlipBookProfile /> </ProtectedRoute>} />
 
         {/* Create Project */}
-        <Route path="/create-project" element={<CreateProject />} />
+        <Route path="/create-project" element={<ProtectedRoute><CreateProject /></ProtectedRoute>} />
 
         {/* Created Projects */}
-        <Route path="/created-projects" element={<CreatedProjects />} />
+        <Route path="/created-projects" element={<ProtectedRoute><CreatedProjects /></ProtectedRoute>} />
 
         {/*create project form*/}
-        <Route path="/create-project-form" element={<CreateProjectForm />} />
+        <Route path="/create-project-form" element={<ProtectedRoute><CreateProjectForm /></ProtectedRoute>} />
 
         {/* Project Interface */}
-        <Route path="/project/:projectId" element={<ProjectInterface />} />
+        <Route path="/project/:projectId" element={<ProtectedRoute><ProjectInterface /></ProtectedRoute>} />
 
         {/* Project Owner Folder */}
-        <Route path="/project-owner-folder/:projectId" element={<ProjectOwnerFolder />} />
+        <Route path="/project-owner-folder/:projectId" element={<ProtectedRoute><ProjectOwnerFolder /></ProtectedRoute>} />
 
         {/* Joined Collaborator */}
         <Route
-  path="/joined-collaborator-folder/:projectId"
-  element={<JoinedProjectFolderWrapper />}
-/>
-
+        path="/joined-collaborator-folder/:projectId"
+        element={<ProtectedRoute><JoinedProjectFolderWrapper /></ProtectedRoute>}
+        />
 
         {/* Folder Page */}
         <Route path="/folders" element={<FolderPage />} />
 
         {/* Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

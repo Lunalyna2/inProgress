@@ -1,7 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
-export const JWT_SECRET = process.env.JWT_SECRET || "gkes9Vwl5lJlO3w";
+dotenv.config();
+
+export const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+
+interface JWTPayload {
+  id: number;
+  username: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
 
 export interface AuthenticatedRequest extends Request {
   userId?: number;
@@ -27,13 +38,7 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: number;
-      username: string;
-      email: string;
-      iat?: number;
-      exp?: number;
-    };
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
 
     req.userId = decoded.id;
     req.username = decoded.username;

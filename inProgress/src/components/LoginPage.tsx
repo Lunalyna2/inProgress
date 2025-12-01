@@ -1,48 +1,52 @@
-// LoginPage.tsx
 import React, { useState } from 'react';
-import type { FormEvent } from 'react';
-import './login.css';
+import type { FormEvent, ChangeEvent } from 'react';
+import './Login.css';
 import ForgotPasswordModal from './forgotPasswordModal';
 import { useNavigate } from "react-router-dom";
+
+const API_URL = "http://localhost:5000"; 
 
 interface LoginPageProps {
   switchToSignup: () => void;
 }
 
 interface LoginFormData {
-  username: string;
-  cpuEmail: string;
+  identifier: string; // 
   password: string;
 }
 
 interface LoginErrors {
-  username: string | null;
-  cpuEmail: string | null;
+  identifier: string | null;
   password: string | null;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
   const navigate = useNavigate();
-
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
-    cpuEmail: '',
+    identifier: '',
     password: ''
   });
   const [errors, setErrors] = useState<Partial<LoginErrors>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (field: keyof LoginFormData, value: string) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const field = name as keyof LoginFormData;
+    
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
+    
+    if (errors[field as keyof LoginErrors]) {
+      setErrors(prev => ({ ...prev, [field]: null }));
+    }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginErrors> = {};
     let isValid = true;
 
-    if (!formData.cpuEmail.trim()) {
-      newErrors.cpuEmail = "Email is required.";
+    if (!formData.identifier.trim()) {
+      newErrors.identifier = "Username or email is required.";
       isValid = false;
     }
     if (!formData.password.trim()) {
@@ -58,46 +62,41 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpuEmail: formData.cpuEmail, password: formData.password }),
+        body: JSON.stringify({ 
+          identifier: formData.identifier.trim(), 
+          password: formData.password 
+        }),
       });
 
       const data = await response.json();
+      console.log('🔍 Login response:', data);
 
       if (response.ok) {
         localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userId", data.user.id);
+        localStorage.setItem("userId", data.user.id.toString());
         localStorage.setItem("username", data.user.username);
         localStorage.setItem("email", data.user.email);
+        localStorage.setItem("name", data.user.fullname);
 
-        // Check if profile exists
-        const profileRes = await fetch(`http://localhost:5000/profile/${data.user.id}`);
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          // If user has filled profile, go to dashboard
-          if (profileData.name || profileData.avatar) {
-            navigate("/dashboard");
-          } else {
-            navigate("/dashboard");
-          }
-        } else {
-          // If profile not found, redirect to flipbook
-          navigate("/flipbook");
-        }
         navigate("/dashboard");
+      } else {
+        setErrors({ identifier: "Invalid username/email or password." });
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Could not connect to server.');
+      console.error('❌ Login error:', error);
+      setErrors({ identifier: "Could not connect to server." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className = "login-page-body">
+    <div className="login-page-body">
       <div className="login-container">
         <div className="left-panel">
           <h1 className="main-title">Count your Progress Today!</h1>
@@ -115,39 +114,46 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
           <form className="signup-form" onSubmit={handleLogin} noValidate>
             <input
               type="text"
-              placeholder="Username"
-              value={formData.username}
-              onChange={e => handleInputChange('username', e.target.value)}
-              className="form-input"
+              name="identifier"  
+              placeholder="Username or CPU email"
+              value={formData.identifier}
+              onChange={handleInputChange}
+              className={`form-input ${errors.identifier ? 'input-error' : ''}`}
+              disabled={isLoading}
             />
-            <input
-              type="email"
-              placeholder="CPU email address"
-              value={formData.cpuEmail}
-              onChange={e => handleInputChange('cpuEmail', e.target.value)}
-              className={`form-input ${errors.cpuEmail ? 'input-error' : ''}`}
-            />
-            {errors.cpuEmail && <p className="error-message">{errors.cpuEmail}</p>}
-
+            {errors.identifier && <p className="error-message">{errors.identifier}</p>}
+            
             <input
               type="password"
+              name="password"
               placeholder="Password"
               value={formData.password}
-              onChange={e => handleInputChange('password', e.target.value)}
+              onChange={handleInputChange}
               className={`form-input ${errors.password ? 'input-error' : ''}`}
+              disabled={isLoading}
             />
             {errors.password && <p className="error-message">{errors.password}</p>}
-
+            
             <div className="forgot-container">
-              <button type="button" className="forgot-button" onClick={() => setShowForgotPassword(true)}>
+              <button 
+                type="button" 
+                className="forgot-button" 
+                onClick={() => setShowForgotPassword(true)}
+                disabled={isLoading}
+              >
                 Forgot your password?
               </button>
             </div>
-
-            <button type="submit" className="get-started-button">Login</button>
+            
+            <button 
+              type="submit" 
+              className="get-started-button" 
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
           </form>
         </div>
-
         <ForgotPasswordModal
           isOpen={showForgotPassword}
           onClose={() => setShowForgotPassword(false)}

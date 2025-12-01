@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import type { ChangeEvent, FormEvent, FocusEvent } from 'react'; 
-import './signup.css';
+import './Signup.css';
 import { useNavigate } from "react-router-dom";
+
+
+const API_URL = "http://localhost:5000"
 
 interface SignUpPageProps {
     switchToLogin: () => void;
@@ -15,15 +18,16 @@ interface SignUpFormData {
     rePassword: string;
 }
 
+// Interface for errors: Keys exist only if there is an error (Partial<T>)
 interface SignUpFormErrors {
-    fullName: string | null;
-    username: string | null;
-    cpuEmail: string | null;
-    password: string | null;
-    rePassword: string | null;
+    fullName: string;
+    username: string;
+    cpuEmail: string;
+    password: string;
+    rePassword: string;
 }
 
-const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
+const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => { 
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<SignUpFormData>({
@@ -34,122 +38,171 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
         rePassword: '',
     });
 
-    const [errors, setErrors] = useState<Partial<SignUpFormErrors>>({});
-    const [rePasswordError, setRePasswordError] = useState<string | null>(null);    
-    const [isRePasswordTouched, setIsRePasswordTouched] = useState(false); 
+    // Use Partial<T> to manage errors—keys are only present if there's an error
+    const [errors, setErrors] = useState<Partial<SignUpFormErrors>>({}); 
+    const [isSubmitting, setIsSubmitting] = useState(false); 
 
-    const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
-        if (e.target.name === 'rePassword') {
-            setIsRePasswordTouched(true);
-            if (formData.password !== formData.rePassword) {
-                setRePasswordError("Does not match password!");
-            } else {
-                setRePasswordError(null);
+
+    const validate = (data: SignUpFormData): Partial<SignUpFormErrors> => {
+        const newErrors: Partial<SignUpFormErrors> = {};
+
+        // 1. Check for required fields
+        for (const key in data) {
+            const field = key as keyof SignUpFormData;
+            if (!data[field].trim()) {
+                newErrors[field as keyof SignUpFormErrors] = "This field is required.";
             }
         }
+
+        // 2. CPU Email format validation
+        if (data.cpuEmail.trim() && !data.cpuEmail.endsWith('@cpu.edu.ph')) {
+            newErrors.cpuEmail = "Must use CPU email address!";
+        }
+
+        // 3. Password match validation (only if both fields are non-empty)
+        if (data.password.trim() && data.rePassword.trim() && data.password !== data.rePassword) {
+            newErrors.rePassword = "Passwords do not match!";
+            // Optional: Also set an error on the password field for better UX
+            newErrors.password = newErrors.password || "Passwords do not match!";
+        }
+
+        return newErrors;
+    };
+
+
+    const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+        const validationErrors = validate(formData);
+        const { name } = e.target;
+        const fieldName = name as keyof SignUpFormErrors;
+
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            
+            if (validationErrors[fieldName]) {
+                newErrors[fieldName] = validationErrors[fieldName];
+            } else {
+                delete newErrors[fieldName]; // Correctly remove error if valid
+            }
+            // If checking rePassword, also re-evaluate password error
+            if (fieldName === 'rePassword' || fieldName === 'password') {
+                if (validationErrors.password) {
+                    newErrors.password = validationErrors.password;
+                } else {
+                    delete newErrors.password;
+                }
+            }
+
+            return newErrors;
+        });
     };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const fieldName = name as keyof SignUpFormErrors;
 
-        if (errors[name as keyof SignUpFormErrors]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
-        }
+        // 1. Update form data
+        setFormData(prev => {
+            const newFormData = { ...prev, [name]: value };
+            
+            // 2. Live validation logic for password fields
+            if (name === 'password' || name === 'rePassword') {
+                const validationErrors = validate(newFormData);
+                
+                setErrors(prevErrors => {
+                    const nextErrors = { ...prevErrors };
+                    
+                    // Handle Password Error
+                    if (validationErrors.password) {
+                        nextErrors.password = validationErrors.password;
+                    } else {
+                        delete nextErrors.password; // FIX: Use delete instead of assigning null
+                    }
 
-        // Re-password mismatch logic
-        if (name === 'rePassword') {
-            // Set touched to true immediately upon typing in rePassword
-            setIsRePasswordTouched(true);
-        }
-
-        if (name === 'password' || name === 'rePassword') {
-            const newFormData = { ...formData, [name]: value };
-            const otherPassword = name === 'password' ? newFormData.rePassword : newFormData.password;
-
-            // ONLY show the error if the user is typing in rePassword 
-            // OR if rePassword has already been touched AND the passwords don't match.
-            if (name === 'rePassword' || isRePasswordTouched) {
-                if (value !== otherPassword) {
-                    setRePasswordError("Does not match password!");
-                } else {
-                    setRePasswordError(null);
-                }
+                    // Handle RePassword Error
+                    if (validationErrors.rePassword) {
+                        nextErrors.rePassword = validationErrors.rePassword;
+                    } else {
+                        delete nextErrors.rePassword; // FIX: Use delete instead of assigning null
+                    }
+                    
+                    return nextErrors;
+                });
             }
-        }
+
+            return newFormData;
+        });
+
+        // 3. Clear field-required error on typing
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[fieldName];
+            return newErrors;
+        });
     };
-
-    const validate = (): boolean => {
-        const newErrors: Partial<SignUpFormErrors> = {};
-        let isValid = true;
-
-        for (const key in formData) {
-            if (!formData[key as keyof SignUpFormData].trim()) {
-                newErrors[key as keyof SignUpFormErrors] = "This field is required.";
-                isValid = false;
-            }
-        }
-
-        if (formData.cpuEmail && !formData.cpuEmail.endsWith('@cpu.edu.ph')) {
-            newErrors.cpuEmail = "Must use CPU email address!";
-            isValid = false;
-        }
-
-        if (formData.password !== formData.rePassword) {
-            setRePasswordError("Does not match password!");
-            isValid = false;
-        } else {
-            setRePasswordError(null);
-        }
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
+    
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Set rePassword to touched on submit to ensure validation runs
-        setIsRePasswordTouched(true); 
         
-        if (!validate() || rePasswordError) return;
+        const validationErrors = validate(formData);
+        setErrors(validationErrors);
+        
+        if (Object.keys(validationErrors).length > 0) return;
+        
+        setIsSubmitting(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/signup', {
+            const { fullName, username, cpuEmail, password, rePassword } = formData;
+            
+            const response = await fetch(`${API_URL}/api/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    fullName: fullName.trim(),
+                    username: username.trim(),
+                    cpuEmail: cpuEmail.trim(),
+                    password: password,
+                    rePassword: rePassword.trim()
+                }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 localStorage.setItem("userToken", data.token);
-                // Save user info for flipbook
                 localStorage.setItem("userId", data.user.id);
                 localStorage.setItem("username", data.user.username);
                 localStorage.setItem("email", data.user.email);
                 localStorage.setItem("name", data.user.fullname);
-                // Navigate directly to flipbook
                 navigate("/flipbook");
             } else if (response.status === 400) {
-                setErrors(data.errors);
+                // Server validation failed (e.g., password strength)
+                setErrors(prev => ({ ...prev, ...data.errors }));
                 alert('Sign-up failed. Check input.');
             } else if (response.status === 409) {
-                alert('User with this email already exists.')
+                // Server reports conflict (email/username exists)
+                setErrors(prev => ({ ...prev, ...data.errors }));
+                alert('User with this email or username already exists.');
             } else {
                 alert('Unexpected error occurred.');
             }
         } catch (error) {
             console.error(error);
             alert('Could not connect to server.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    // Helper to attach validation props to inputs
-    const getValidationProps = (name: keyof SignUpFormErrors) => ({
-        className: `form-input ${errors[name] ? 'input-error' : ''}`,
-        'data-error': errors[name] || '',
-    });
+    // Helper to attach validation props to inputs (Simplifed with correct typing)
+    const getValidationProps = (name: keyof SignUpFormErrors) => {
+        const errorMessage = errors[name];
+        
+        return {
+            className: `form-input ${errorMessage ? 'input-error' : ''}`,
+            // Ensure data-error is a string for JSX
+            'data-error': (errorMessage || '') as string,
+        };
+    };
 
     return (
         <div className="signup-page-body">
@@ -177,6 +230,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                             {...getValidationProps('fullName')}
                             required
                         />
@@ -189,6 +243,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                             {...getValidationProps('username')}
                             required
                         />
@@ -201,6 +256,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                             name="cpuEmail"
                             value={formData.cpuEmail}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                             {...getValidationProps('cpuEmail')}
                             required
                         />
@@ -213,6 +269,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                             {...getValidationProps('password')}
                             required
                         />
@@ -226,14 +283,17 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
                             value={formData.rePassword}
                             onChange={handleChange}
                             onBlur={handleBlur}
+                            // Simplified classname: uses only the central error state
+                            className={`form-input ${errors.rePassword ? 'input-error' : ''}`}
                             required
-                            className={`form-input ${rePasswordError ? 'input-error-special' : ''} ${errors.rePassword ? 'input-error' : ''}`}
                         />
-                        {(rePasswordError || errors.rePassword) && (
-                            <p className="error-message">{rePasswordError || errors.rePassword}</p>
+                        {errors.rePassword && (
+                            <p className="error-message">{errors.rePassword}</p>
                         )}
 
-                        <button type="submit" className="get-started-button">Get Started</button>
+                        <button type="submit" className="get-started-button" disabled={isSubmitting}>
+                            {isSubmitting ? 'Signing Up...' : 'Get Started'}
+                        </button>
                     </form>
                 </div>
             </div>
