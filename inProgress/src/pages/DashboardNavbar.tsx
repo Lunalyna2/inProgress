@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import './DashboardNavbar.css';
 
+const API_URL = process.env.REACT_APP_API_URL
+
 interface NavbarProps {
   onProfileClick?: () => void;
   onHomeClick?: () => void;
@@ -10,20 +12,32 @@ interface NavbarProps {
 const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
   const navigate = useNavigate();
 
-  // Helper function for navigation with optional callback
   const handleNavigate = (path: string, callback?: () => void) => {
     navigate(path);
     callback?.();
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-    localStorage.removeItem("email");
+  const handleLogout = async () => {
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    try {
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+    } catch (err) {
+      console.error("Logout request failed:", err);
+    }
+  }
 
-    navigate("/login");
-  };
+  localStorage.removeItem("userToken");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("username");
+  localStorage.removeItem("email");
+
+  navigate("/login");
+};
 
   return (
     <div className="top-container">

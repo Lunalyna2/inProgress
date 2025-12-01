@@ -12,6 +12,22 @@ import "./ProjectOwnerFolder.css";
 import { useParams, useNavigate } from "react-router-dom";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 
+const departments = [
+  "All Departments",
+  "Senior High School",
+  "College of Arts & Sciences",
+  "College of Business & Accountancy",
+  "College of Computer Studies",
+  "College of Education",
+  "College of Engineering",
+  "College of Hospitality Management",
+  "College of Nursing",
+  "College of Pharmacy",
+  "College of Law",
+  "College of Medicine",
+];
+const API_URL = process.env.REACT_APP_API_URL
+
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
@@ -50,7 +66,6 @@ interface ProjectTask {
   id: number;
   status: TaskStatus;
   assignedTo: string | null;
-  dueDate: string;
   createdAt: string;
   done: boolean;
   label: string;
@@ -78,7 +93,7 @@ interface Message {
   type: "success" | "error";
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
+
 
 const ProjectOwnerFolder: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -116,12 +131,13 @@ const ProjectOwnerFolder: React.FC = () => {
   const [editedTitle, setEditedTitle] = useState(project.title);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(project.description);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState("All Departments");
 
   // Local UI States for Adding Roles/Tasks
   const [taskInput, setTaskInput] = useState("");
   const [roleInput, setRoleInput] = useState("");
   const [roleCountInput, setRoleCountInput] = useState(1);
-  const [taskDueDate, setTaskDueDate] = useState<string>("");
 
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>(
@@ -144,7 +160,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -164,7 +180,7 @@ const ProjectOwnerFolder: React.FC = () => {
       //tasks
       let fixedTasks: ProjectTask[] = [];
       try {
-        const tasksRes = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+        const tasksRes = await fetch(`${API_URL}/tasks/${projectId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -181,7 +197,6 @@ const ProjectOwnerFolder: React.FC = () => {
             label: t.label,
             priority: "medium",
             assignedTo: null,
-            dueDate: t.due_date || new Date().toISOString(),
             createdAt: t.createdAt || new Date().toISOString(),
           }));
         } else {
@@ -276,7 +291,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +334,7 @@ const ProjectOwnerFolder: React.FC = () => {
   const removeRequiredRole = async (roleId: number) => {
     if (!window.confirm("Are you sure you want to remove this role?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -362,7 +377,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -418,7 +433,7 @@ const ProjectOwnerFolder: React.FC = () => {
     setProject((prev) => ({ ...prev, status: newStatus }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -468,7 +483,7 @@ const ProjectOwnerFolder: React.FC = () => {
   };
 
   // Add Task
-  const addTask = async (value: string, dueDate: string) => {
+  const addTask = async (value: string) => {
     const title = value.trim();
 
     // Client-side validation
@@ -478,7 +493,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+      const res = await fetch(`${API_URL}/tasks/${projectId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -487,13 +502,11 @@ const ProjectOwnerFolder: React.FC = () => {
         body: JSON.stringify({
           label: title,
           createdAt: new Date().toISOString(),
-          due_date: dueDate,
         }),
       });
 
       if (res.ok) {
         setTaskInput("");
-        setTaskDueDate("");
         setMessage({ text: "Task added successfully!", type: "success" });
         fetchProjectData();
       } else {
@@ -535,7 +548,7 @@ const ProjectOwnerFolder: React.FC = () => {
     updateField("tasks", updatedTasks);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/toggle`, {
+      const res = await fetch(`${API_URL}/tasks/${taskId}/toggle`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -590,7 +603,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -630,7 +643,7 @@ const ProjectOwnerFolder: React.FC = () => {
     if (!window.confirm("Are you sure you want to remove this collaborator?"))
       return;
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -823,11 +836,7 @@ const ProjectOwnerFolder: React.FC = () => {
                   const taskInput = form.elements.namedItem(
                     "taskTitle"
                   ) as HTMLInputElement;
-                  const dueDateInput = form.elements.namedItem(
-                    "taskDueDate"
-                  ) as HTMLInputElement;
-                  if (!taskInput.value) return;
-                  addTask(taskInput.value, dueDateInput.value);
+                  addTask(taskInput.value);
                   form.reset();
                 }}
               >
@@ -836,14 +845,6 @@ const ProjectOwnerFolder: React.FC = () => {
                   name="taskTitle"
                   placeholder="Task title"
                   className="task-input"
-                />
-                <input
-                  type="date"
-                  name="taskDueDate"
-                  className="task-due-date-input"
-                  value={taskDueDate}
-                  onChange={(e) => setTaskDueDate(e.target.value)}
-                  required
                 />
                 <button type="submit" className="add-task-btn">
                   Add Task
@@ -908,12 +909,6 @@ const ProjectOwnerFolder: React.FC = () => {
                           {task.createdAt
                             ? new Date(task.createdAt).toLocaleDateString()
                             : "N/A"}{" "}
-                          {task.dueDate && (
-                            <>
-                              | Due Date •{" "}
-                              {new Date(task.dueDate).toLocaleDateString()}
-                            </>
-                          )}
                         </span>
                       </div>
                     </div>
@@ -967,6 +962,16 @@ const ProjectOwnerFolder: React.FC = () => {
                   ></div>
                 </div>
               </div>
+            </div>
+
+            <div className="departments-container">
+              <select className="department-select">
+                {departments.map((dept, index) => (
+                  <option key={index} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <hr />

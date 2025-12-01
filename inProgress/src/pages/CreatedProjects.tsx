@@ -4,6 +4,8 @@ import DashNavbar from "./DashboardNavbar";
 import FolderProjectCard from "./FolderProjectCard";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 
+const API_URL = process.env.REACT_APP_API_URL
+
 interface Project {
   id: number;
   title: string;
@@ -25,15 +27,8 @@ const CreatedProjects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        if (!API_BASE_URL) throw new Error("API_BASE_URL not defined in .env");
-        const token = localStorage.getItem("userToken");
-        if (!token) return;
-
-        const res = await fetch(`${API_BASE_URL}/projects/created`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        const res = await fetch(`${API_URL}/projects/created`, {
+          credentials: "include",
         });
 
         if (!res.ok) {
@@ -57,12 +52,7 @@ const CreatedProjects: React.FC = () => {
       const counts: { [key: number]: number } = {};
       for (const p of projects) {
         try {
-          const res = await fetch(`${API_BASE_URL}/projects/${p.id}/comments`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-              "Content-Type": "application/json",
-            },
-          });
+          const res = await fetch(`${API_URL}/comments/project/${p.id}`);
           if (!res.ok) continue;
           const comments = await res.json();
           counts[p.id] = comments.length;
@@ -78,29 +68,19 @@ const CreatedProjects: React.FC = () => {
 
   // ------------------- Upvote Handler -------------------
   const handleUpvote = async (projectId: number) => {
-    try {
-      const token = localStorage.getItem("userToken");
-      if (!token) return;
-
-      const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Upvote request failed");
-
-      // Update local state
-      setUpvotes(prev => ({
-        ...prev,
-        [projectId]: method === "POST" ? (prev[projectId] || 0) + 1 : (prev[projectId] || 1) - 1,
-      }));
-      setHasUpvoted(prev => ({ ...prev, [projectId]: method === "POST" }));
-    } catch (error) {
-      console.error("Upvote error:", error);
+    if (!hasUpvoted[projectId]) {
+      try {
+        const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Upvote failed");
+        setUpvotes(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + 1 }));
+        setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 

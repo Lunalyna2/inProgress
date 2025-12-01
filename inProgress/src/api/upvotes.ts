@@ -15,38 +15,54 @@ export interface UpvoteResponse {
 export const getUpvotes = async (projectId: number): Promise<UpvoteResponse> => {
   const res = await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
     method: "GET",
-    headers: getAuthHeader(),
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
   });
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error("Failed to fetch upvotes:", text);
-    throw new Error("Failed to fetch upvotes");
+    const error = await res.text();
+    throw new Error(error || "Failed to load upvotes");
   }
+
   return res.json();
 };
 
 export const addUpvote = async (projectId: number): Promise<UpvoteResponse> => {
   const res = await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
     method: "POST",
-    headers: getAuthHeader(),
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
   });
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error("Failed to add upvote:", text);
-    throw new Error("Failed to add upvote");
+    const error = await res.text();
+    throw new Error(error || "Failed to upvote");
   }
+
   return res.json();
 };
 
 export const removeUpvote = async (projectId: number): Promise<UpvoteResponse> => {
   const res = await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
     method: "DELETE",
-    headers: getAuthHeader(),
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
   });
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error("Failed to remove upvote:", text);
-    throw new Error("Failed to remove upvote");
+    const error = await res.text();
+    throw new Error(error || "Failed to remove upvote");
   }
+
   return res.json();
 };
+
+// added - toggle
+export const toggleUpvote = (projectId: number, hasUpvoted: boolean) =>
+  hasUpvoted ? removeUpvote(projectId) : addUpvote(projectId);

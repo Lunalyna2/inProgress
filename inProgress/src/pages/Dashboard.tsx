@@ -20,6 +20,7 @@ interface Project {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
+  // ------------------- State -------------------
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
@@ -44,20 +45,17 @@ const Dashboard: React.FC = () => {
     "College of Medicine",
   ];
 
-  // ------------------- Fetch Functions -------------------
+  // ------------------- Helper Functions -------------------
   const fetchPickedProjects = async () => {
     try {
       if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}/projects/all`, {
+      const res = await fetch(`${API_BASE_URL}/projects/picked`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to fetch picked projects. Response: ${text}`);
-      }
+      if (!res.ok) throw new Error("Failed to fetch picked projects");
 
       const data = await res.json();
       setPickedProjects(data);
@@ -75,10 +73,7 @@ const Dashboard: React.FC = () => {
       const res = await fetch(`${API_BASE_URL}/projects/joined`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to fetch joined projects. Response: ${text}`);
-      }
+      if (!res.ok) throw new Error("Failed to fetch joined projects");
 
       const data = await res.json();
       setJoinedProjects(data);
@@ -107,6 +102,9 @@ const Dashboard: React.FC = () => {
             const data = await upvoteRes.json();
             upvoteCounts[project.id] = data.upvotes;
             upvoteStatus[project.id] = data.hasUpvoted;
+          } else {
+            upvoteCounts[project.id] = 0;
+            upvoteStatus[project.id] = false;
           }
 
           // Comments
@@ -116,6 +114,8 @@ const Dashboard: React.FC = () => {
           if (commentRes.ok) {
             const data = await commentRes.json();
             comments[project.id] = data.length;
+          } else {
+            comments[project.id] = 0;
           }
         } catch {
           upvoteCounts[project.id] = 0;
@@ -130,19 +130,6 @@ const Dashboard: React.FC = () => {
     setCommentCounts(comments);
   };
 
-  // ------------------- Effects -------------------
-  useEffect(() => {
-    fetchPickedProjects();
-    fetchJoinedProjects();
-  }, []);
-
-  useEffect(() => {
-    if (pickedProjects.length > 0 || joinedProjects.length > 0) {
-      loadProjectMeta();
-    }
-  }, [pickedProjects, joinedProjects]);
-
-  // ------------------- Event Handlers -------------------
   const toggleUpvote = async (projectId: number) => {
     try {
       const token = localStorage.getItem("userToken");
@@ -156,13 +143,25 @@ const Dashboard: React.FC = () => {
 
       if (!res.ok) throw new Error("Upvote failed");
 
-      loadProjectMeta(); // Reload upvotes
+      loadProjectMeta();
     } catch (err) {
       console.error("Upvote error:", err);
     }
   };
 
-  // ------------------- Filters -------------------
+  // ------------------- Effects -------------------
+  useEffect(() => {
+    fetchPickedProjects();
+    fetchJoinedProjects();
+  }, []);
+
+  useEffect(() => {
+    if (pickedProjects.length || joinedProjects.length) {
+      loadProjectMeta();
+    }
+  }, [pickedProjects, joinedProjects]);
+
+  // ------------------- Filtered Projects -------------------
   const filteredPickedProjects = pickedProjects.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -215,8 +214,8 @@ const Dashboard: React.FC = () => {
                 hasUpvoted={!!hasUpvoted[p.id]}
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
-                onOpenComments={() => setSelectedProjectIdForComments(p.id)}
-                onClick={() => navigate(`/project/${p.id}`)}
+                onOpenComments={(id) => setSelectedProjectIdForComments(id)}
+                onClick={() => navigate(`/projects/${p.id}`)}
               />
             ))}
           </div>
@@ -234,8 +233,8 @@ const Dashboard: React.FC = () => {
                 hasUpvoted={!!hasUpvoted[p.id]}
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
-                onOpenComments={() => setSelectedProjectIdForComments(p.id)}
-                onClick={() => navigate(`/project/${p.id}`)}
+                onOpenComments={(id) => setSelectedProjectIdForComments(id)}
+                onClick={() => navigate(`/projects/${p.id}`)}
               />
             ))}
           </div>
