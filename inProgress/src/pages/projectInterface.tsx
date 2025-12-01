@@ -5,6 +5,8 @@ import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./projectInterface.css";
 
+const API_URL = process.env.REACT_APP_API_URL
+
 // --- INTERFACES ---
 
 interface Collaborator {
@@ -56,7 +58,6 @@ const COLLEGE_OPTIONS = [
     'College of Theology',
 ];
 
-const API_BASE_URL = "http://localhost:5000/api";
 
 export default function ProjectInterface() {
     const { projectId } = useParams<{ projectId: string }>();
@@ -92,7 +93,7 @@ export default function ProjectInterface() {
         }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -131,7 +132,7 @@ export default function ProjectInterface() {
         if (!role_name || role_name.trim() === "") return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT', 
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -159,7 +160,7 @@ export default function ProjectInterface() {
         if (!window.confirm("Are you sure you want to remove this role?")) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -191,7 +192,7 @@ export default function ProjectInterface() {
         }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -230,7 +231,7 @@ export default function ProjectInterface() {
         if (!label) return;
         
         try {
-            const res = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+            const res = await fetch(`${API_URL}/tasks/${projectId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ label: label.trim() }),
@@ -256,7 +257,7 @@ export default function ProjectInterface() {
         updateField("tasks", updatedTasks);
         
         try {
-            const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/toggle`, {
+            const res = await fetch(`${API_URL}/tasks/${taskId}/toggle`, {
                 method: 'PUT', 
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ done: doneStatus }),
@@ -289,7 +290,7 @@ export default function ProjectInterface() {
         }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
@@ -318,7 +319,7 @@ export default function ProjectInterface() {
         if (!window.confirm("Are you sure you want to remove this collaborator?")) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+            const res = await fetch(`${API_URL}/projects/${projectId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
