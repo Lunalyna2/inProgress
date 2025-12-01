@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = "http://localhost:5000/api"
 
 interface ResetPasswordForm {
   newPassword: string;

@@ -5,7 +5,7 @@ import DashNavbar from "./DashboardNavbar";
 import FolderProjectCard from "./FolderProjectCard";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_URL = "http://localhost:5000/api"
 
 interface Project {
   id: number;
@@ -26,11 +26,11 @@ const CreatedProjects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
+        if (!API_URL) throw new Error("API_BASE_URL not defined");
         const token = localStorage.getItem("userToken");
         if (!token) return;
 
-        const res = await fetch(`${API_BASE_URL}/projects/created`, {
+        const res = await fetch(`${API_URL}/projects/created`, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
 
@@ -59,7 +59,7 @@ const CreatedProjects: React.FC = () => {
       await Promise.all(
         projects.map(async (p) => {
           try {
-            const res = await fetch(`${API_BASE_URL}/projects/${p.id}/comments`, {
+            const res = await fetch(`${API_URL}/projects/${p.id}/comments`, {
               headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             });
             if (!res.ok) {
@@ -86,7 +86,7 @@ const CreatedProjects: React.FC = () => {
       if (!token) return;
 
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
         method,
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
