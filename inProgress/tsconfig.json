@@ -17,7 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    // "noEmit": true,
+    "noEmit": true,
     // "types": ["node"],
     // and npm install -D @types/node
 
@@ -41,9 +41,9 @@
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    // "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
+    // "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    // "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
   },
