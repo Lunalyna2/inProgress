@@ -51,7 +51,6 @@ const Dashboard: React.FC = () => {
 
   const filters = ["All", "Recent", "Popular", "Trending"];
 
-  // Replace these with API data later
   const [pickedProjects, setPickedProjects] = useState<Project[]>([]);
   const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([]);
 
@@ -154,7 +153,7 @@ const Dashboard: React.FC = () => {
               <FolderProjectCard
                 key={project.id}
                 project={{ id: project.id, title: project.title }}
-                viewType="dashboard" // picked projects are dashboard type
+                viewType="dashboard"
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
@@ -178,7 +177,7 @@ const Dashboard: React.FC = () => {
               <FolderProjectCard
                 key={project.id}
                 project={{ id: project.id, title: project.title }}
-                viewType="joined" // joined projects are joined type
+                viewType="joined"
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}

@@ -17,7 +17,7 @@ interface Props {
   onUpvote: (id: number) => void;
   onOpenComments: (id: number) => void;
   viewType: "created" | "dashboard" | "joined";
-  onClick?: () => void; // optional onClick
+  onClick?: () => void; 
 }
 
 const FolderProjectCard: React.FC<Props> = ({
@@ -34,11 +34,10 @@ const FolderProjectCard: React.FC<Props> = ({
 
   const handleCardClick = () => {
     if (onClick) {
-      onClick(); // Use passed onClick if provided
+      onClick(); 
       return;
     }
 
-    // fallback navigation logic
     switch (viewType) {
       case "created":
         navigate(`/projectownerfolder/${project.id}`);
