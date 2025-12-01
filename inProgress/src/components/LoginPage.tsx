@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
-import './Login.css';
+import './login.css';
 import ForgotPasswordModal from './forgotPasswordModal';
 import { useNavigate } from "react-router-dom";
 

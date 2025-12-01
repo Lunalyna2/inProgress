@@ -4,6 +4,7 @@ import pool from "../pool";
 
 const projectRoutes = Router();
 
+// Interfaces
 interface Role {
   name: string;
   count: number;
@@ -32,86 +33,44 @@ interface UpdateProjectRequestBody {
 }
 
 // CREATE PROJECT
-projectRoutes.post(
-  "/create",
-  authMiddleware,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const creatorId = req.userId;
-    const initialCollege = "";
-    const initialStatus = "ongoing";
+projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const creatorId = req.userId;
+  const { title, description, roles } = req.body as CreateProjectRequestBody;
 
-    const { title, description, roles } = req.body as CreateProjectRequestBody;
+  if (!creatorId) return res.status(403).json({ message: "Authorization required." });
+  if (!title || !description || !roles || !Array.isArray(roles)) return res.status(400).json({ error: "Invalid project data." });
 
-    if (!creatorId) {
-      return res
-        .status(403)
-        .json({ message: "Authorization required to create a project." });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const projectResult = await client.query(
+      `INSERT INTO projects(title, description, creator_id, college, status)
+       VALUES($1, $2, $3, '', 'ongoing') RETURNING id, created_at`,
+      [title, description, creatorId]
+    );
+
+    const newProjectId = projectResult.rows[0].id;
+
+    await client.query(`INSERT INTO project_collaborators(project_id, user_id) VALUES($1, $2)`, [newProjectId, creatorId]);
+
+    if (roles.length > 0) {
+      const roleValues = roles.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(", ");
+      const roleParams: (string | number)[] = [];
+      roles.forEach(role => roleParams.push(newProjectId, role.name, role.count));
+      await client.query(`INSERT INTO project_roles(project_id, role_name, count) VALUES ${roleValues}`, roleParams);
     }
 
-    if (!title || !description || !roles || !Array.isArray(roles)) {
-      return res.status(400).json({
-        error: "Missing or invalid project data (title, description, or roles).",
-      });
-    }
-
-    const client = await pool.connect();
-
-    try {
-      await client.query("BEGIN");
-
-      const projectInsertQuery = `
-        INSERT INTO projects(title, description, creator_id, college, status)
-        VALUES($1, $2, $3, $4, $5)
-        RETURNING id, created_at
-      `;
-      const projectResult = await client.query(projectInsertQuery, [
-        title,
-        description,
-        creatorId,
-        initialCollege,
-        initialStatus,
-      ]);
-      const newProjectId = projectResult.rows[0].id;
-
-      // Add creator as initial collaborator
-      await client.query(
-        `INSERT INTO project_collaborators(project_id, user_id) VALUES($1, $2)`,
-        [newProjectId, creatorId]
-      );
-
-      // Add roles
-      if (roles.length > 0) {
-        const roleValues = roles.map(
-          (_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`
-        ).join(", ");
-        const roleParams: (string | number)[] = [];
-        roles.forEach((role) => {
-          roleParams.push(newProjectId, role.name, role.count);
-        });
-        const roleInsertQuery = `
-          INSERT INTO project_roles(project_id, role_name, count)
-          VALUES ${roleValues}
-        `;
-        await client.query(roleInsertQuery, roleParams);
-      }
-
-      await client.query("COMMIT");
-      res.status(201).json({
-        message: "Project created successfully",
-        projectId: newProjectId,
-        createdAt: projectResult.rows[0].created_at,
-      });
-    } catch (error) {
-      await client.query("ROLLBACK");
-      console.error("Database Error during project creation:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to create project due to a server error." });
-    } finally {
-      client.release();
-    }
+    await client.query("COMMIT");
+    res.status(201).json({ message: "Project created successfully", projectId: newProjectId });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Database Error during project creation:", error);
+    res.status(500).json({ error: "Failed to create project." });
+  } finally {
+    client.release();
   }
-);
+});
 
 // GET ALL PROJECTS (for project cards)
 projectRoutes.get(
@@ -134,101 +93,83 @@ projectRoutes.get(
   }
 );
 
-// GET PROJECTS CREATED BY THE LOGGED-IN USER
-projectRoutes.get(
-  "/created",
-  authMiddleware,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.userId;
-    if (!userId) return res.status(403).json({ message: "Unauthorized" });
+// GET CREATED PROJECTS
+projectRoutes.get("/created", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId;
+  if (!userId) return res.status(403).json({ message: "Unauthorized" });
 
-    try {
-      const query = `
-        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
-        FROM projects p
-        JOIN users u ON p.creator_id = u.id
-        WHERE p.creator_id = $1
-        ORDER BY p.created_at DESC
-      `;
-      const result = await pool.query(query, [userId]);
-      res.status(200).json(result.rows);
-    } catch (error) {
-      console.error("Error fetching created projects:", error);
-      res.status(500).json({ error: "Failed to fetch created projects." });
-    }
+  try {
+    const result = await pool.query(
+      `SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+       FROM projects p
+       JOIN users u ON p.creator_id = u.id
+       WHERE p.creator_id = $1
+       ORDER BY p.created_at DESC`,
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error fetching created projects:", error);
+    res.status(500).json({ error: "Failed to fetch created projects." });
   }
-);
+});
 
-projectRoutes.get(
-  "/joined",
-  authMiddleware,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.userId;
-    if (!userId) return res.status(403).json({ message: "Unauthorized" });
+// GET JOINED PROJECTS
+projectRoutes.get("/joined", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId;
+  if (!userId) return res.status(403).json({ message: "Unauthorized" });
 
-    try {
-      const query = `
-        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
-        FROM projects p
-        JOIN project_collaborators pc ON pc.project_id = p.id
-        JOIN users u ON p.creator_id = u.id
-        WHERE pc.user_id = $1
-        ORDER BY p.created_at DESC
-      `;
-      const result = await pool.query(query, [userId]);
-      res.status(200).json(result.rows);
-    } catch (error) {
-      console.error("Error fetching joined projects:", error);
-      res.status(500).json({ error: "Failed to fetch joined projects." });
-    }
+  try {
+    const result = await pool.query(
+      `SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+       FROM projects p
+       JOIN project_collaborators pc ON pc.project_id = p.id
+       JOIN users u ON p.creator_id = u.id
+       WHERE pc.user_id = $1
+       ORDER BY p.created_at DESC`,
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error fetching joined projects:", error);
+    res.status(500).json({ error: "Failed to fetch joined projects." });
   }
-);
+});
 
-// GET PROJECT BY ID
-projectRoutes.get(
-  "/:projectId",
-  authMiddleware,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const { projectId } = req.params;
-    try {
-      const projectQuery = `
-        SELECT p.id, p.title, p.description, p.creator_id, p.college, p.status,
-               u.username AS creator_username
-        FROM projects p
-        JOIN users u ON p.creator_id = u.id
-        WHERE p.id = $1
-      `;
-      const projectResult = await pool.query(projectQuery, [projectId]);
+// GET SINGLE PROJECT
+projectRoutes.get("/:projectId", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const { projectId } = req.params;
+  try {
+    const projectResult = await pool.query(
+      `SELECT p.id, p.title, p.description, p.creator_id, p.college, p.status, u.username AS creator_username
+       FROM projects p
+       JOIN users u ON p.creator_id = u.id
+       WHERE p.id = $1`,
+      [projectId]
+    );
 
-      if (projectResult.rows.length === 0) {
-        return res.status(404).json({ message: "Project not found." });
-      }
-      const project = projectResult.rows[0];
+    if (projectResult.rows.length === 0) return res.status(404).json({ message: "Project not found." });
 
-      // Roles
-      const rolesResult = await pool.query(
-        `SELECT id, role_name, count FROM project_roles WHERE project_id = $1`,
-        [projectId]
-      );
-      project.roles = rolesResult.rows;
+    const project = projectResult.rows[0];
 
-      // Collaborators
-      const collabsResult = await pool.query(
-        `SELECT pc.user_id AS userId, u.username
-         FROM project_collaborators pc
-         JOIN users u ON pc.user_id = u.id
-         WHERE pc.project_id = $1`,
-        [projectId]
-      );
-      project.collaborators = collabsResult.rows;
+    const rolesResult = await pool.query(`SELECT id, role_name, count FROM project_roles WHERE project_id = $1`, [projectId]);
+    project.roles = rolesResult.rows;
 
-      res.status(200).json(project);
-    } catch (error) {
-      console.error("Error fetching project:", error);
-      res.status(500).json({ error: "Failed to fetch project details." });
-    }
+    const collabsResult = await pool.query(
+      `SELECT pc.user_id AS userId, u.username
+       FROM project_collaborators pc
+       JOIN users u ON pc.user_id = u.id
+       WHERE pc.project_id = $1`,
+      [projectId]
+    );
+    project.collaborators = collabsResult.rows;
+
+    res.status(200).json(project);
+  } catch (error) {
+    console.error("Error fetching project:", error);
+    res.status(500).json({ error: "Failed to fetch project details." });
   }
-);
+});
 
 // UPDATE PROJECT
 projectRoutes.put(
@@ -326,5 +267,30 @@ projectRoutes.put(
     }
   }
 );
+
+// GET UPVOTE STATUS
+projectRoutes.get("/:projectId/upvote-status", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const { projectId } = req.params;
+  const userId = req.userId;
+  if (!userId) return res.status(403).json({ message: "Unauthorized" });
+
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(*) AS upvotes,
+              EXISTS(SELECT 1 FROM project_upvotes WHERE project_id = $1 AND user_id = $2) AS has_upvoted
+       FROM project_upvotes
+       WHERE project_id = $1`,
+      [projectId, userId]
+    );
+
+    res.status(200).json({
+      upvotes: parseInt(result.rows[0].upvotes, 10),
+      hasUpvoted: result.rows[0].has_upvoted,
+    });
+  } catch (error) {
+    console.error("Error fetching upvote status:", error);
+    res.status(500).json({ error: "Failed to fetch upvote status." });
+  }
+});
 
 export default projectRoutes;

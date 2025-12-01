@@ -1,3 +1,4 @@
+// src/pages/CreatedProjects.tsx
 import React, { useState, useEffect } from "react";
 import "./CreatedProjects.css";
 import DashNavbar from "./DashboardNavbar";
@@ -14,8 +15,6 @@ interface Project {
   upvote_count?: number;
 }
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
 const CreatedProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
@@ -27,8 +26,12 @@ const CreatedProjects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        if (!API_URL) throw new Error("API_BASE_URL not defined");
+        const token = localStorage.getItem("userToken");
+        if (!token) return;
+
         const res = await fetch(`${API_URL}/projects/created`, {
-          credentials: "include",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
 
         if (!res.ok) {
@@ -49,17 +52,27 @@ const CreatedProjects: React.FC = () => {
   // ------------------- Fetch Comments Count -------------------
   useEffect(() => {
     const loadCommentsCount = async () => {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
       const counts: { [key: number]: number } = {};
-      for (const p of projects) {
-        try {
-          const res = await fetch(`${API_URL}/comments/project/${p.id}`);
-          if (!res.ok) continue;
-          const comments = await res.json();
-          counts[p.id] = comments.length;
-        } catch {
-          counts[p.id] = 0;
-        }
-      }
+      await Promise.all(
+        projects.map(async (p) => {
+          try {
+            const res = await fetch(`${API_URL}/projects/${p.id}/comments`, {
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            if (!res.ok) {
+              counts[p.id] = 0;
+              return;
+            }
+            const comments = await res.json();
+            counts[p.id] = comments.length;
+          } catch {
+            counts[p.id] = 0;
+          }
+        })
+      );
       setCommentsCount(counts);
     };
 
@@ -68,19 +81,29 @@ const CreatedProjects: React.FC = () => {
 
   // ------------------- Upvote Handler -------------------
   const handleUpvote = async (projectId: number) => {
-    if (!hasUpvoted[projectId]) {
-      try {
-        const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Upvote failed");
-        setUpvotes(prev => ({ ...prev, [projectId]: (prev[projectId] || 0) + 1 }));
-        setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
-      } catch (error) {
-        console.error(error);
-      }
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      const method = hasUpvoted[projectId] ? "DELETE" : "POST";
+      const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
+        method,
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Upvote failed");
+
+      // Optimistically update UI
+      setUpvotes(prev => ({
+        ...prev,
+        [projectId]: hasUpvoted[projectId] ? (prev[projectId] || 1) - 1 : (prev[projectId] || 0) + 1,
+      }));
+      setHasUpvoted(prev => ({
+        ...prev,
+        [projectId]: !prev[projectId],
+      }));
+    } catch (error) {
+      console.error(error);
     }
   };
 
