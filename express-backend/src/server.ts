@@ -61,7 +61,7 @@ app.use("/api/projects/forum-upvotes", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/tasks", authMiddleware, tasksRoutes);
-
+app.use("/api/comments", commentsRoutes);
 
 
 interface SignUpFormData {

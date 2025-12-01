@@ -43,6 +43,7 @@ const Dashboard: React.FC = () => {
     "College of Medicine",
   ];
 
+  // Fetch picked projects
   const fetchPickedProjects = async () => {
     try {
       const token = localStorage.getItem("userToken");
@@ -60,6 +61,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Fetch joined projects
   const fetchJoinedProjects = async () => {
     try {
       const token = localStorage.getItem("userToken");
@@ -77,6 +79,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Load upvotes, hasUpvoted, comments safely
   const loadProjectMeta = async () => {
     const allProjects = [...pickedProjects, ...joinedProjects];
     const upvoteCounts: { [key: number]: number } = {};
@@ -90,13 +93,13 @@ const Dashboard: React.FC = () => {
 
         try {
           // Upvotes
-          const upvoteRes = await fetch(`${API_BASE_URL}/projects/${project.id}/upvote-status`, {
-            headers: { Authorization: `Bearer ${token}` },
+          const upvoteRes = await fetch(`${API_BASE_URL}/projects/${project.id}/upvotes`, {
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
           if (upvoteRes.ok) {
-            const data = await upvoteRes.json();
-            upvoteCounts[project.id] = data.upvotes;
-            upvoteStatus[project.id] = data.hasUpvoted;
+            const upvoteData = await upvoteRes.json();
+            upvoteCounts[project.id] = upvoteData.upvotes ?? 0;
+            upvoteStatus[project.id] = upvoteData.hasUpvoted ?? false;
           } else {
             upvoteCounts[project.id] = 0;
             upvoteStatus[project.id] = false;
@@ -107,12 +110,13 @@ const Dashboard: React.FC = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (commentRes.ok) {
-            const data = await commentRes.json();
-            comments[project.id] = data.length;
+            const commentData = await commentRes.json();
+            comments[project.id] = commentData.length;
           } else {
             comments[project.id] = 0;
           }
-        } catch {
+        } catch (err) {
+          console.error(`Error loading metadata for project ${project.id}`, err);
           upvoteCounts[project.id] = 0;
           upvoteStatus[project.id] = false;
           comments[project.id] = 0;
@@ -125,18 +129,19 @@ const Dashboard: React.FC = () => {
     setCommentCounts(comments);
   };
 
+  // Toggle upvote
   const toggleUpvote = async (projectId: number) => {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
-      const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
+      await fetch(`${API_BASE_URL}/projects/${projectId}/upvotes`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
 
-      loadProjectMeta();
+      // Reload metadata
+      await loadProjectMeta();
     } catch (err) {
       console.error("Upvote error:", err);
     }
