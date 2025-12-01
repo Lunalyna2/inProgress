@@ -26,18 +26,24 @@ const app = express();
 
 app.use(express.json());
 
-
-const allowedOrigins = [
-  FRONTEND_URL,              
-  "http://localhost:3001",
-  "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app",
-  "https://inprogress-upts.onrender.com",
-];
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      callback(null, true); 
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app",
+        "https://inprogress-upts.onrender.com",
+      ];
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("❌ CORS BLOCKED:", origin);
+      return callback(new Error("Not allowed by CORS"), false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -45,6 +51,7 @@ app.use(
   })
 );
 
+app.options("*", cors());
 
 
 
