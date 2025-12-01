@@ -1,36 +1,31 @@
+// src/pages/Dashboard.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import DashNavbar from "./DashboardNavbar";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 import FolderProjectCard from "./FolderProjectCard";
-import { getComments } from "../api/comments";
 import "./Dashboard.css";
-import { getUpvotes, addUpvote, removeUpvote } from "../api/upvotes"; 
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 interface Project {
   id: number;
   title: string;
   description?: string;
-  course: string;
-}
-
-interface JoinedProject {
-  id: number;
-  title: string;
-  course: string;
-  progress: number;
-  description?: string;
+  course?: string;
+  upvote_count?: number;
 }
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+
+  // ------------------- State -------------------
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
+  const [pickedProjects, setPickedProjects] = useState<Project[]>([]);
+  const [joinedProjects, setJoinedProjects] = useState<Project[]>([]);
   const [upvotes, setUpvotes] = useState<{ [key: number]: number }>({});
   const [hasUpvoted, setHasUpvoted] = useState<{ [key: number]: boolean }>({});
   const [commentCounts, setCommentCounts] = useState<{ [key: number]: number }>({});
@@ -50,87 +45,139 @@ const Dashboard: React.FC = () => {
     "College of Medicine",
   ];
 
-  const filters = ["All", "Recent", "Popular", "Trending"];
-
-  const [pickedProjects, setPickedProjects] = useState<Project[]>([]);
-  const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([]);
-
-  const loadCommentCounts = async () => {
-    const allProjects = [...pickedProjects, ...joinedProjects];
-    const counts: { [key: number]: number } = {};
-    await Promise.all(
-      allProjects.map(async (project) => {
-        try {
-          const comments = await getComments(project.id);
-          counts[project.id] = comments.length;
-        } catch {
-          counts[project.id] = 0;
-        }
-      })
-    );
-    setCommentCounts(counts);
-  };
-
-  const loadUpvotes = async () => {
-    const allProjects = [...pickedProjects, ...joinedProjects];
-    const counts: { [key: number]: number } = {};
-    const statuses: { [key: number]: boolean } = {};
-
-    await Promise.all(
-      allProjects.map(async (project) => {
-        try {
-          const data = await getUpvotes(project.id);
-          counts[project.id] = data.upvotes;
-          statuses[project.id] = data.hasUpvoted;
-        } catch {
-          counts[project.id] = 0;
-          statuses[project.id] = false;
-        }
-      })
-    );
-
-    setUpvotes(counts);
-    setHasUpvoted(statuses);
-  };
-
-  useEffect(() => {
-    loadCommentCounts();
-    loadUpvotes();
-  }, [pickedProjects, joinedProjects]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const filteredPickedProjects = pickedProjects.filter(
-    (project) =>
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedDepartment === "All Departments" || project.course === selectedDepartment)
-  );
-
-  const filteredJoinedProjects = joinedProjects.filter((project) =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const allProjectsForModal = [...pickedProjects, ...joinedProjects];
-  const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
- 
-  const toggleUpvote = async (projectId: number) => {
+  // ------------------- Helper Functions -------------------
+  const fetchPickedProjects = async () => {
     try {
-      if (hasUpvoted[projectId]) {
-        const data = await removeUpvote(projectId);
-        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
-        setHasUpvoted(prev => ({ ...prev, [projectId]: false }));
-      } else {
-        const data = await addUpvote(projectId);
-        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
-        setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
-      }
+      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      const res = await fetch(`${API_BASE_URL}/projects/picked`, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to fetch picked projects");
+
+      const data = await res.json();
+      setPickedProjects(data);
     } catch (err) {
-      console.error("Upvote action failed:", err);
+      console.error("Error fetching picked projects:", err);
     }
   };
 
+  const fetchJoinedProjects = async () => {
+    try {
+      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      const res = await fetch(`${API_BASE_URL}/projects/joined`, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to fetch joined projects");
+
+      const data = await res.json();
+      setJoinedProjects(data);
+    } catch (err) {
+      console.error("Error fetching joined projects:", err);
+    }
+  };
+
+  const loadProjectMeta = async () => {
+    const allProjects = [...pickedProjects, ...joinedProjects];
+    const upvoteCounts: { [key: number]: number } = {};
+    const upvoteStatus: { [key: number]: boolean } = {};
+    const comments: { [key: number]: number } = {};
+
+    await Promise.all(
+      allProjects.map(async (project) => {
+        const token = localStorage.getItem("userToken");
+        if (!token) return;
+
+        try {
+          // Upvotes
+          const upvoteRes = await fetch(`${API_BASE_URL}/projects/${project.id}/upvote-status`, {
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          });
+          if (upvoteRes.ok) {
+            const data = await upvoteRes.json();
+            upvoteCounts[project.id] = data.upvotes;
+            upvoteStatus[project.id] = data.hasUpvoted;
+          } else {
+            upvoteCounts[project.id] = 0;
+            upvoteStatus[project.id] = false;
+          }
+
+          // Comments
+          const commentRes = await fetch(`${API_BASE_URL}/projects/${project.id}/comments`, {
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          });
+          if (commentRes.ok) {
+            const data = await commentRes.json();
+            comments[project.id] = data.length;
+          } else {
+            comments[project.id] = 0;
+          }
+        } catch {
+          upvoteCounts[project.id] = 0;
+          upvoteStatus[project.id] = false;
+          comments[project.id] = 0;
+        }
+      })
+    );
+
+    setUpvotes(upvoteCounts);
+    setHasUpvoted(upvoteStatus);
+    setCommentCounts(comments);
+  };
+
+  const toggleUpvote = async (projectId: number) => {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      const method = hasUpvoted[projectId] ? "DELETE" : "POST";
+      const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
+        method,
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Upvote failed");
+
+      loadProjectMeta();
+    } catch (err) {
+      console.error("Upvote error:", err);
+    }
+  };
+
+  // ------------------- Effects -------------------
+  useEffect(() => {
+    fetchPickedProjects();
+    fetchJoinedProjects();
+  }, []);
+
+  useEffect(() => {
+    if (pickedProjects.length || joinedProjects.length) {
+      loadProjectMeta();
+    }
+  }, [pickedProjects, joinedProjects]);
+
+  // ------------------- Filtered Projects -------------------
+  const filteredPickedProjects = pickedProjects.filter(
+    (p) =>
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedDepartment === "All Departments" || p.course === selectedDepartment)
+  );
+
+  const filteredJoinedProjects = joinedProjects.filter((p) =>
+    p.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const allProjectsForModal = [...pickedProjects, ...joinedProjects];
+  const projectForModal = selectedProjectIdForComments
+    ? allProjectsForModal.find((p) => p.id === selectedProjectIdForComments)
+    : null;
+
+  // ------------------- Render -------------------
   return (
     <div className="dashboard">
       <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
@@ -143,7 +190,7 @@ const Dashboard: React.FC = () => {
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Search className="search-icon" />
             </div>
@@ -155,51 +202,20 @@ const Dashboard: React.FC = () => {
       </div>
 
       <main className="dashboard-main">
-        <div className="dashboard-filters-top">
-          <div className="dropdown">
-            <button onClick={() => { setShowDepartmentDropdown(!showDepartmentDropdown); setShowFilterDropdown(false); }}>
-              DEPARTMENT
-            </button>
-            {showDepartmentDropdown && (
-              <div className="dropdown-menu">
-                {departments.map(dept => (
-                  <button key={dept} onClick={() => { setSelectedDepartment(dept); setShowDepartmentDropdown(false); }}>
-                    {dept}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="dropdown">
-            <button onClick={() => { setShowFilterDropdown(!showFilterDropdown); setShowDepartmentDropdown(false); }}>
-              FILTER
-            </button>
-            {showFilterDropdown && (
-              <div className="dropdown-menu">
-                {filters.map(f => (
-                  <button key={f} onClick={() => { setSelectedFilter(f); setShowFilterDropdown(false); }}>
-                    {f}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
         <section className="picked-projects">
           <h2>Picked Out For You</h2>
           <div className="project-grid">
-            {filteredPickedProjects.map(project => (
+            {filteredPickedProjects.map((p) => (
               <FolderProjectCard
-                key={project.id}
-                project={{ id: project.id, title: project.title }}
+                key={p.id}
+                project={p}
                 viewType="dashboard"
-                upvotes={upvotes[project.id] || 0}
-                hasUpvoted={!!hasUpvoted[project.id]}
-                commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => toggleUpvote(id)}
+                upvotes={upvotes[p.id] || 0}
+                hasUpvoted={!!hasUpvoted[p.id]}
+                commentCount={commentCounts[p.id] || 0}
+                onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/projects/${project.id}`)}
+                onClick={() => navigate(`/projects/${p.id}`)}
               />
             ))}
           </div>
@@ -208,32 +224,30 @@ const Dashboard: React.FC = () => {
         <section className="joined-projects">
           <h2>Joined Projects</h2>
           <div className="project-grid">
-            {filteredJoinedProjects.map(project => (
+            {filteredJoinedProjects.map((p) => (
               <FolderProjectCard
-                key={project.id}
-                project={{ id: project.id, title: project.title }}
+                key={p.id}
+                project={p}
                 viewType="joined"
-                upvotes={upvotes[project.id] || 0}
-                hasUpvoted={!!hasUpvoted[project.id]}
-                commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => toggleUpvote(id)}
+                upvotes={upvotes[p.id] || 0}
+                hasUpvoted={!!hasUpvoted[p.id]}
+                commentCount={commentCounts[p.id] || 0}
+                onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/projects/${project.id}`)}
+                onClick={() => navigate(`/projects/${p.id}`)}
               />
             ))}
           </div>
         </section>
       </main>
 
-      {selectedProjectIdForComments !== null && projectForModal && (
+      {projectForModal && selectedProjectIdForComments && (
         <ProjectCommentsModal
           projectId={selectedProjectIdForComments}
           projectTitle={projectForModal.title}
           projectDescription={projectForModal.description || "No description available."}
-          onClose={() => {
-            setSelectedProjectIdForComments(null);
-            loadCommentCounts();
-          }}
+          onClose={() => setSelectedProjectIdForComments(null)}
+          onCommentsChange={() => loadProjectMeta()}
         />
       )}
     </div>

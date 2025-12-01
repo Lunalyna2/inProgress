@@ -9,7 +9,6 @@ interface Role {
   count: number;
 }
 
-// For existing roles
 interface RoleWithId extends Role {
   id: number;
 }
@@ -32,7 +31,7 @@ interface UpdateProjectRequestBody {
   status: "ongoing" | "done";
 }
 
-// Create Project Route
+// CREATE PROJECT
 projectRoutes.post(
   "/create",
   authMiddleware,
@@ -51,8 +50,7 @@ projectRoutes.post(
 
     if (!title || !description || !roles || !Array.isArray(roles)) {
       return res.status(400).json({
-        error:
-          "Missing or invalid project data (title, description, or roles).",
+        error: "Missing or invalid project data (title, description, or roles).",
       });
     }
 
@@ -61,8 +59,11 @@ projectRoutes.post(
     try {
       await client.query("BEGIN");
 
-      // Insert Project Details
-      const projectInsertQuery = `INSERT INTO projects(title, description, creator_id, college, status) VALUES($1, $2, $3, $4, $5) RETURNING id, created_at`;
+      const projectInsertQuery = `
+        INSERT INTO projects(title, description, creator_id, college, status)
+        VALUES($1, $2, $3, $4, $5)
+        RETURNING id, created_at
+      `;
       const projectResult = await client.query(projectInsertQuery, [
         title,
         description,
@@ -72,29 +73,25 @@ projectRoutes.post(
       ]);
       const newProjectId = projectResult.rows[0].id;
 
-      // Insert Creator as Initial Collaborator
-      const collaboratorInsertQuery = `INSERT INTO project_collaborators(project_id, user_id) VALUES($1, $2)`;
-      await client.query(collaboratorInsertQuery, [newProjectId, creatorId]);
+      // Add creator as initial collaborator
+      await client.query(
+        `INSERT INTO project_collaborators(project_id, user_id) VALUES($1, $2)`,
+        [newProjectId, creatorId]
+      );
 
-      // Insert Roles with count
+      // Add roles
       if (roles.length > 0) {
-        let paramIndex = 1;
-        const roleValues = roles
-          .map(() => {
-            const v1 = paramIndex++;
-            const v2 = paramIndex++;
-            const v3 = paramIndex++;
-            return `($${v1}, $${v2}, $${v3})`;
-          })
-          .join(", ");
-        const roleInsertQuery = `INSERT INTO project_roles(project_id, role_name, count) VALUES ${roleValues}`;
-
+        const roleValues = roles.map(
+          (_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`
+        ).join(", ");
         const roleParams: (string | number)[] = [];
         roles.forEach((role) => {
-          roleParams.push(newProjectId);
-          roleParams.push(role.name);
-          roleParams.push(role.count);
+          roleParams.push(newProjectId, role.name, role.count);
         });
+        const roleInsertQuery = `
+          INSERT INTO project_roles(project_id, role_name, count)
+          VALUES ${roleValues}
+        `;
         await client.query(roleInsertQuery, roleParams);
       }
 
@@ -115,31 +112,114 @@ projectRoutes.post(
     }
   }
 );
-// Fetch Project by ID Route
+
+// GET ALL PROJECTS (for frontend cards)
+projectRoutes.get(
+  "/all",
+  authMiddleware,
+  async (_req: AuthenticatedRequest, res: Response) => {
+    try {
+      const projectsQuery = `
+        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        ORDER BY p.created_at DESC
+      `;
+      const result = await pool.query(projectsQuery);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching all projects:", error);
+      res.status(500).json({ error: "Failed to fetch projects." });
+    }
+  }
+);
+
+// GET PROJECTS CREATED BY THE LOGGED-IN USER
+projectRoutes.get(
+  "/created",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.userId;
+    if (!userId) return res.status(403).json({ message: "Unauthorized" });
+
+    try {
+      const query = `
+        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        WHERE p.creator_id = $1
+        ORDER BY p.created_at DESC
+      `;
+      const result = await pool.query(query, [userId]);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching created projects:", error);
+      res.status(500).json({ error: "Failed to fetch created projects." });
+    }
+  }
+);
+
+projectRoutes.get(
+  "/joined",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.userId;
+    if (!userId) return res.status(403).json({ message: "Unauthorized" });
+
+    try {
+      const query = `
+        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+        FROM projects p
+        JOIN project_collaborators pc ON pc.project_id = p.id
+        JOIN users u ON p.creator_id = u.id
+        WHERE pc.user_id = $1
+        ORDER BY p.created_at DESC
+      `;
+      const result = await pool.query(query, [userId]);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching joined projects:", error);
+      res.status(500).json({ error: "Failed to fetch joined projects." });
+    }
+  }
+);
+
+// GET PROJECT BY ID
 projectRoutes.get(
   "/:projectId",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     const { projectId } = req.params;
     try {
-      // Fetch project details
-      const projectQuery = `SELECT p.id, p.title, p.description, p.creator_id, p.college, p.status, u.username as creator_username FROM projects p JOIN users u ON p.creator_id = u.id WHERE p.id = $1`;
+      const projectQuery = `
+        SELECT p.id, p.title, p.description, p.creator_id, p.college, p.status,
+               u.username AS creator_username
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        WHERE p.id = $1
+      `;
       const projectResult = await pool.query(projectQuery, [projectId]);
 
       if (projectResult.rows.length === 0) {
         return res.status(404).json({ message: "Project not found." });
       }
-
       const project = projectResult.rows[0];
 
-      // Fetch project roles with count
-      const rolesQuery = `SELECT id, role_name, count FROM project_roles WHERE project_id = $1`;
-      const rolesResult = await pool.query(rolesQuery, [projectId]);
+      // Roles
+      const rolesResult = await pool.query(
+        `SELECT id, role_name, count FROM project_roles WHERE project_id = $1`,
+        [projectId]
+      );
       project.roles = rolesResult.rows;
 
-      // Fetch Collaborators
-      const collaboratorsQuery = `SELECT pc.user_id as userId, u.username FROM project_collaborators pc JOIN users u ON pc.user_id = u.id WHERE pc.project_id = $1`;
-      const collabsResult = await pool.query(collaboratorsQuery, [projectId]);
+      // Collaborators
+      const collabsResult = await pool.query(
+        `SELECT pc.user_id AS userId, u.username
+         FROM project_collaborators pc
+         JOIN users u ON pc.user_id = u.id
+         WHERE pc.project_id = $1`,
+        [projectId]
+      );
       project.collaborators = collabsResult.rows;
 
       res.status(200).json(project);
@@ -149,7 +229,8 @@ projectRoutes.get(
     }
   }
 );
-// Update Project Route
+
+// UPDATE PROJECT
 projectRoutes.put(
   "/:projectId",
   authMiddleware,
@@ -168,148 +249,76 @@ projectRoutes.put(
       status,
     } = req.body as UpdateProjectRequestBody;
 
-    if (!userId) {
-      return res.status(403).json({ message: "Authorization failed." });
-    }
+    if (!userId) return res.status(403).json({ message: "Authorization failed." });
 
     const client = await pool.connect();
 
     try {
       await client.query("BEGIN");
 
-      // Check if the user is the creator
+      // Check if user is creator
       const checkCreator = await client.query(
         "SELECT creator_id FROM projects WHERE id = $1",
         [projectId]
       );
-
-      if (
-        checkCreator.rows.length === 0 ||
-        checkCreator.rows[0].creator_id !== userId
-      ) {
+      if (checkCreator.rows.length === 0 || checkCreator.rows[0].creator_id !== userId) {
         await client.query("ROLLBACK");
-        return res
-          .status(403)
-          .json({ message: "You are not authorized to edit this project." });
+        return res.status(403).json({ message: "Not authorized." });
       }
 
-      // Update Project Details
-      const updateProjectQuery = `UPDATE projects SET title = $1, description = $2, college = $3, status = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5`;
-      await client.query(updateProjectQuery, [
-        title,
-        description,
-        college,
-        status,
-        projectId,
-      ]);
-      // Delete Removed Collaborators
+      // Update project
+      await client.query(
+        `UPDATE projects
+         SET title=$1, description=$2, college=$3, status=$4, updated_at=CURRENT_TIMESTAMP
+         WHERE id=$5`,
+        [title, description, college, status, projectId]
+      );
+
+      // Remove collaborators
       if (collaboratorsToRemove && collaboratorsToRemove.length > 0) {
-        const numericUserIds = collaboratorsToRemove
-          .map((id) => {
-            if (typeof id === "string") {
-              return parseInt(id);
-            }
-            return id;
-          })
-          .filter((id) => !isNaN(id));
-        if (numericUserIds.length === 0) {
-          console.log("No valid user IDs found for removal.");
-        } else {
-          const userPlaceholders = numericUserIds
-            .map((_, i) => `$${i + 2}`)
-            .join(",");
-          const deleteCollaboratorsQuery = `DELETE FROM project_collaborators WHERE project_id = $1 AND user_id IN (${userPlaceholders})`;
-
-          const deleteParams = [
-            parseInt(projectId as string),
-            ...numericUserIds,
-          ];
-          const deleteResult = await client.query(
-            deleteCollaboratorsQuery,
-            deleteParams
-          );
-          console.log(
-            `Deleted ${deleteResult.rowCount} collaborator rows for project ${projectId}.`
-          );
-        }
+        const userPlaceholders = collaboratorsToRemove.map((_, i) => `$${i + 2}`).join(",");
+        const deleteQuery = `DELETE FROM project_collaborators WHERE project_id=$1 AND user_id IN (${userPlaceholders})`;
+        await client.query(deleteQuery, [parseInt(projectId), ...collaboratorsToRemove]);
       }
 
-      // Insert New Collaborators
+      // Add new collaborators
       if (collaboratorsToAdd && collaboratorsToAdd.length > 0) {
-        let paramIndex = 1;
-        const collabValues = collaboratorsToAdd
-          .map(() => {
-            const v1 = paramIndex++;
-            const v2 = paramIndex++;
-            return `($${v1}, $${v2})`;
-          })
-          .join(", ");
-        const insertCollaboratorsQuery = `INSERT INTO project_collaborators(project_id, user_id) VALUES ${collabValues} ON CONFLICT DO NOTHING`;
-        const collabParams: number[] = collaboratorsToAdd.flatMap((userId) => [
-          parseInt(projectId as string),
-          userId,
-        ]);
-        await client.query(insertCollaboratorsQuery, collabParams);
+        const values = collaboratorsToAdd.map((_, i) => `($1, $${i + 2})`).join(",");
+        const insertQuery = `INSERT INTO project_collaborators(project_id, user_id) VALUES ${values} ON CONFLICT DO NOTHING`;
+        await client.query(insertQuery, [parseInt(projectId), ...collaboratorsToAdd]);
       }
 
-      // Delete Removed Roles
+      // Remove roles
       if (removedRoleIds && removedRoleIds.length > 0) {
-        const placeholders = removedRoleIds
-          .map((_, i) => `$${i + 1}`)
-          .join(",");
-        const deleteRolesQuery = `DELETE FROM project_roles WHERE id IN (${placeholders}) AND project_id = $${
-          removedRoleIds.length + 1
-        }`;
-        await client.query(deleteRolesQuery, [
-          ...removedRoleIds,
-          parseInt(projectId as string),
-        ]);
-      }
-      if (updatedRoles && updatedRoles.length > 0) {
-        const updatePromises = updatedRoles.map((role) => {
-          return client.query(
-            `UPDATE project_roles SET count = $1, role_name = $2 WHERE id = $3 AND project_id = $4`,
-            [role.count, role.name, role.id, projectId]
-          );
-        });
-        await Promise.all(updatePromises.filter((p) => p !== undefined));
-      }
-
-      // Insert New Roles with count
-      if (newRoles && newRoles.length > 0) {
-        const validNewRoles = newRoles.filter(
-          (role) =>
-            role.name &&
-            typeof role.name === "string" &&
-            role.name.trim() !== ""
+        const placeholders = removedRoleIds.map((_, i) => `$${i + 1}`).join(",");
+        await client.query(
+          `DELETE FROM project_roles WHERE id IN (${placeholders}) AND project_id=$${removedRoleIds.length + 1}`,
+          [...removedRoleIds, parseInt(projectId)]
         );
-        if (validNewRoles.length > 0) {
-          let paramIndex = 1;
-          const roleValues = validNewRoles
-            .map(() => {
-              const v1 = paramIndex++;
-              const v2 = paramIndex++;
-              const v3 = paramIndex++;
-              return `($${v1}, $${v2}, $${v3})`;
-            })
+      }
 
-            .join(", ");
-          const roleInsertQuery = `INSERT INTO project_roles(project_id, role_name, count) VALUES ${roleValues}`;
-          const roleParams: (string | number)[] = [];
-          validNewRoles.forEach((role) => {
-            roleParams.push(parseInt(projectId as string));
-            roleParams.push(role.name.trim());
-            roleParams.push(role.count);
-          });
-          await client.query(roleInsertQuery, roleParams);
+      // Update roles
+      if (updatedRoles && updatedRoles.length > 0) {
+        const updatePromises = updatedRoles.map((role) =>
+          client.query(
+            `UPDATE project_roles SET role_name=$1, count=$2 WHERE id=$3 AND project_id=$4`,
+            [role.name, role.count, role.id, projectId]
+          )
+        );
+        await Promise.all(updatePromises);
+      }
 
-          if (validNewRoles.length !== newRoles.length) {
-            console.warn(
-              `Skipped ${
-                newRoles.length - validNewRoles.length
-              } invalid new role(s) due to missing name.`
-            );
-          }
+      // Add new roles
+      if (newRoles && newRoles.length > 0) {
+        const validRoles = newRoles.filter(r => r.name && r.name.trim() !== "");
+        if (validRoles.length > 0) {
+          const values = validRoles.map((_, i) => `($${i*3+1}, $${i*3+2}, $${i*3+3})`).join(",");
+          const params: (string | number)[] = [];
+          validRoles.forEach(r => params.push(parseInt(projectId), r.name.trim(), r.count));
+          await client.query(
+            `INSERT INTO project_roles(project_id, role_name, count) VALUES ${values}`,
+            params
+          );
         }
       }
 
@@ -317,10 +326,8 @@ projectRoutes.put(
       res.status(200).json({ message: "Project updated successfully" });
     } catch (error) {
       await client.query("ROLLBACK");
-      console.error("Database Error during project update:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to update project due to a server error." });
+      console.error("Error updating project:", error);
+      res.status(500).json({ error: "Failed to update project." });
     } finally {
       client.release();
     }

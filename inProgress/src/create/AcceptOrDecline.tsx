@@ -22,14 +22,13 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch pending collaborators
+  // fetch pending collaborators
   useEffect(() => {
     const fetchCollaborators = async () => {
       try {
         const token = localStorage.getItem("userToken") || "";
 
         if (!token) {
-          // Demo data if no token
           setCollaborators([]);
           return;
         }
@@ -56,7 +55,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
 
   }, [projectId]);
 
-  // Accept collaborator
+  //accept collaborator
   const handleAccept = async (id: string) => {
     try {
       const token = localStorage.getItem("userToken") || "";
