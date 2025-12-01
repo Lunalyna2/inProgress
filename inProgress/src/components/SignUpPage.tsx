@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { ChangeEvent, FormEvent, FocusEvent } from "react";
-import "./Signup.css";
+import "./signup.css";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:5000/api"

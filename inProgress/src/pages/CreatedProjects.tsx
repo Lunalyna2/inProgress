@@ -1,4 +1,3 @@
-// src/pages/CreatedProjects.tsx
 import React, { useState, useEffect } from "react";
 import "./CreatedProjects.css";
 import DashNavbar from "./DashboardNavbar";
@@ -22,11 +21,10 @@ const CreatedProjects: React.FC = () => {
   const [commentsCount, setCommentsCount] = useState<{ [key: number]: number }>({});
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
 
-  // ------------------- Fetch Created Projects -------------------
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        if (!API_URL) throw new Error("API_BASE_URL not defined");
+        if (!API_URL) throw new Error("API_URL not defined");
         const token = localStorage.getItem("userToken");
         if (!token) return;
 

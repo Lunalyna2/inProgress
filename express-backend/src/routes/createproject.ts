@@ -74,7 +74,7 @@ projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, 
   }
 });
 
-projectRoutes.get("/all", authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+projectRoutes.get("/picked", authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
   try {
     const result = await pool.query(`
       SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
