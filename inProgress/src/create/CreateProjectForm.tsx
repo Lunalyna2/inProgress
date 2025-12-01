@@ -2,7 +2,7 @@ import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_URL = process.env.REACT_APP_API_URL
 
 // interfaces
 interface Role {
@@ -99,7 +99,7 @@ const CreateProjectForm: React.FC = () => {
     const projectData: ProjectData = { title, description, roles };
 
     try {
-      const createProjectUrl = `${API_BASE_URL}/projects/create`;
+      const createProjectUrl = `${API_URL}/projects/create`;
       const response = await fetch(createProjectUrl, {
         method: "POST",
         headers: {
