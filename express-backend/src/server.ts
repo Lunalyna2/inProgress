@@ -40,7 +40,7 @@ app.use(
 
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
-app.use("/api/projects/forum-upvotes", forumUpvoteRoutes);
+app.use("/api/projects", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/tasks", authMiddleware, tasksRoutes);

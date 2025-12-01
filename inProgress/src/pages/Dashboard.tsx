@@ -91,7 +91,7 @@ const Dashboard: React.FC = () => {
         if (!token) return;
 
         try {
-          const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvote-status`, {
+          const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvotes`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
 
@@ -126,7 +126,7 @@ const Dashboard: React.FC = () => {
       if (!token) return;
 
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      await fetch(`${API_URL}/projects/${projectId}/upvote`, {
+      await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
