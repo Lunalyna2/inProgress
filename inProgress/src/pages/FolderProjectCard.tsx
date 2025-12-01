@@ -43,7 +43,7 @@ const FolderProjectCard: React.FC<Props> = ({
         navigate(`/projectownerfolder/${project.id}`);
         break;
       case "dashboard":
-        navigate(`/project/${project.id}`);
+        navigate(`/joinedprojectsfolder/${project.id}`); // updated for picked projects
         break;
       case "joined":
         navigate(`/joinedprojectsfolder/${project.id}`);

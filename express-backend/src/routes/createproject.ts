@@ -34,6 +34,7 @@ interface UpdateProjectRequestBody {
 projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const creatorId = req.userId;
   const { title, description, roles } = req.body as CreateProjectRequestBody;
+
   if (!creatorId) return res.status(403).json({ message: "Authorization required." });
   if (!title || !description || !Array.isArray(roles)) return res.status(400).json({ error: "Invalid project data." });
 
@@ -49,7 +50,7 @@ projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, 
     const newProjectId = projectResult.rows[0].id;
 
     await client.query(
-      `INSERT INTO project_collaborators(project_id, user_id) VALUES($1, $2)`,
+      `INSERT INTO project_collaborators(project_id, user_id, status) VALUES($1, $2, 'accepted')`,
       [newProjectId, creatorId]
     );
 
@@ -74,14 +75,21 @@ projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, 
   }
 });
 
-projectRoutes.get("/picked", authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
+projectRoutes.get("/picked", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId;
+  if (!userId) return res.status(403).json({ message: "Unauthorized" });
+
   try {
-    const result = await pool.query(`
-      SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
-      FROM projects p
-      JOIN users u ON p.creator_id = u.id
-      ORDER BY p.created_at DESC
-    `);
+    const result = await pool.query(
+      `
+        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        WHERE p.creator_id != $1
+        ORDER BY p.created_at DESC
+      `,
+      [userId]
+    );
     res.status(200).json(result.rows);
   } catch (error) {
     console.error(error);
@@ -120,6 +128,7 @@ projectRoutes.get("/joined", authMiddleware, async (req: AuthenticatedRequest, r
        JOIN project_collaborators pc ON pc.project_id = p.id
        JOIN users u ON p.creator_id = u.id
        WHERE pc.user_id = $1
+       AND pc.status = 'accepted'
        ORDER BY p.created_at DESC`,
       [userId]
     );
@@ -145,11 +154,15 @@ projectRoutes.get("/:projectId", authMiddleware, async (req: AuthenticatedReques
     if (projectResult.rows.length === 0) return res.status(404).json({ message: "Project not found." });
 
     const project = projectResult.rows[0];
-    const rolesResult = await pool.query(`SELECT id, role_name AS name, count FROM project_roles WHERE project_id = $1`, [projectId]);
+
+    const rolesResult = await pool.query(
+      `SELECT id, role_name AS name, count FROM project_roles WHERE project_id = $1`,
+      [projectId]
+    );
     project.roles = rolesResult.rows;
 
     const collabsResult = await pool.query(
-      `SELECT pc.user_id AS userId, u.username
+      `SELECT pc.user_id AS userId, u.username, pc.status
        FROM project_collaborators pc
        JOIN users u ON pc.user_id = u.id
        WHERE pc.project_id = $1`,
@@ -241,30 +254,6 @@ projectRoutes.put("/:projectId", authMiddleware, async (req: AuthenticatedReques
     res.status(500).json({ error: "Failed to update project." });
   } finally {
     client.release();
-  }
-});
-
-projectRoutes.get("/:projectId/upvote-status", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-  const { projectId } = req.params;
-  const userId = req.userId;
-  if (!userId) return res.status(403).json({ message: "Unauthorized" });
-
-  try {
-    const result = await pool.query(
-      `SELECT COUNT(*) AS upvotes,
-              EXISTS(SELECT 1 FROM project_upvotes WHERE project_id = $1 AND user_id = $2) AS has_upvoted
-       FROM project_upvotes
-       WHERE project_id = $1`,
-      [projectId, userId]
-    );
-
-    res.status(200).json({
-      upvotes: parseInt(result.rows[0].upvotes, 10),
-      hasUpvoted: result.rows[0].has_upvoted,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch upvote status." });
   }
 });
 

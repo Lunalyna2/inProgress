@@ -6,7 +6,7 @@ import ProjectCommentsModal from "./ProjectCommentsModal";
 import FolderProjectCard from "./FolderProjectCard";
 import "./Dashboard.css";
 
-const API_URL = "http://localhost:5000/api"
+const API_URL = "http://localhost:5000/api";
 
 interface Project {
   id: number;
@@ -47,17 +47,14 @@ const Dashboard: React.FC = () => {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
-
       const res = await fetch(`${API_URL}/projects/picked`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
-
       if (!res.ok) throw new Error("Failed to fetch picked projects");
-
       const data = await res.json();
       setPickedProjects(data);
     } catch (err) {
-      console.error("Error fetching picked projects:", err);
+      console.error(err);
     }
   };
 
@@ -65,17 +62,14 @@ const Dashboard: React.FC = () => {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
-
       const res = await fetch(`${API_URL}/projects/joined`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
-
       if (!res.ok) throw new Error("Failed to fetch joined projects");
-
       const data = await res.json();
       setJoinedProjects(data);
     } catch (err) {
-      console.error("Error fetching joined projects:", err);
+      console.error(err);
     }
   };
 
@@ -89,28 +83,24 @@ const Dashboard: React.FC = () => {
       allProjects.map(async (project) => {
         const token = localStorage.getItem("userToken");
         if (!token) return;
-
         try {
           const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvote-status`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
-
           if (upvoteRes.ok) {
             const upvoteData = await upvoteRes.json();
             upvoteCounts[project.id] = upvoteData.upvotes ?? 0;
             upvoteStatus[project.id] = upvoteData.hasUpvoted ?? false;
           }
-
           const commentRes = await fetch(`${API_URL}/projects/${project.id}/comments`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
-
           if (commentRes.ok) {
             const commentData = await commentRes.json();
             comments[project.id] = commentData.length;
           }
         } catch (err) {
-          console.error(`Error loading metadata for project ${project.id}`, err);
+          console.error(err);
         }
       })
     );
@@ -124,16 +114,11 @@ const Dashboard: React.FC = () => {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
-
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      await fetch(`${API_URL}/projects/${projectId}/upvote`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      await fetch(`${API_URL}/projects/${projectId}/upvote`, { method, headers: { Authorization: `Bearer ${token}` } });
       await loadProjectMeta();
     } catch (err) {
-      console.error("Upvote error:", err);
+      console.error(err);
     }
   };
 
@@ -164,17 +149,11 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <DashNavbar onProfileClick={() => {}} onHomeClick={() => navigate("/dashboard")} />
-
       <div className="dashboard-content">
         <div className="dashboard-header-row">
           <div className="dashboard-actions" style={{ width: "100%", justifyContent: "space-between" }}>
             <div className="dashboard-search">
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               <Search className="search-icon" />
             </div>
             <button className="create-btn" onClick={() => navigate("/create-project")}>
@@ -198,7 +177,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}   // ✅ UPDATED
+                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}
               />
             ))}
           </div>
@@ -217,7 +196,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/projectlist/${p.id}`)}  // ✅ UPDATED
+                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}
               />
             ))}
           </div>
