@@ -12,6 +12,21 @@ import "./ProjectOwnerFolder.css";
 import { useParams, useNavigate } from "react-router-dom";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 
+const departments = [
+  "All Departments",
+  "Senior High School",
+  "College of Arts & Sciences",
+  "College of Business & Accountancy",
+  "College of Computer Studies",
+  "College of Education",
+  "College of Engineering",
+  "College of Hospitality Management",
+  "College of Nursing",
+  "College of Pharmacy",
+  "College of Law",
+  "College of Medicine",
+];
+
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
@@ -115,6 +130,8 @@ const ProjectOwnerFolder: React.FC = () => {
   const [editedTitle, setEditedTitle] = useState(project.title);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(project.description);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState("All Departments");
 
   // Local UI States for Adding Roles/Tasks
   const [taskInput, setTaskInput] = useState("");
@@ -483,7 +500,7 @@ const ProjectOwnerFolder: React.FC = () => {
         },
         body: JSON.stringify({
           label: title,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         }),
       });
 
@@ -725,9 +742,7 @@ const ProjectOwnerFolder: React.FC = () => {
             Created • {new Date(project.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <button className="close-btn"
-          onClick={() => navigate("/dashboard")}
-        >
+        <button className="close-btn" onClick={() => navigate("/dashboard")}>
           ×
         </button>
 
@@ -946,6 +961,16 @@ const ProjectOwnerFolder: React.FC = () => {
                   ></div>
                 </div>
               </div>
+            </div>
+
+            <div className="departments-container">
+              <select className="department-select">
+                {departments.map((dept, index) => (
+                  <option key={index} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <hr />
