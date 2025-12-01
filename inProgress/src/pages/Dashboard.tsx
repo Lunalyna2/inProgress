@@ -73,30 +73,51 @@ const Dashboard: React.FC = () => {
 
   const loadUpvotes = async () => {
     const allProjects = [...pickedProjects, ...joinedProjects];
-    const counts: { [key: number]: number } = {};
-    const statuses: { [key: number]: boolean } = {};
+
+    const counts: Record<number, number> = {};
+    const voted: Record<number, boolean> = {};
 
     await Promise.all(
       allProjects.map(async (project) => {
         try {
           const data = await getUpvotes(project.id);
           counts[project.id] = data.upvotes;
-          statuses[project.id] = data.hasUpvoted;
+          voted[project.id] = data.hasUpvoted;
         } catch {
           counts[project.id] = 0;
-          statuses[project.id] = false;
+          voted[project.id] = false;
         }
       })
     );
 
     setUpvotes(counts);
-    setHasUpvoted(statuses);
+    setHasUpvoted(voted);
   };
-
+  
   useEffect(() => {
-    loadCommentCounts();
-    loadUpvotes();
+    if (pickedProjects.length || joinedProjects.length) {
+      loadCommentCounts();
+      loadUpvotes();
+    }
   }, [pickedProjects, joinedProjects]);
+  
+  const toggleUpvote = async (projectId: number) => {
+    const wasUpvoted = !!hasUpvoted[projectId];
+    const currentCount = upvotes[projectId] ?? 0;
+
+    setUpvotes(prev => ({ ...prev, [projectId]: currentCount + (wasUpvoted ? -1 : 1) }));
+    setHasUpvoted(prev => ({ ...prev, [projectId]: !wasUpvoted }));
+
+    try {
+      const data = wasUpvoted ? await removeUpvote(projectId) : await addUpvote(projectId);
+      setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
+      setHasUpvoted(prev => ({ ...prev, [projectId]: data.hasUpvoted }));
+    } catch (err) {
+      setUpvotes(prev => ({ ...prev, [projectId]: currentCount }));
+      setHasUpvoted(prev => ({ ...prev, [projectId]: wasUpvoted }));
+      console.error("Upvote failed:", err);
+    }
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -114,22 +135,6 @@ const Dashboard: React.FC = () => {
 
   const allProjectsForModal = [...pickedProjects, ...joinedProjects];
   const projectForModal = allProjectsForModal.find(p => p.id === selectedProjectIdForComments);
- 
-  const toggleUpvote = async (projectId: number) => {
-    try {
-      if (hasUpvoted[projectId]) {
-        const data = await removeUpvote(projectId);
-        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
-        setHasUpvoted(prev => ({ ...prev, [projectId]: false }));
-      } else {
-        const data = await addUpvote(projectId);
-        setUpvotes(prev => ({ ...prev, [projectId]: data.upvotes }));
-        setHasUpvoted(prev => ({ ...prev, [projectId]: true }));
-      }
-    } catch (err) {
-      console.error("Upvote action failed:", err);
-    }
-  };
 
   return (
     <div className="dashboard">
@@ -197,7 +202,7 @@ const Dashboard: React.FC = () => {
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => toggleUpvote(id)}
+                onUpvote={() => toggleUpvote(project.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
                 onClick={() => navigate(`/projects/${project.id}`)}
               />
@@ -216,7 +221,7 @@ const Dashboard: React.FC = () => {
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
-                onUpvote={(id) => toggleUpvote(id)}
+                onUpvote={() => toggleUpvote(project.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
                 onClick={() => navigate(`/projects/${project.id}`)}
               />
