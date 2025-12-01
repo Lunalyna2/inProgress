@@ -1,13 +1,10 @@
+// src/create/CreateProjectForm.tsx
 import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
-<<<<<<< HEAD
-// Use environment variable for API base URL
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
-=======
-const API_URL = process.env.REACT_APP_API_URL
->>>>>>> bec8380915b834d6661c11c6cec2533543172313
+// Corrected API base URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 // interfaces
 interface Role {
@@ -108,38 +105,46 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
     setIsSubmitting(true);
 
     const token = localStorage.getItem("userToken");
-    const projectData: ProjectData = { title, description, roles };
+    if (!API_BASE_URL) {
+      setError("API base URL is not defined");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      const createProjectUrl = `${API_URL}/projects/create`;
+      const createProjectUrl = `${API_BASE_URL}/projects/create`;
       const response = await fetch(createProjectUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectData),
+        body: JSON.stringify({ title, description, roles }),
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(
-          errData.error || errData.message || "Project submission failed"
-        );
+        let errMsg = "Project submission failed";
+        try {
+          const errData = await response.json();
+          errMsg = errData.error || errData.message || errMsg;
+        } catch {
+          const text = await response.text();
+          console.error("Server returned:", text);
+        }
+        throw new Error(errMsg);
       }
 
       const result = await response.json();
       const projectId = result.projectId;
 
-      // Update parent with the new project
-      const newProject: ProjectData = { id: projectId, title, description, roles };
+      // Notify parent component
       if (onProjectCreated) {
-        onProjectCreated(newProject);
+        onProjectCreated({ id: projectId, title, description, roles });
       }
 
       resetForm();
 
-      // Redirect to ProjectOwnerFolder page
+      // Navigate to the newly created project folder
       navigate(`/project-owner-folder/${projectId}`);
     } catch (err) {
       console.error(err);

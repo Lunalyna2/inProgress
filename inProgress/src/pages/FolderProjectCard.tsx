@@ -40,15 +40,16 @@ const FolderProjectCard: React.FC<Props> = ({
 
     switch (viewType) {
       case "created":
-        navigate(`/project-owner-folder/${project.id}`);
+        navigate(`/projectownerfolder/${project.id}`);
         break;
       case "dashboard":
         navigate(`/project/${project.id}`);
         break;
       case "joined":
-        navigate(`/joined-collaborator-folder/${project.id}`);
+        navigate(`/joinedprojectsfolder/${project.id}`);
         break;
       default:
+        console.warn("Unknown viewType in FolderProjectCard");
         break;
     }
   };

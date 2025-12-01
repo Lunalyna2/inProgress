@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
@@ -20,7 +19,6 @@ interface Project {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // ------------------- State -------------------
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
@@ -45,15 +43,13 @@ const Dashboard: React.FC = () => {
     "College of Medicine",
   ];
 
-  // ------------------- Helper Functions -------------------
   const fetchPickedProjects = async () => {
     try {
-      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
       const res = await fetch(`${API_BASE_URL}/projects/picked`, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch picked projects");
 
@@ -66,12 +62,11 @@ const Dashboard: React.FC = () => {
 
   const fetchJoinedProjects = async () => {
     try {
-      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
       const res = await fetch(`${API_BASE_URL}/projects/joined`, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch joined projects");
 
@@ -96,7 +91,7 @@ const Dashboard: React.FC = () => {
         try {
           // Upvotes
           const upvoteRes = await fetch(`${API_BASE_URL}/projects/${project.id}/upvote-status`, {
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (upvoteRes.ok) {
             const data = await upvoteRes.json();
@@ -109,7 +104,7 @@ const Dashboard: React.FC = () => {
 
           // Comments
           const commentRes = await fetch(`${API_BASE_URL}/projects/${project.id}/comments`, {
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (commentRes.ok) {
             const data = await commentRes.json();
@@ -136,12 +131,10 @@ const Dashboard: React.FC = () => {
       if (!token) return;
 
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
+      await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
         method,
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!res.ok) throw new Error("Upvote failed");
 
       loadProjectMeta();
     } catch (err) {
@@ -149,19 +142,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // ------------------- Effects -------------------
   useEffect(() => {
     fetchPickedProjects();
     fetchJoinedProjects();
   }, []);
 
   useEffect(() => {
-    if (pickedProjects.length || joinedProjects.length) {
-      loadProjectMeta();
-    }
+    if (pickedProjects.length || joinedProjects.length) loadProjectMeta();
   }, [pickedProjects, joinedProjects]);
 
-  // ------------------- Filtered Projects -------------------
   const filteredPickedProjects = pickedProjects.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -177,10 +166,9 @@ const Dashboard: React.FC = () => {
     ? allProjectsForModal.find((p) => p.id === selectedProjectIdForComments)
     : null;
 
-  // ------------------- Render -------------------
   return (
     <div className="dashboard">
-      <DashNavbar onProfileClick={() => {}} onHomeClick={() => {}} />
+      <DashNavbar onProfileClick={() => {}} onHomeClick={() => navigate("/dashboard")} />
 
       <div className="dashboard-content">
         <div className="dashboard-header-row">
@@ -215,7 +203,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/projects/${p.id}`)}
+                onClick={() => navigate(`/project/${p.id}`)}
               />
             ))}
           </div>
@@ -234,7 +222,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/projects/${p.id}`)}
+                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}
               />
             ))}
           </div>

@@ -4,13 +4,12 @@
   "description": "",
   "main": "index.tsx",
   "type": "module",
-"scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "type-check": "tsc --noEmit",
-  "build:check": "npm run type-check && npm run build"
-},
-
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "type-check": "tsc --noEmit",
+    "build:check": "npm run type-check && npm run build"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
