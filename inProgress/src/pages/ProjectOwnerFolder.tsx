@@ -26,6 +26,7 @@ const departments = [
   "College of Law",
   "College of Medicine",
 ];
+const API_URL = process.env.REACT_APP_API_URL
 
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -92,7 +93,7 @@ interface Message {
   type: "success" | "error";
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
+
 
 const ProjectOwnerFolder: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -159,7 +160,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -179,7 +180,7 @@ const ProjectOwnerFolder: React.FC = () => {
       //tasks
       let fixedTasks: ProjectTask[] = [];
       try {
-        const tasksRes = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+        const tasksRes = await fetch(`${API_URL}/tasks/${projectId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -290,7 +291,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -333,7 +334,7 @@ const ProjectOwnerFolder: React.FC = () => {
   const removeRequiredRole = async (roleId: number) => {
     if (!window.confirm("Are you sure you want to remove this role?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -376,7 +377,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -432,7 +433,7 @@ const ProjectOwnerFolder: React.FC = () => {
     setProject((prev) => ({ ...prev, status: newStatus }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -492,7 +493,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+      const res = await fetch(`${API_URL}/tasks/${projectId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -547,7 +548,7 @@ const ProjectOwnerFolder: React.FC = () => {
     updateField("tasks", updatedTasks);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/toggle`, {
+      const res = await fetch(`${API_URL}/tasks/${taskId}/toggle`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -602,7 +603,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -642,7 +643,7 @@ const ProjectOwnerFolder: React.FC = () => {
     if (!window.confirm("Are you sure you want to remove this collaborator?"))
       return;
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
