@@ -29,13 +29,12 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [FRONTEND_URL, "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app"],
+    origin: [FRONTEND_URL],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
-app.options("/**", cors());
 
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
