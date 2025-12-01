@@ -4,8 +4,6 @@ import DashNavbar from "./DashboardNavbar";
 import FolderProjectCard from "./FolderProjectCard"; 
 import ProjectCommentsModal from "./ProjectCommentsModal";
 
-const API_URL = process.env.REACT_APP_API_URL
-
 interface Project {
   id: number;
   title: string;
@@ -23,7 +21,7 @@ const CreatedProjects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch(`${API_URL}/projects/created`, {
+        const res = await fetch(`${API_BASE_URL}/projects/created`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch projects");
@@ -41,7 +39,7 @@ const CreatedProjects: React.FC = () => {
       const counts: { [key: number]: number } = {};
       for (const p of projects) {
         try {
-          const res = await fetch(`${API_URL}/comments/project/${p.id}`);
+          const res = await fetch(`${API_BASE_URL}/comments/project/${p.id}`);
           if (!res.ok) continue;
           const comments = await res.json();
           counts[p.id] = comments.length;
@@ -57,7 +55,7 @@ const CreatedProjects: React.FC = () => {
   const handleUpvote = async (projectId: number) => {
     if (!hasUpvoted[projectId]) {
       try {
-        const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
+        const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

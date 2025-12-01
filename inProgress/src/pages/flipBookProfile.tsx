@@ -3,8 +3,6 @@ import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
 import "./flipBookProfile.css";
 import DashNavbar from "./DashboardNavbar"; 
 
-const API_URL = process.env.REACT_APP_API_URL
-
 interface PaperProps {
   id: string
   isFlipped: boolean
@@ -122,7 +120,7 @@ const FlipBookProfile: FC = () => {
         return;
       }
 
-      const res = await fetch(`${API_URL}/profile/${userId}`, { 
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, { 
         headers: {
           "Authorization": `Bearer ${token}`,  
           "Content-Type": "application/json",
@@ -199,7 +197,7 @@ const FlipBookProfile: FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/profile/${userId}`, {
+      const res = await fetch(`http://localhost:5000/profile/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

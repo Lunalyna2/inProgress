@@ -4,7 +4,7 @@ import './Login.css';
 import ForgotPasswordModal from './forgotPasswordModal';
 import { useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL; 
+const API_URL = "http://localhost:5000"; 
 
 interface LoginPageProps {
   switchToSignup: () => void;

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL
-
 interface ResetPasswordForm {
   newPassword: string;
   rePassword: string;
@@ -39,7 +37,7 @@ const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/reset-password/${token}`, {
+      const response = await fetch(`http://localhost:5000/api/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword: form.newPassword, rePassword: form.rePassword })

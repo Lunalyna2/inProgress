@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react"
 import "./JoinedProjectFolder.css";
 import FolderBackground from "../layouts/FolderBackground";
 
-const API_URL = process.env.REACT_APP_API_URL
+
 
 interface Role {
   id: number
@@ -58,11 +58,13 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>("all")
   const [isCollaborator, setIsCollaborator] = useState<boolean>(false)
 
+  //  API BASE 
+  const API_BASE = "/api/collaborators"
 
   //  Fetch Project 
   const fetchProject = async () => {
     try {
-      const res = await fetch(`${API_URL}/projects/${projectId}/joined-view`)
+      const res = await fetch(`/api/projects/${projectId}/joined-view`)
       const data = await res.json()
       setProject({ ...data.project, id: projectId, isCollaborator: data.isCollaborator })
       setTasks(data.tasks)
@@ -80,7 +82,7 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   const applyJoin = async () => {
     if (!selectedRole) return
     try {
-      await fetch(`${API_URL}/${projectId}/apply`, {
+      await fetch(`${API_BASE}/${projectId}/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole }),
@@ -97,7 +99,7 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   //  Cancel Application 
   const cancelJoin = async () => {
     try {
-      await fetch(`${API_URL}/${projectId}/cancel`, {
+      await fetch(`${API_BASE}/${projectId}/cancel`, {
         method: "DELETE",
       })
       setIsCollaborator(false)
@@ -110,7 +112,7 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   // Claim Task 
   const claimTask = async (taskId: number) => {
     try {
-      await fetch(`${API_URL}/tasks/${taskId}/claim`, { method: "POST" })
+      await fetch(`${API_BASE}/tasks/${taskId}/claim`, { method: "POST" })
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, assignedTo: currentUser.name, status: "assigned" } : t))
       )
@@ -122,7 +124,7 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   //  Update Task Status 
   const updateTaskStatus = async (taskId: number, status: TaskStatus) => {
     try {
-      await fetch(`${API_URL}/tasks/${taskId}/status`, {
+      await fetch(`${API_BASE}/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

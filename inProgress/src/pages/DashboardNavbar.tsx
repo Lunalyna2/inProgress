@@ -2,8 +2,6 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import './DashboardNavbar.css';
 
-const API_URL = process.env.REACT_APP_API_URL
-
 interface NavbarProps {
   onProfileClick?: () => void;
   onHomeClick?: () => void;
@@ -21,7 +19,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
   const userId = localStorage.getItem("userId");
   if (userId) {
     try {
-      await fetch(`${API_URL}/logout`, {
+      await fetch("http://localhost:5000/api/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
