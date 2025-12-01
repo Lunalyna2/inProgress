@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.tsx",
   "scripts": {
-    "dev": "nodemon --watch \"./**/*.ts\" --exec \"ts-node\" src/server.ts"
+    "dev": "nodemon --watch \"./**/*.ts\" --exec \"ts-node\" src/server.ts",
+    "start": "node server.ts"
   },
   "keywords": [],
   "author": "",
