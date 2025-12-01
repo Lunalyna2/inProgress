@@ -7,7 +7,7 @@ import ProjectCommentsModal from "./ProjectCommentsModal";
 import FolderProjectCard from "./FolderProjectCard";
 import "./Dashboard.css";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_URL = "http://localhost:5000/api"
 
 interface Project {
   id: number;
@@ -48,11 +48,11 @@ const Dashboard: React.FC = () => {
   // ------------------- Helper Functions -------------------
   const fetchPickedProjects = async () => {
     try {
-      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
+      if (!API_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}/projects/picked`, {
+      const res = await fetch(`${API_URL}/projects/picked`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Failed to fetch picked projects");
@@ -66,11 +66,11 @@ const Dashboard: React.FC = () => {
 
   const fetchJoinedProjects = async () => {
     try {
-      if (!API_BASE_URL) throw new Error("API_BASE_URL not defined");
+      if (!API_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}/projects/joined`, {
+      const res = await fetch(`${API_URL}/projects/joined`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Failed to fetch joined projects");
@@ -95,7 +95,7 @@ const Dashboard: React.FC = () => {
 
         try {
           // Upvotes
-          const upvoteRes = await fetch(`${API_BASE_URL}/projects/${project.id}/upvote-status`, {
+          const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvote-status`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
           if (upvoteRes.ok) {
@@ -108,7 +108,7 @@ const Dashboard: React.FC = () => {
           }
 
           // Comments
-          const commentRes = await fetch(`${API_BASE_URL}/projects/${project.id}/comments`, {
+          const commentRes = await fetch(`${API_URL}/projects/${project.id}/comments`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
           if (commentRes.ok) {
@@ -136,7 +136,7 @@ const Dashboard: React.FC = () => {
       if (!token) return;
 
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      const res = await fetch(`${API_BASE_URL}/projects/${projectId}/upvote`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
         method,
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });

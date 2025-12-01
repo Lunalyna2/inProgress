@@ -4,7 +4,7 @@ import './Login.css';
 import ForgotPasswordModal from './forgotPasswordModal';
 import { useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL; 
+const API_URL = "http://localhost:5000/api"
 
 interface LoginPageProps {
   switchToSignup: () => void;
@@ -64,7 +64,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
