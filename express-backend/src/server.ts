@@ -28,10 +28,12 @@ app.use(express.json());
 
 
 const allowedOrigins = [
-  "http://localhost:3000",   
-  "http://localhost:3001",   
+  "http://localhost:3000",
+  "http://localhost:3001",
   "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app",
+  "https://your-render-backend-url.onrender.com"
 ];
+
 
 app.use(
   cors({
