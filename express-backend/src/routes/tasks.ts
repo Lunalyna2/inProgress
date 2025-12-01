@@ -10,7 +10,7 @@ router.get("/:projectId", async (req: AuthenticatedRequest, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, label, done, created_at, due_date, status
+      `SELECT id, label, done, created_at, status
        FROM project_tasks
        WHERE project_id = $1
        ORDER BY id ASC`,
@@ -23,7 +23,6 @@ router.get("/:projectId", async (req: AuthenticatedRequest, res) => {
       done: t.done,
       status: t.status,
       createdAt: t.created_at,
-      dueDate: t.due_date
     }));
 
     res.json(tasks);
@@ -37,16 +36,16 @@ router.get("/:projectId", async (req: AuthenticatedRequest, res) => {
 // add new task
 router.post("/:projectId", async (req: AuthenticatedRequest, res) => {
   const { projectId } = req.params;
-  const { label, dueDate } = req.body;
+  const { label } = req.body;
 
  
 
   try {
     const result = await pool.query(
-      `INSERT INTO project_tasks (project_id, label, done, status, due_date)
-       VALUES ($1, $2, false, 'to-do', $3)
-       RETURNING id, label, done, created_at, due_date`,
-      [projectId, label, dueDate]
+      `INSERT INTO project_tasks (project_id, label, done, status)
+       VALUES ($1, $2, false, 'to-do')
+       RETURNING id, label, done, created_at`,
+      [projectId, label]
     );
 
     const t = result.rows[0];
@@ -57,7 +56,6 @@ router.post("/:projectId", async (req: AuthenticatedRequest, res) => {
       done: t.done,
       status: t.status,
       createdAt: t.created_at,
-      dueDate: t.due_date
     });
   } catch (err) {
     console.error("ADD task error:", err);

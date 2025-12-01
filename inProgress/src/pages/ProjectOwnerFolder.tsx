@@ -50,7 +50,6 @@ interface ProjectTask {
   id: number;
   status: TaskStatus;
   assignedTo: string | null;
-  dueDate: string;
   createdAt: string;
   done: boolean;
   label: string;
@@ -121,7 +120,6 @@ const ProjectOwnerFolder: React.FC = () => {
   const [taskInput, setTaskInput] = useState("");
   const [roleInput, setRoleInput] = useState("");
   const [roleCountInput, setRoleCountInput] = useState(1);
-  const [taskDueDate, setTaskDueDate] = useState<string>("");
 
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>(
@@ -181,7 +179,6 @@ const ProjectOwnerFolder: React.FC = () => {
             label: t.label,
             priority: "medium",
             assignedTo: null,
-            dueDate: t.due_date || new Date().toISOString(),
             createdAt: t.createdAt || new Date().toISOString(),
           }));
         } else {
@@ -468,7 +465,7 @@ const ProjectOwnerFolder: React.FC = () => {
   };
 
   // Add Task
-  const addTask = async (value: string, dueDate: string) => {
+  const addTask = async (value: string) => {
     const title = value.trim();
 
     // Client-side validation
@@ -486,14 +483,12 @@ const ProjectOwnerFolder: React.FC = () => {
         },
         body: JSON.stringify({
           label: title,
-          createdAt: new Date().toISOString(),
-          due_date: dueDate,
+          createdAt: new Date().toISOString()
         }),
       });
 
       if (res.ok) {
         setTaskInput("");
-        setTaskDueDate("");
         setMessage({ text: "Task added successfully!", type: "success" });
         fetchProjectData();
       } else {
@@ -730,7 +725,9 @@ const ProjectOwnerFolder: React.FC = () => {
             Created • {new Date(project.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <button className="close-btn" onClick={() => navigate("/dashboard")}>
+        <button className="close-btn"
+          onClick={() => navigate("/dashboard")}
+        >
           ×
         </button>
 
@@ -823,11 +820,7 @@ const ProjectOwnerFolder: React.FC = () => {
                   const taskInput = form.elements.namedItem(
                     "taskTitle"
                   ) as HTMLInputElement;
-                  const dueDateInput = form.elements.namedItem(
-                    "taskDueDate"
-                  ) as HTMLInputElement;
-                  if (!taskInput.value) return;
-                  addTask(taskInput.value, dueDateInput.value);
+                  addTask(taskInput.value);
                   form.reset();
                 }}
               >
@@ -836,14 +829,6 @@ const ProjectOwnerFolder: React.FC = () => {
                   name="taskTitle"
                   placeholder="Task title"
                   className="task-input"
-                />
-                <input
-                  type="date"
-                  name="taskDueDate"
-                  className="task-due-date-input"
-                  value={taskDueDate}
-                  onChange={(e) => setTaskDueDate(e.target.value)}
-                  required
                 />
                 <button type="submit" className="add-task-btn">
                   Add Task
@@ -908,12 +893,6 @@ const ProjectOwnerFolder: React.FC = () => {
                           {task.createdAt
                             ? new Date(task.createdAt).toLocaleDateString()
                             : "N/A"}{" "}
-                          {task.dueDate && (
-                            <>
-                              | Due Date •{" "}
-                              {new Date(task.dueDate).toLocaleDateString()}
-                            </>
-                          )}
                         </span>
                       </div>
                     </div>
