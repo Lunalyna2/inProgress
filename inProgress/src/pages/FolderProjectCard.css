@@ -1,141 +1,96 @@
 .folder-card {
   position: relative;
-  margin: 100px;
-  width: 300px;
-  height: 200px;
+  width: 220px;
+  height: 120px;
   cursor: pointer;
   user-select: none;
-  transform-style: flat; 
-  transform: translateY(0);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); 
-  border-radius: 6px;
-  overflow: hidden;
-  transition: all 0.3s ease-out; 
+  margin: 20px auto 12px auto;
+  transform-style: preserve-3d;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease-out;
 }
 
 .folder-card:hover {
-  transform: translateY(-5px) rotateZ(0.5deg);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25); 
+  transform: translateY(-5px);
 }
 
-.folder-tab {
+.folder-flap {
   position: absolute;
-  top: 0;
+  top: -12px;
   left: 0;
-  width: 100%;
-  height: 8px;
-  background: #a3816a;
+  width: 140px;
+  height: 20px;
+  background: rgb(123, 41, 211);
   border-radius: 6px 6px 0 0;
-  z-index: 2; 
+  transition: transform 0.25s ease-out;
 }
 
-.folder-card::before {
-  content: "";
-  position: absolute;
+.folder-card:hover .folder-flap {
+  transform: translateY(-2px);
+}
+
+.folder-box {
   width: 100%;
   height: 100%;
-  background: #0b0a76;
-  border-radius: 6px; 
-  top: 0; 
-  left: 0;
-  z-index: 1; 
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1); 
-  transition: transform 0.3s ease-out; 
-}
-
-.folder-card:hover::before {
-  transform: translateY(10px);
-}
-
-.folder-front {
-  position: absolute;
-  width: 96%;
-  height: 96%; 
-  background: #f4f0ec;
-  border-radius: 8px 8px 4px 4px; 
-  top: 2%;
-  left: 2%; 
-  z-index: 3; 
-  transform-origin: top; 
-  transform: rotateX(0deg); 
-  transition: transform 0.3s ease-out;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.folder-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 10px 10px 10px 20px; 
-  z-index: 4; 
-  overflow: hidden;
+  background:  rgb(123, 41, 211);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
-  transition: transform 0.3s ease-out; 
+  justify-content: space-between;
 }
 
-.folder-card:hover .folder-content {
-  transform: translateY(-2px); 
-}
-
-.folder-content h2 {
-  font-size: 20px;
+.folder-title {
+  color: rgb(255, 255, 255);
+  font-size: 16px;
   font-weight: 600;
-  color: black;
-  margin: 0;
-  padding-top: 5px; 
-  width: 100%;
-  white-space: normal;
+  line-height: 1.2;
   word-break: break-word;
-  line-height: 1.3;
-  max-height: 52px;
+  max-height: 36px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.3s ease;
 }
 
-.folder-content p,
-.folder-label,
-.folder-description-flap {
-  display: none;
-}
-
-.folder-actions {
+.folder-actions-wrapper {
   display: flex;
-  align-items: center;
-  gap: 15px;
+  gap: 10px;
+  justify-content: flex-start;
   margin-top: auto;
-  padding-top: 10px;
-  overflow: hidden;
-  flex-wrap: nowrap;
 }
 
 .folder-upvote,
 .folder-comments {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
   cursor: pointer;
-  color: #000000;
-  transition: color 0.2s ease, transform 0.2s ease;
+  font-size: 13px;
+  color: white;
+  background: transparent;
+  transition: all 0.2s ease;
 }
 
 .folder-upvote:hover,
 .folder-comments:hover {
-  color: #a3816a;
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  color: white;
 }
 
 .folder-upvote svg,
 .folder-comments svg {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
+  color: white;
+  fill: white;
 }
 
 .folder-upvote svg.upvoted {
-  color: #800f78;
-  fill: #9429b8;
+  color: #7c3aed;
+  fill: #7c3aed;
 }

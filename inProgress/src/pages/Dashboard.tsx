@@ -51,19 +51,9 @@ const Dashboard: React.FC = () => {
 
   const filters = ["All", "Recent", "Popular", "Trending"];
 
-  const [pickedProjects] = useState<Project[]>([
-    { id: 1, title: "Build a Social Media App", course: "Mobile Development", description: "An app that allows users to connect and share content." },
-    { id: 2, title: "E-commerce Website", course: "Web Development", description: "An online platform for buying and selling products." },
-    { id: 3, title: "Data Visualization Dashboard", course: "Data Science", description: "Interactive dashboard to visualize complex datasets." },
-    { id: 4, title: "Portfolio Website", course: "Design", description: "A personal website to showcase projects and skills." },
-  ]);
-
-  const [joinedProjects] = useState<JoinedProject[]>([
-    { id: 101, title: "Website Redesign", course: "Web Development", progress: 65 },
-    { id: 102, title: "Mobile App", course: "Mobile Development", progress: 30 },
-    { id: 103, title: "Marketing Dashboard", course: "Data Science", progress: 85 },
-    { id: 104, title: "UI Design System", course: "Design", progress: 50 },
-  ]);
+  // Replace these with API data later
+  const [pickedProjects, setPickedProjects] = useState<Project[]>([]);
+  const [joinedProjects, setJoinedProjects] = useState<JoinedProject[]>([]);
 
   const loadCommentCounts = async () => {
     const allProjects = [...pickedProjects, ...joinedProjects];
@@ -83,7 +73,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadCommentCounts();
-  }, []);
+  }, [pickedProjects, joinedProjects]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -163,7 +153,8 @@ const Dashboard: React.FC = () => {
             {filteredPickedProjects.map(project => (
               <FolderProjectCard
                 key={project.id}
-                project={project}
+                project={{ id: project.id, title: project.title }}
+                viewType="dashboard" // picked projects are dashboard type
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
@@ -174,6 +165,7 @@ const Dashboard: React.FC = () => {
                   }
                 }}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
+                onClick={() => navigate(`/projects/${project.id}`)}
               />
             ))}
           </div>
@@ -185,7 +177,8 @@ const Dashboard: React.FC = () => {
             {filteredJoinedProjects.map(project => (
               <FolderProjectCard
                 key={project.id}
-                project={{ ...project, description: project.description || "No description available." }}
+                project={{ id: project.id, title: project.title }}
+                viewType="joined" // joined projects are joined type
                 upvotes={upvotes[project.id] || 0}
                 hasUpvoted={!!hasUpvoted[project.id]}
                 commentCount={commentCounts[project.id] || 0}
@@ -196,6 +189,7 @@ const Dashboard: React.FC = () => {
                   }
                 }}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
+                onClick={() => navigate(`/projects/${project.id}`)}
               />
             ))}
           </div>

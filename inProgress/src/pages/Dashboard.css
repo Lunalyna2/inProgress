@@ -390,3 +390,25 @@
     transition: color 0.2s;
     z-index: 1100;
 }
+
+.project-grid,
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* adjust card width */
+  gap: 20px; 
+  justify-items: center; 
+  margin-top: 20px;
+}
+
+.picked-projects h2,
+.joined-projects h2,
+.projects-title {
+  margin-bottom: 16px;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.dashboard-main,
+.projects-container {
+  padding: 0 24px 40px 24px;
+}

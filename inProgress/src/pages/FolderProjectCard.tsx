@@ -1,11 +1,12 @@
 import React from "react";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "./FolderProjectCard.css";
 
 interface Project {
   id: number;
   title: string;
-  description?: string; // ← make optional
+  course?: string;
 }
 
 interface Props {
@@ -13,8 +14,10 @@ interface Props {
   upvotes: number;
   hasUpvoted: boolean;
   commentCount: number;
-  onUpvote: (projectId: number) => void;
-  onOpenComments: (projectId: number) => void;
+  onUpvote: (id: number) => void;
+  onOpenComments: (id: number) => void;
+  viewType: "created" | "dashboard" | "joined";
+  onClick?: () => void; // optional onClick
 }
 
 const FolderProjectCard: React.FC<Props> = ({
@@ -23,33 +26,60 @@ const FolderProjectCard: React.FC<Props> = ({
   hasUpvoted,
   commentCount,
   onUpvote,
-  onOpenComments
+  onOpenComments,
+  viewType,
+  onClick,
 }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(); // Use passed onClick if provided
+      return;
+    }
+
+    // fallback navigation logic
+    switch (viewType) {
+      case "created":
+        navigate(`/projectownerfolder/${project.id}`);
+        break;
+      case "dashboard":
+        navigate(`/joinprojectsfolder/${project.id}`);
+        break;
+      case "joined":
+        navigate(`/joinedprojectsfolder/${project.id}`);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <div className="folder-card">
-      <div className="folder-tab"></div>
-      <div className="folder-front"></div>
-
-      <div className="folder-content">
-        <h2>{project.title}</h2>
-        <p>{project.description || "No description available."}</p>
-
-        <div className="folder-actions">
-          <div
-            className="folder-upvote"
-            onClick={() => onUpvote(project.id)}
+    <div className="folder-card" onClick={handleCardClick}>
+      <div className="folder-flap"></div>
+      <div className="folder-box">
+        <div className="folder-title">{project.title}</div>
+        <div className="folder-actions-wrapper">
+          <button
+            className={`folder-upvote ${hasUpvoted ? "upvoted" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpvote(project.id);
+            }}
           >
-            <ArrowBigUp className={hasUpvoted ? "upvoted" : ""} />
+            <ArrowBigUp />
             <span>{upvotes}</span>
-          </div>
-
-          <div
+          </button>
+          <button
             className="folder-comments"
-            onClick={() => onOpenComments(project.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenComments(project.id);
+            }}
           >
             <MessageCircle />
             <span>{commentCount}</span>
-          </div>
+          </button>
         </div>
       </div>
     </div>
