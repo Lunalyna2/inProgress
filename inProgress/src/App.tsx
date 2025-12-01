@@ -16,17 +16,8 @@ import CreateProjectForm from "./create/CreateProjectForm";
 
 import JoinedProjectFolderWrapper from "./pages/JoinedProjectFolderWrapper";
 import ProjectOwnerFolder from "./pages/ProjectOwnerFolder";
-import JoinedProjectFolder from "./pages/JoinedProjectFolder"; // if needed
 
 import ProtectedRoute from "./components/protectedRoutes";
-
-export interface LoginPageProps {
-  switchToSignup: () => void;
-}
-
-export interface SignUpPageProps {
-  switchToLogin: () => void;
-}
 
 const App: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -37,10 +28,8 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Landing page */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Auth screen */}
         <Route
           path="/auth"
           element={
@@ -52,10 +41,8 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Reset Password */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Flipbook */}
         <Route
           path="/flipbook"
           element={
@@ -65,7 +52,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Create Project */}
         <Route
           path="/create-project"
           element={
@@ -75,7 +61,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Created Projects */}
         <Route
           path="/created-projects"
           element={
@@ -85,7 +70,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Create project form */}
         <Route
           path="/create-project-form"
           element={
@@ -95,7 +79,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Project Interface */}
         <Route
           path="/project/:projectId"
           element={
@@ -105,13 +88,8 @@ const App: React.FC = () => {
           }
         />
 
-        {/* ---------------------------------------- */}
-        {/*   FOLDER ROUTES YOUR CARD NAVIGATES TO   */}
-        {/* ---------------------------------------- */}
-
-        {/* Project Owner Folder */}
         <Route
-          path="/projectownerfolder/:id"
+          path="/projectownerfolder/:projectId"
           element={
             <ProtectedRoute>
               <ProjectOwnerFolder />
@@ -119,9 +97,8 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Dashboard → Joining projects */}
         <Route
-          path="/joinprojectsfolder/:id"
+          path="/joinprojectsfolder/:projectId"
           element={
             <ProtectedRoute>
               <AcceptOrDecline projectId={""} />
@@ -129,9 +106,8 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Joined Projects */}
         <Route
-          path="/joinedprojectsfolder/:id"
+          path="/joinedprojectsfolder/:projectId"
           element={
             <ProtectedRoute>
               <JoinedProjectFolderWrapper />
@@ -139,10 +115,8 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Folders Page */}
         <Route path="/folders" element={<FolderPage />} />
 
-        {/* Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -152,7 +126,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

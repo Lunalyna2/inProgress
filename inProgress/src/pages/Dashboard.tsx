@@ -43,16 +43,15 @@ const Dashboard: React.FC = () => {
     "College of Medicine",
   ];
 
-  // Fetch picked projects
   const fetchPickedProjects = async () => {
     try {
-      if (!API_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
       const res = await fetch(`${API_URL}/projects/picked`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
+
       if (!res.ok) throw new Error("Failed to fetch picked projects");
 
       const data = await res.json();
@@ -62,16 +61,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch joined projects
   const fetchJoinedProjects = async () => {
     try {
-      if (!API_URL) throw new Error("API_BASE_URL not defined");
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
       const res = await fetch(`${API_URL}/projects/joined`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
+
       if (!res.ok) throw new Error("Failed to fetch joined projects");
 
       const data = await res.json();
@@ -81,7 +79,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Load upvotes, hasUpvoted, comments safely
   const loadProjectMeta = async () => {
     const allProjects = [...pickedProjects, ...joinedProjects];
     const upvoteCounts: { [key: number]: number } = {};
@@ -94,34 +91,26 @@ const Dashboard: React.FC = () => {
         if (!token) return;
 
         try {
-          // Upvotes
           const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvote-status`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
+
           if (upvoteRes.ok) {
             const upvoteData = await upvoteRes.json();
             upvoteCounts[project.id] = upvoteData.upvotes ?? 0;
             upvoteStatus[project.id] = upvoteData.hasUpvoted ?? false;
-          } else {
-            upvoteCounts[project.id] = 0;
-            upvoteStatus[project.id] = false;
           }
 
-          // Comments
           const commentRes = await fetch(`${API_URL}/projects/${project.id}/comments`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           });
+
           if (commentRes.ok) {
             const commentData = await commentRes.json();
             comments[project.id] = commentData.length;
-          } else {
-            comments[project.id] = 0;
           }
         } catch (err) {
           console.error(`Error loading metadata for project ${project.id}`, err);
-          upvoteCounts[project.id] = 0;
-          upvoteStatus[project.id] = false;
-          comments[project.id] = 0;
         }
       })
     );
@@ -131,19 +120,17 @@ const Dashboard: React.FC = () => {
     setCommentCounts(comments);
   };
 
-  // Toggle upvote
   const toggleUpvote = async (projectId: number) => {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
       const method = hasUpvoted[projectId] ? "DELETE" : "POST";
-      const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
+      await fetch(`${API_URL}/projects/${projectId}/upvote`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Reload metadata
       await loadProjectMeta();
     } catch (err) {
       console.error("Upvote error:", err);
@@ -211,7 +198,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/project/${p.id}`)}
+                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}   // ✅ UPDATED
               />
             ))}
           </div>
@@ -230,7 +217,7 @@ const Dashboard: React.FC = () => {
                 commentCount={commentCounts[p.id] || 0}
                 onUpvote={() => toggleUpvote(p.id)}
                 onOpenComments={(id) => setSelectedProjectIdForComments(id)}
-                onClick={() => navigate(`/joinedprojectsfolder/${p.id}`)}
+                onClick={() => navigate(`/projectlist/${p.id}`)}  // ✅ UPDATED
               />
             ))}
           </div>

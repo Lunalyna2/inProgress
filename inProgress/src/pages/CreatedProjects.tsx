@@ -4,7 +4,7 @@ import DashNavbar from "./DashboardNavbar";
 import FolderProjectCard from "./FolderProjectCard";
 import ProjectCommentsModal from "./ProjectCommentsModal";
 
-const API_URL = "http://localhost:5000/api"
+const API_URL = "http://localhost:5000/api";
 
 interface Project {
   id: number;
@@ -24,7 +24,6 @@ const CreatedProjects: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        if (!API_URL) throw new Error("API_URL not defined");
         const token = localStorage.getItem("userToken");
         if (!token) return;
 
@@ -47,7 +46,6 @@ const CreatedProjects: React.FC = () => {
     fetchProjects();
   }, []);
 
-  // ------------------- Fetch Comments Count -------------------
   useEffect(() => {
     const loadCommentsCount = async () => {
       const token = localStorage.getItem("userToken");
@@ -77,7 +75,6 @@ const CreatedProjects: React.FC = () => {
     if (projects.length > 0) loadCommentsCount();
   }, [projects]);
 
-  // ------------------- Upvote Handler -------------------
   const handleUpvote = async (projectId: number) => {
     try {
       const token = localStorage.getItem("userToken");
@@ -91,7 +88,6 @@ const CreatedProjects: React.FC = () => {
 
       if (!res.ok) throw new Error("Upvote failed");
 
-      // Optimistically update UI
       setUpvotes(prev => ({
         ...prev,
         [projectId]: hasUpvoted[projectId] ? (prev[projectId] || 1) - 1 : (prev[projectId] || 0) + 1,
@@ -105,7 +101,6 @@ const CreatedProjects: React.FC = () => {
     }
   };
 
-  // ------------------- Render -------------------
   return (
     <div className="projects-container created-projects-page">
       <DashNavbar />

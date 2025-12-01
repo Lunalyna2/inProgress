@@ -4,7 +4,6 @@ import "./CreateProjectForm.css";
 
 const API_URL = "http://localhost:5000/api"
 
-// interfaces
 interface Role {
   name: string;
   count: number;
@@ -27,7 +26,6 @@ interface InputProps {
   required?: boolean;
 }
 
-// reusable input component
 const InputField: React.FC<InputProps> = ({
   id,
   label,
@@ -40,21 +38,9 @@ const InputField: React.FC<InputProps> = ({
   <>
     <label htmlFor={id}>{label}</label>
     {rows ? (
-      <textarea
-        id={id}
-        value={value}
-        onChange={onChange}
-        rows={rows}
-        required={required}
-      />
+      <textarea id={id} value={value} onChange={onChange} rows={rows} required={required} />
     ) : (
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-      />
+      <input id={id} type={type} value={value} onChange={onChange} required={required} />
     )}
   </>
 );
@@ -63,9 +49,7 @@ interface CreateProjectFormProps {
   onProjectCreated?: (project: ProjectData) => void;
 }
 
-const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
-  onProjectCreated,
-}) => {
+const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onProjectCreated }) => {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -118,24 +102,18 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(
-          errData.error || errData.message || "Project submission failed"
-        );
+        throw new Error(errData.error || errData.message || "Project submission failed");
       }
 
       const result = await response.json();
       const projectId = result.projectId;
 
-      // Update parent with the new project
       const newProject: ProjectData = { id: projectId, title, description, roles };
-      if (onProjectCreated) {
-        onProjectCreated(newProject);
-      }
+      if (onProjectCreated) onProjectCreated(newProject);
 
       resetForm();
 
-      // Redirect to ProjectOwnerFolder page
-      navigate(`/project-owner-folder/${projectId}`);
+      navigate(`/projectownerfolder/${projectId}`);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unexpected error");
@@ -146,12 +124,8 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
 
   return (
     <form className="create-project-form" onSubmit={handleSubmit}>
-      <InputField
-        id="title"
-        label="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <InputField id="title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+
       <InputField
         id="description"
         label="Description"
@@ -174,12 +148,9 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
           min="1"
           value={roleCountInput}
           onChange={handleCountChange}
-          aria-label="Number of roles needed"
           className="role-count-input"
         />
-        <button type="button" onClick={handleAddRole}>
-          Add Role
-        </button>
+        <button type="button" onClick={handleAddRole}>Add Role</button>
       </div>
 
       {roles.length > 0 && (
@@ -187,9 +158,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
           <h4>Added Roles:</h4>
           <ul>
             {roles.map((role, i) => (
-              <li key={i}>
-                {role.name} (Qty: {role.count})
-              </li>
+              <li key={i}>{role.name} (Qty: {role.count})</li>
             ))}
           </ul>
         </div>
