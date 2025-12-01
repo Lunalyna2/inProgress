@@ -72,21 +72,26 @@ projectRoutes.post("/create", authMiddleware, async (req: AuthenticatedRequest, 
   }
 });
 
-// GET ALL PROJECTS
-projectRoutes.get("/all", authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
-  try {
-    const result = await pool.query(
-      `SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
-       FROM projects p
-       JOIN users u ON p.creator_id = u.id
-       ORDER BY p.created_at DESC`
-    );
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("Error fetching all projects:", error);
-    res.status(500).json({ error: "Failed to fetch projects." });
+// GET ALL PROJECTS (for project cards)
+projectRoutes.get(
+  "/all",
+  authMiddleware,
+  async (_req: AuthenticatedRequest, res: Response) => {
+    try {
+      const projectsQuery = `
+        SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        ORDER BY p.created_at DESC
+      `;
+      const result = await pool.query(projectsQuery);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching all projects:", error);
+      res.status(500).json({ error: "Failed to fetch projects." });
+    }
   }
-});
+);
 
 // GET CREATED PROJECTS
 projectRoutes.get("/created", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -166,22 +171,102 @@ projectRoutes.get("/:projectId", authMiddleware, async (req: AuthenticatedReques
   }
 });
 
-// GET PICKED PROJECTS (TOP 10 BY UPVOTES)
-projectRoutes.get("/picked", authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
-  try {
-    const result = await pool.query(`
-      SELECT p.id, p.title, p.description, p.status, u.username AS creator_username
-      FROM projects p
-      JOIN users u ON p.creator_id = u.id
-      ORDER BY p.upvote_count DESC
-      LIMIT 10
-    `);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("Error fetching picked projects:", error);
-    res.status(500).json({ error: "Failed to fetch picked projects." });
+// UPDATE PROJECT
+projectRoutes.put(
+  "/:projectId",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { projectId } = req.params;
+    const userId = req.userId;
+    const {
+      title,
+      description,
+      college,
+      newRoles,
+      removedRoleIds,
+      updatedRoles,
+      collaboratorsToAdd,
+      collaboratorsToRemove,
+      status,
+    } = req.body as UpdateProjectRequestBody;
+
+    if (!userId) return res.status(403).json({ message: "Authorization failed." });
+
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // Check if user is creator
+      const checkCreator = await client.query(
+        "SELECT creator_id FROM projects WHERE id = $1",
+        [projectId]
+      );
+      if (checkCreator.rows.length === 0 || checkCreator.rows[0].creator_id !== userId) {
+        await client.query("ROLLBACK");
+        return res.status(403).json({ message: "Not authorized." });
+      }
+
+      // Update project
+      await client.query(
+        `UPDATE projects
+         SET title=$1, description=$2, college=$3, status=$4, updated_at=CURRENT_TIMESTAMP
+         WHERE id=$5`,
+        [title, description, college, status, projectId]
+      );
+
+      // Remove collaborators
+      if (collaboratorsToRemove && collaboratorsToRemove.length > 0) {
+        const userPlaceholders = collaboratorsToRemove.map((_, i) => `$${i + 2}`).join(",");
+        const deleteQuery = `DELETE FROM project_collaborators WHERE project_id=$1 AND user_id IN (${userPlaceholders})`;
+        await client.query(deleteQuery, [parseInt(projectId), ...collaboratorsToRemove]);
+      }
+
+      // Remove roles
+      if (removedRoleIds && removedRoleIds.length > 0) {
+        const placeholders = removedRoleIds.map((_, i) => `$${i + 1}`).join(",");
+        await client.query(
+          `DELETE FROM project_roles WHERE id IN (${placeholders}) AND project_id=$${removedRoleIds.length + 1}`,
+          [...removedRoleIds, parseInt(projectId)]
+        );
+      }
+
+      // Update roles
+      if (updatedRoles && updatedRoles.length > 0) {
+        const updatePromises = updatedRoles.map((role) =>
+          client.query(
+            `UPDATE project_roles SET role_name=$1, count=$2 WHERE id=$3 AND project_id=$4`,
+            [role.name, role.count, role.id, projectId]
+          )
+        );
+        await Promise.all(updatePromises);
+      }
+
+      // Add new roles
+      if (newRoles && newRoles.length > 0) {
+        const validRoles = newRoles.filter(r => r.name && r.name.trim() !== "");
+        if (validRoles.length > 0) {
+          const values = validRoles.map((_, i) => `($${i*3+1}, $${i*3+2}, $${i*3+3})`).join(",");
+          const params: (string | number)[] = [];
+          validRoles.forEach(r => params.push(parseInt(projectId), r.name.trim(), r.count));
+          await client.query(
+            `INSERT INTO project_roles(project_id, role_name, count) VALUES ${values}`,
+            params
+          );
+        }
+      }
+
+      await client.query("COMMIT");
+      res.status(200).json({ message: "Project updated successfully" });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error("Error updating project:", error);
+      res.status(500).json({ error: "Failed to update project." });
+    } finally {
+      client.release();
+    }
   }
-});
+);
 
 // GET UPVOTE STATUS
 projectRoutes.get("/:projectId/upvote-status", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {

@@ -3,8 +3,12 @@ import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
+<<<<<<< HEAD
 // Corrected API base URL
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+=======
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+>>>>>>> 7b7f3acff43ed4a5b953f783d35b93c7d8dc4d2e
 
 // interfaces
 interface Role {

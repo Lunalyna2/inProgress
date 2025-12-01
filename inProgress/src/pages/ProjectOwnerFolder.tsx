@@ -147,8 +147,7 @@ const ProjectOwnerFolder: React.FC = () => {
   // Local state for editable progress (synced with task data)
   const [editableProgress, setEditableProgress] = useState<number>(0);
 
-  // --- FETCH HANDLERS ---
-
+  // Fetch Project Data
   const fetchProjectData = useCallback(async () => {
     if (!projectId || !token || !userId) {
       setMessage({
@@ -588,56 +587,6 @@ const ProjectOwnerFolder: React.FC = () => {
     await toggleTask(taskId, newStatus);
   };
 
-  // Add collaborator
-  const addCollaborator = async () => {
-    const username = prompt("Collaborator username or ID:");
-    if (!username) return;
-
-    // For now, we'll prompt for the ID.
-    const userIdToAdd = parseInt(
-      prompt(`Enter User ID for ${username}`) || "0"
-    );
-    if (!userIdToAdd || isNaN(userIdToAdd)) {
-      setMessage({ text: "Invalid User ID provided.", type: "error" });
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_URL}/projects/${projectId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: editedTitle,
-          description: descriptionValue,
-          college: project.college,
-          status: project.status,
-          newRoles: [],
-          removedRoleIds: [],
-          collaboratorsToAdd: [userIdToAdd],
-          collaboratorsToRemove: [],
-        }),
-      });
-      if (res.ok) {
-        setMessage({
-          text: `User ${userIdToAdd} added as collaborator!`,
-          type: "success",
-        });
-        fetchProjectData();
-      } else {
-        const errData = await res.json();
-        setMessage({
-          text: errData.message || "Failed to add collaborator.",
-          type: "error",
-        });
-      }
-    } catch (error) {
-      setMessage({ text: "Network error adding collaborator.", type: "error" });
-    }
-  };
-
   // Remove Collaborator
   const removeCollaborator = async (userIdToRemove: number) => {
     if (!window.confirm("Are you sure you want to remove this collaborator?"))
@@ -1019,12 +968,6 @@ const ProjectOwnerFolder: React.FC = () => {
             <div className="content-card">
               <div className="card-title-row">
                 <h2 className="card-title">Team </h2>
-                <button
-                  className="add-collaborator-btn"
-                  onClick={addCollaborator}
-                >
-                  + Collaborator
-                </button>
               </div>
 
               {project.collaborators.filter((c) => c && c.userId).length ===
