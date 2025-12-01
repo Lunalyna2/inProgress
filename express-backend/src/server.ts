@@ -27,15 +27,29 @@ const app = express();
 app.use(express.json());
 
 
+const allowedOrigins = [
+  "http://localhost:3000",   
+  "http://localhost:3001",   
+  "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [FRONTEND_URL, "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app"],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("CORS BLOCKED origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
-app.options("/**", cors());
 
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
@@ -44,7 +58,6 @@ app.use("/api/projects", projectRoutes);
 app.use("/api", authForgotRoutes);
 app.use("/api/tasks", authMiddleware, tasksRoutes);
 
-// ------------- validation helpers (unchanged) -------------
 interface SignUpFormData {
   fullName: string;
   username: string;
@@ -71,7 +84,6 @@ const validateSignUpData = (data: SignUpFormData): ValidationResult => {
   }
   return { isValid: Object.keys(errors).length === 0, errors };
 };
-// ----------------------------------------------------------
 
 app.post("/api/signup", async (req, res) => {
   try {
