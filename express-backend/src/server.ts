@@ -82,6 +82,14 @@ app.post("/api/signup", async (req, res) => {
       return res.status(400).json({ message: "Validation failed.", errors });
     }
 
+    const loggedInCheck = await pool.query(
+      "SELECT id FROM users WHERE logged_in = TRUE"
+      );
+      
+      if (loggedInCheck.rows.length > 0) {
+        return res.status(403).json({message: "Another user is currently logged in. Signup not allowed at this moment."});
+      }
+
     const { fullName, cpuEmail, username, password } = data;
     
     const passwordError = validatePassword(password);
@@ -140,13 +148,20 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   try {
     const { identifier, password } = req.body;
-    
+
     if (!identifier?.trim() || !password?.trim()) {
       return res.status(400).json({ message: "Username/email and password required" });
     }
+    const activeUser = await pool.query(
+      `SELECT id, username FROM users WHERE logged_in = TRUE`
+    );
+
+    if (activeUser.rows.length > 0) {
+      return res.status(403).json({ message: "Another user is currently logged in. Please wait until they log out." });
+    }
 
     const userResult = await pool.query(
-      `SELECT id, username, email, fullname, password 
+      `SELECT id, username, email, fullname, password
        FROM users 
        WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1)`,
       [identifier.trim()]
@@ -163,11 +178,7 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-       if (user.logged_in === true) {
-      return res.status(403).json({
-        message: "This account is already logged in on another device.",
-      });
-    }
+    await pool.query("UPDATE users SET logged_in = TRUE WHERE id = $1", [user.id]);
 
     const token = jwt.sign(
       { id: user.id, username: user.username, email: user.email },
@@ -176,7 +187,7 @@ app.post("/api/login", async (req, res) => {
     );
 
     console.log("✅ Login SUCCESS:", user.username);
-    
+
     res.status(200).json({
       message: "Login successful!",
       token,
