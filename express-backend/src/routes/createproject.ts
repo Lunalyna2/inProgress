@@ -113,7 +113,7 @@ projectRoutes.post(
   }
 );
 
-// GET ALL PROJECTS (for frontend cards)
+// GET ALL PROJECTS (for project cards)
 projectRoutes.get(
   "/all",
   authMiddleware,
@@ -279,13 +279,6 @@ projectRoutes.put(
         const userPlaceholders = collaboratorsToRemove.map((_, i) => `$${i + 2}`).join(",");
         const deleteQuery = `DELETE FROM project_collaborators WHERE project_id=$1 AND user_id IN (${userPlaceholders})`;
         await client.query(deleteQuery, [parseInt(projectId), ...collaboratorsToRemove]);
-      }
-
-      // Add new collaborators
-      if (collaboratorsToAdd && collaboratorsToAdd.length > 0) {
-        const values = collaboratorsToAdd.map((_, i) => `($1, $${i + 2})`).join(",");
-        const insertQuery = `INSERT INTO project_collaborators(project_id, user_id) VALUES ${values} ON CONFLICT DO NOTHING`;
-        await client.query(insertQuery, [parseInt(projectId), ...collaboratorsToAdd]);
       }
 
       // Remove roles
