@@ -4,61 +4,98 @@ import { AuthenticatedRequest } from "../server";
 
 const router = Router();
 
-interface Task {
-  id?: number;
-  title: string;
-  status?: "pending" | "in-progress" | "done";
-  assignedTo?: string;
-  dueDate?: string;
-  priority?: "low" | "medium" | "high";
-}
-
-router.put("/:projectId", async (req: AuthenticatedRequest, res) => {
+// get all tasks for a project
+router.get("/:projectId", async (req: AuthenticatedRequest, res) => {
   const { projectId } = req.params;
-  const { task } = req.body as { task: Task };
-
-  if (!task || !task.title) {
-    return res.status(400).json({ message: "Task title is required" });
-  }
 
   try {
-    const result = await pool.query(`SELECT tasks FROM projects WHERE id = $1`, [projectId]);
-    if (result.rows.length === 0) return res.status(404).json({ message: "Project not found" });
-
-    const tasks: Task[] = result.rows[0].tasks || [];
-
-    if (task.id) {
-      const index = tasks.findIndex((t) => t.id === task.id);
-      if (index === -1) return res.status(404).json({ message: "Task not found" });
-      tasks[index] = { ...tasks[index], ...task };
-    } else {
-      task.id = Date.now(); 
-      tasks.push(task);
-    }
-
-    await pool.query(
-      `UPDATE projects SET tasks = $1, updated_at = NOW() WHERE id = $2`,
-      [JSON.stringify(tasks), projectId]
+    const result = await pool.query(
+      `SELECT id, label, done, created_at, due_date, status
+       FROM project_tasks
+       WHERE project_id = $1
+       ORDER BY id ASC`,
+      [projectId]
     );
 
-    res.json({ message: "Tasks updated", tasks });
-  } catch (err: any) {
-    console.error("❌ Failed to update tasks:", err.message);
-    res.status(500).json({ message: "Failed to update tasks" });
+    const tasks = result.rows.map((t) => ({
+      id: t.id,
+      label: t.label,
+      done: t.done,
+      status: t.status,
+      createdAt: t.created_at,
+      dueDate: t.due_date
+    }));
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("GET tasks error:", err);
+    res.status(500).json({ message: "Failed to fetch tasks." });
   }
 });
 
-router.get("/:projectId", async (req, res) => {
-  const { projectId } = req.params;
-  try {
-    const result = await pool.query(`SELECT tasks FROM projects WHERE id = $1`, [projectId]);
-    if (result.rows.length === 0) return res.status(404).json({ message: "Project not found" });
 
-    const tasks: Task[] = result.rows[0].tasks || [];
-    res.json(tasks);
-  } catch (err: any) {
-    console.error("❌ Failed to fetch tasks:", err.message);
-    res.status(500).json({ message: "Failed to fetch tasks" });
+// add new task
+router.post("/:projectId", async (req: AuthenticatedRequest, res) => {
+  const { projectId } = req.params;
+  const { label, dueDate } = req.body;
+
+ 
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO project_tasks (project_id, label, done, status, due_date)
+       VALUES ($1, $2, false, 'to-do', $3)
+       RETURNING id, label, done, created_at, due_date`,
+      [projectId, label, dueDate]
+    );
+
+    const t = result.rows[0];
+
+    res.json({
+      id: t.id,
+      label: t.label,
+      done: t.done,
+      status: t.status,
+      createdAt: t.created_at,
+      dueDate: t.due_date
+    });
+  } catch (err) {
+    console.error("ADD task error:", err);
+    res.status(500).json({ message: "Failed to add task." });
+  }
+});
+
+
+// toggle task done status
+router.put("/:taskId/toggle", async (req: AuthenticatedRequest, res) => {
+  const { taskId } = req.params;
+  const { newStatus } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE project_tasks
+       SET status = $1
+       WHERE id = $2
+       RETURNING id, label, status, created_at`,
+      [newStatus, taskId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+
+    const t = result.rows[0];
+
+    res.json({
+      id: t.id,
+      label: t.label,
+      done: t.done,
+      status: t.status,
+      createdAt: t.created_at
+    });
+  } catch (err) {
+    console.error("TOGGLE task error:", err);
+    res.status(500).json({ message: "Failed to update task." });
   }
 });
 

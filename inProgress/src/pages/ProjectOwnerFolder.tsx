@@ -45,15 +45,13 @@ interface Collaborator {
 }
 
 type TaskStatus = "completed" | "in-progress" | "to-do";
-type TaskPriority = "high" | "medium" | "low";
 
 interface ProjectTask {
   id: number;
-  title: string;
   status: TaskStatus;
   assignedTo: string | null;
   dueDate: string;
-  priority: TaskPriority;
+  createdAt: string;
   done: boolean;
   label: string;
 }
@@ -123,6 +121,7 @@ const ProjectOwnerFolder: React.FC = () => {
   const [taskInput, setTaskInput] = useState("");
   const [roleInput, setRoleInput] = useState("");
   const [roleCountInput, setRoleCountInput] = useState(1);
+  const [taskDueDate, setTaskDueDate] = useState<string>("");
 
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>(
@@ -162,6 +161,36 @@ const ProjectOwnerFolder: React.FC = () => {
         return;
       }
 
+      //tasks
+      let fixedTasks: ProjectTask[] = [];
+      try {
+        const tasksRes = await fetch(`${API_BASE_URL}/tasks/${projectId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (tasksRes.ok) {
+          const tasksData = await tasksRes.json();
+          fixedTasks = tasksData.map((t: any) => ({
+            id: t.id,
+            title: t.label,
+            status: t.status as TaskStatus,
+            done: t.done,
+            label: t.label,
+            priority: "medium",
+            assignedTo: null,
+            dueDate: t.due_date || new Date().toISOString(),
+            createdAt: t.createdAt || new Date().toISOString(),
+          }));
+        } else {
+          console.error("Failed to fetch tasks:", await tasksRes.text());
+        }
+      } catch (taskErr) {
+        console.error("Error fetching tasks:", taskErr);
+      }
+
       // Map API roles to ProjectRole interface for display
       const fetchedRoles: ProjectRole[] = (data.roles || []).map((r: any) => ({
         id: r.id,
@@ -177,7 +206,7 @@ const ProjectOwnerFolder: React.FC = () => {
         college: data.college || "",
         collaborators: data.collaborators || [],
         status: data.status || "ongoing",
-        tasks: data.tasks || [],
+        tasks: fixedTasks,
         createdBy: data.createdBy || "",
         createdAt: data.createdAt || new Date().toISOString(),
         rolesNeeded: fetchedRoles,
@@ -322,7 +351,7 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  // --- MAIN PROJECT SAVE HANDLER (Called by 'Save Project Details') ---
+  // main project save handler
   const saveProject = useCallback(async () => {
     if (!projectId || !token) {
       setMessage({
@@ -343,7 +372,7 @@ const ProjectOwnerFolder: React.FC = () => {
           title: editedTitle,
           description: descriptionValue,
           college: project.college,
-          status: project.status, // Current status is saved
+          status: project.status,
           newRoles: [],
           removedRoleIds: [],
           collaboratorsToAdd: [],
@@ -381,11 +410,11 @@ const ProjectOwnerFolder: React.FC = () => {
     fetchProjectData,
   ]);
 
-  // --- PROJECT STATUS CHANGE HANDLER (FIXED: Added Rollback) ---
+  // prject status change handler
   const handleProjectStatusChange = async (newStatus: "ongoing" | "done") => {
     const originalStatus = project.status;
 
-    // 1. Optimistic Update (For instant visual feedback)
+    // Optimistic Update (For instant visual feedback)
     setProject((prev) => ({ ...prev, status: newStatus }));
 
     try {
@@ -395,7 +424,6 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        // Sending all editable fields for a complete status change persistence
         body: JSON.stringify({
           title: editedTitle,
           description: descriptionValue,
@@ -411,7 +439,7 @@ const ProjectOwnerFolder: React.FC = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        // 2. Rollback on API failure
+        // Rollback on API failure
         setProject((prev) => ({ ...prev, status: originalStatus }));
         setMessage({
           text:
@@ -422,14 +450,14 @@ const ProjectOwnerFolder: React.FC = () => {
         return;
       }
 
-      // 3. Success
+      // Success
       fetchProjectData();
       setMessage({
         text: `Project status changed to ${newStatus.toUpperCase()} successfully!`,
         type: "success",
       });
     } catch (error) {
-      // 4. Rollback on Network failure
+      // Rollback on Network failure
       setProject((prev) => ({ ...prev, status: originalStatus }));
       console.error("Status change network error:", error);
       setMessage({
@@ -439,11 +467,9 @@ const ProjectOwnerFolder: React.FC = () => {
     }
   };
 
-  // --- TASK HANDLERS (FIXED: Changed 'label' to 'title' in API body) ---
-
   // Add Task
-  const addTask = async () => {
-    const title = taskInput.trim(); // Renamed local variable for clarity and API consistency
+  const addTask = async (value: string, dueDate: string) => {
+    const title = value.trim();
 
     // Client-side validation
     if (!title) {
@@ -458,12 +484,18 @@ const ProjectOwnerFolder: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title }), // Sending 'title' instead of 'label' for API consistency
+        body: JSON.stringify({
+          label: title,
+          createdAt: new Date().toISOString(),
+          due_date: dueDate,
+        }),
       });
+
       if (res.ok) {
-        setTaskInput(""); // Clear input on success
+        setTaskInput("");
+        setTaskDueDate("");
         setMessage({ text: "Task added successfully!", type: "success" });
-        fetchProjectData(); // Re-fetch to update task list
+        fetchProjectData();
       } else {
         const errData = await res.json();
         setMessage({
@@ -472,7 +504,6 @@ const ProjectOwnerFolder: React.FC = () => {
         });
       }
     } catch (error) {
-      // NOTE: If this error persists, it is definitely a server issue (CORS, server offline, malformed API endpoint).
       setMessage({
         text: "Network error adding task. Please check server logs for /tasks/:projectId.",
         type: "error",
@@ -481,14 +512,25 @@ const ProjectOwnerFolder: React.FC = () => {
   };
 
   // Toggle Task Status (Used for setting task.done status)
-  const toggleTask = async (taskId: number, doneStatus: boolean) => {
+  const toggleTask = async (taskId: number, newStatus: TaskStatus) => {
     const originalTasks = project.tasks;
 
-    // 1. Optimistic local update (Stops jarring re-render)
+    // Optimistic local update (Stops jarring re-render)
+    let doneStatusToSend: boolean;
+    let inProgressStatusToSend: boolean;
+
+    if (newStatus === "completed") {
+      doneStatusToSend = true;
+      inProgressStatusToSend = false;
+    } else if (newStatus === "in-progress") {
+      doneStatusToSend = false;
+      inProgressStatusToSend = true;
+    } else {
+      doneStatusToSend = false;
+      inProgressStatusToSend = false;
+    }
     const updatedTasks = project.tasks.map((t) =>
-      t.id === taskId
-        ? { ...t, done: doneStatus, status: doneStatus ? "completed" : "to-do" }
-        : t
+      t.id === taskId ? { ...t, done: doneStatusToSend, status: newStatus } : t
     );
     updateField("tasks", updatedTasks);
 
@@ -499,7 +541,11 @@ const ProjectOwnerFolder: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ done: doneStatus }),
+        body: JSON.stringify({
+          done: doneStatusToSend,
+          newStatus: newStatus,
+          in_progress: inProgressStatusToSend,
+        }),
       });
 
       if (!res.ok) {
@@ -526,11 +572,8 @@ const ProjectOwnerFolder: React.FC = () => {
     taskId: number,
     newStatus: TaskStatus
   ) => {
-    const isDone = newStatus === "completed";
-    await toggleTask(taskId, isDone);
+    await toggleTask(taskId, newStatus);
   };
-
-  // --- COLLABORATOR HANDLERS (Omitted for brevity, unchanged) ---
 
   // Add collaborator
   const addCollaborator = async () => {
@@ -635,25 +678,11 @@ const ProjectOwnerFolder: React.FC = () => {
       if (taskFilter === "all") return true;
       if (taskFilter === "my-tasks")
         return task.assignedTo === currentUser.name;
-      if (taskFilter === "to-do") return task.status === "to-do";
       if (taskFilter === "in-progress") return task.status === "in-progress";
       if (taskFilter === "completed") return task.status === "completed";
       return true;
     });
   }, [project.tasks, taskFilter, currentUser.name]);
-
-  const getPriorityColor = (priority: TaskPriority) => {
-    switch (priority) {
-      case "high":
-        return "#ef4444";
-      case "medium":
-        return "#f59e0b";
-      case "low":
-        return "#10b981";
-      default:
-        return "#6b7280";
-    }
-  };
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
@@ -701,6 +730,9 @@ const ProjectOwnerFolder: React.FC = () => {
             Created • {new Date(project.createdAt).toLocaleDateString()}
           </p>
         </div>
+        <button className="close-btn" onClick={() => navigate("/dashboard")}>
+          ×
+        </button>
 
         {/* Main Content */}
         <div className="project-main-content">
@@ -787,7 +819,16 @@ const ProjectOwnerFolder: React.FC = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  addTask();
+                  const form = e.currentTarget;
+                  const taskInput = form.elements.namedItem(
+                    "taskTitle"
+                  ) as HTMLInputElement;
+                  const dueDateInput = form.elements.namedItem(
+                    "taskDueDate"
+                  ) as HTMLInputElement;
+                  if (!taskInput.value) return;
+                  addTask(taskInput.value, dueDateInput.value);
+                  form.reset();
                 }}
               >
                 <input
@@ -795,8 +836,14 @@ const ProjectOwnerFolder: React.FC = () => {
                   name="taskTitle"
                   placeholder="Task title"
                   className="task-input"
-                  value={taskInput}
-                  onChange={(e) => setTaskInput(e.target.value)}
+                />
+                <input
+                  type="date"
+                  name="taskDueDate"
+                  className="task-due-date-input"
+                  value={taskDueDate}
+                  onChange={(e) => setTaskDueDate(e.target.value)}
+                  required
                 />
                 <button type="submit" className="add-task-btn">
                   Add Task
@@ -826,14 +873,6 @@ const ProjectOwnerFolder: React.FC = () => {
                 >
                   My Tasks ({myTasksCount})
                 </button>
-                <button
-                  className={`filter-chip ${
-                    taskFilter === "to-do" ? "active" : ""
-                  }`}
-                  onClick={() => setTaskFilter("to-do")}
-                >
-                  To-do
-                </button>
               </div>
               <div className="tasks-grid">
                 {filteredTasks.length > 0 ? (
@@ -841,15 +880,7 @@ const ProjectOwnerFolder: React.FC = () => {
                     <div key={task.id} className="task-card">
                       <div className="task-header">
                         <div className="task-title-section">
-                          <div
-                            className="task-priority-dot"
-                            style={{
-                              backgroundColor: getPriorityColor(
-                                task.priority as TaskPriority
-                              ),
-                            }}
-                          ></div>
-                          <h3 className="task-title">{task.title}</h3>
+                          <h3 className="task-title">{task.label}</h3>
                         </div>
                         <select
                           className="task-status-dropdown"
@@ -872,9 +903,17 @@ const ProjectOwnerFolder: React.FC = () => {
                         </select>
                       </div>
                       <div className="task-meta">
-                        <span>👤 {task.assignedTo || "Unassigned"}</span>
                         <span>
-                          📅 {new Date(task.dueDate).toLocaleDateString()}
+                          👤 {task.assignedTo || "Unassigned"} • Created •{" "}
+                          {task.createdAt
+                            ? new Date(task.createdAt).toLocaleDateString()
+                            : "N/A"}{" "}
+                          {task.dueDate && (
+                            <>
+                              | Due Date •{" "}
+                              {new Date(task.dueDate).toLocaleDateString()}
+                            </>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -1041,14 +1080,15 @@ const ProjectOwnerFolder: React.FC = () => {
                                 onClick={() =>
                                   setProject((prev) => ({
                                     ...prev,
-                                    collaborators: prev.collaborators.map((c) =>
-                                      c.id === collaborator.id
-                                        ? {
-                                            ...c,
-                                            access: "can edit",
-                                            showMenu: false,
-                                          }
-                                        : c
+                                    collaborators: prev.collaborators.map(
+                                      (c) =>
+                                        c.id === collaborator.id
+                                          ? {
+                                              ...c,
+                                              access: "can edit",
+                                              showMenu: false,
+                                            }
+                                          : c
                                     ),
                                   }))
                                 }
@@ -1061,14 +1101,15 @@ const ProjectOwnerFolder: React.FC = () => {
                                 onClick={() =>
                                   setProject((prev) => ({
                                     ...prev,
-                                    collaborators: prev.collaborators.map((c) =>
-                                      c.id === collaborator.id
-                                        ? {
-                                            ...c,
-                                            access: "view only",
-                                            showMenu: false,
-                                          }
-                                        : c
+                                    collaborators: prev.collaborators.map(
+                                      (c) =>
+                                        c.id === collaborator.id
+                                          ? {
+                                              ...c,
+                                              access: "view only",
+                                              showMenu: false,
+                                            }
+                                          : c
                                     ),
                                   }))
                                 }
