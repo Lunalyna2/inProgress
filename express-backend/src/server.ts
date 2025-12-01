@@ -70,6 +70,7 @@ const validateSignUpData = (data: SignUpFormData): ValidationResult => {
   return { isValid: Object.keys(errors).length === 0, errors };
 };
 
+// signup
 app.post("/api/signup", async (req, res) => {
   try {  // 
     const data: SignUpFormData = req.body;
@@ -133,7 +134,7 @@ app.post("/api/signup", async (req, res) => {
   }
 });
   
-
+//login
 app.post("/api/login", async (req, res) => {
   try {
     const { identifier, password } = req.body;
@@ -160,6 +161,12 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
+       if (user.logged_in === true) {
+      return res.status(403).json({
+        message: "This account is already logged in on another device.",
+      });
+    }
+
     const token = jwt.sign(
       { id: user.id, username: user.username, email: user.email },
       process.env.JWT_SECRET || "fallback-secret",
@@ -179,7 +186,26 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// logout
+app.post("/api/logout", async (req, res) => {
+  try {
+    const { userId } = req.body;
 
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    await pool.query(
+      "UPDATE users SET logged_in = FALSE WHERE id = $1",
+      [userId]
+    );
+
+    return res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ message: "Server error during logout" });
+  }
+});
 
 app.get(
   "/api/projects/:projectId/comments",
