@@ -2,23 +2,35 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  align-items: flex-start;
   width: 100%;
   max-width: 700px;
+  margin: 2rem auto;
+  color: #333;
 }
 
 .create-project-form label {
   font-weight: 600;
-  color: #666666;
+  color: #555;
 }
 
 .create-project-form input,
 .create-project-form textarea {
   padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  border-radius: 12px;
   font-size: 1rem;
   width: 100%;
+  background-color: #f9f6f2; 
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.create-project-form input:focus,
+.create-project-form textarea:focus {
+  outline: none;
+  border-color: #a5d8ff; 
+  background-color: #e0f7ff;
+  box-shadow: 0 0 8px rgba(165, 216, 255, 0.5);
 }
 
 .roles-row {
@@ -29,21 +41,29 @@
 
 .roles-row input {
   flex: 1;
+  background-color: #fef6f9; 
+  border: 1px solid #ffd6e0;
 }
 
-.add-btn {
-  background: linear-gradient(to right, #4a90e2, #8e44ad);
-  color: white;
+.roles-row .role-count-input {
+  max-width: 80px;
+  background-color: #fff6e0;
+  border: 1px solid #ffe5a1;
+}
+
+.roles-row button {
+  background-color: #c3f0ca; 
+  color: #333;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
   cursor: pointer;
-  white-space: nowrap;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-.add-btn:hover {
-  opacity: 0.9;
+.roles-row button:hover {
+  background-color: #a6e6a0;
 }
 
 .role-list {
@@ -60,24 +80,24 @@
   width: 100%;
 }
 
-.submit-btn {
-  background-color: #ff5c8a;
-  color: white;
+.submit-row button {
+  background-color: #ffd1dc; 
+  color: #333;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   min-width: 200px;
-  text-align: center;
+  transition: all 0.2s ease;
 }
 
-.submit-btn:hover {
-  background-color: #e14b76;
+.submit-row button:hover {
+  background-color: #ffb3c1;
 }
 
 .error-text {
-  color: red;
+  color: #ff6b6b;
   font-weight: bold;
   margin-top: 0.5rem;
 }

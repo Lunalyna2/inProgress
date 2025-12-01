@@ -21,7 +21,7 @@
   left: 0;
   width: 140px;
   height: 20px;
-  background: rgb(123, 41, 211);
+  background: #a8dadc;
   border-radius: 6px 6px 0 0;
   transition: transform 0.25s ease-out;
 }
@@ -33,17 +33,17 @@
 .folder-box {
   width: 100%;
   height: 100%;
-  background:  rgb(123, 41, 211);
+  background: #ffe5b4;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .folder-title {
-  color: rgb(255, 255, 255);
+  color: #1d3557;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
@@ -66,31 +66,31 @@
   justify-content: center;
   gap: 4px;
   padding: 3px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(29, 53, 87, 0.4);
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  color: white;
+  color: #1d3557;
   background: transparent;
   transition: all 0.2s ease;
 }
 
 .folder-upvote:hover,
 .folder-comments:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
-  color: white;
+  background: rgba(168, 218, 220, 0.2);
+  border-color: #1d3557;
+  color: #1d3557;
 }
 
 .folder-upvote svg,
 .folder-comments svg {
   width: 16px;
   height: 16px;
-  color: white;
-  fill: white;
+  color: #1d3557;
+  fill: #1d3557;
 }
 
 .folder-upvote svg.upvoted {
-  color: #7c3aed;
-  fill: #7c3aed;
+  color: #f4a261;
+  fill: #f4a261;
 }
