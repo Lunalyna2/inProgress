@@ -4,15 +4,13 @@ import type { Request, Response } from "express";
 
 const router = Router();
 
-// =============================
-// GET USER PROFILE
-// =============================
+// Get user profile
 router.get("/:userId", async (req: Request, res: Response) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.params.userId; // what is params for?
 
     // Validate userId is a number
-    if (!userId || isNaN(Number(userId))) {
+    if (!userId || isNaN(Number(userId))) { // i dont understand this. why wrap for another isNan and why check if the id is a number
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
@@ -39,7 +37,7 @@ router.get("/:userId", async (req: Request, res: Response) => {
       [userId]
     );
 
-    const profile = profileResult.rows[0] || {};
+    const profile = profileResult.rows[0] || {}; //what is this for?
 
     res.json({
       name: userResult.rows[0].fullname,

@@ -1,18 +1,10 @@
 "use client"
 
 import React, { useState, useMemo, useEffect } from "react"
-import "./JoinedProjectFolder.css"
+import "./JoinedProjectFolder.css";
+import FolderBackground from "../layouts/FolderBackground";
 
-const FolderBackground: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="folder-background">
-    <div className="folder-container">
-      <div className="folder-tab" />
-      <div className="folder-body">
-        <div className="folder-content">{children}</div>
-      </div>
-    </div>
-  </div>
-)
+
 
 interface Role {
   id: number
