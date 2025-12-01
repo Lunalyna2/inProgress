@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App'; 
+import { AuthProvider } from './pages/AuthContext';
 
 // Get the root container from the HTML
 const container = document.getElementById('root');
@@ -13,7 +14,9 @@ if (container) {
     // Render the application
     root.render(
         <React.StrictMode>
-            <App />
+            <AuthProvider>
+                <App />
+            </AuthProvider>
         </React.StrictMode>
     );
 } else {
