@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState, useMemo, useEffect } from "react"
-import "./JoinedProjectFolder.css";
-import FolderBackground from "../layouts/FolderBackground";
+import "./JoinedProjectFolder.css"
+import FolderBackground from "../layouts/FolderBackground"
 
-const API_URL = "http://localhost:5000/api"
+const API_URL = "http://localhost:5000/api/projects"
 
 interface Role {
   id: number
@@ -46,7 +46,6 @@ interface CurrentUser {
   avatar: string
 }
 
-//  Component 
 const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUser }> = ({
   projectId,
   currentUser,
@@ -58,15 +57,32 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
   const [taskFilter, setTaskFilter] = useState<"all" | "my-tasks" | TaskStatus>("all")
   const [isCollaborator, setIsCollaborator] = useState<boolean>(false)
 
-
-  //  Fetch Project 
   const fetchProject = async () => {
     try {
-      const res = await fetch(`${API_URL}/projects/${projectId}/joined-view`)
+      const res = await fetch(`${API_URL}/${projectId}`)
       const data = await res.json()
-      setProject({ ...data.project, id: projectId, isCollaborator: data.isCollaborator })
-      setTasks(data.tasks)
-      setIsCollaborator(data.isCollaborator)
+      setProject({
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        createdBy: data.creator_username,
+        createdAt: data.created_at ?? new Date().toISOString(),
+        rolesNeeded: (data.roles || []).map((r: any) => ({
+          id: r.id,
+          role: r.name,
+          count: r.count,
+          filled: r.filled ?? 0,
+        })),
+        collaborators: (data.collaborators || []).map((c: any) => ({
+          id: c.userId,
+          name: c.username,
+          role: c.role || "",
+          avatar: c.avatar || "",
+        })),
+        isCollaborator: (data.collaborators || []).some((c: any) => c.userId === currentUser.id),
+      })
+      setIsCollaborator((data.collaborators || []).some((c: any) => c.userId === currentUser.id))
+      setTasks([])
     } catch (err) {
       console.error("Failed to fetch project:", err)
     }
@@ -74,9 +90,8 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
 
   useEffect(() => {
     fetchProject()
-  }, [])
+  }, [projectId, currentUser])
 
-  //  Join Project 
   const applyJoin = async () => {
     if (!selectedRole) return
     try {
@@ -94,12 +109,9 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
     }
   }
 
-  //  Cancel Application 
   const cancelJoin = async () => {
     try {
-      await fetch(`${API_URL}/${projectId}/cancel`, {
-        method: "DELETE",
-      })
+      await fetch(`${API_URL}/${projectId}/cancel`, { method: "DELETE" })
       setIsCollaborator(false)
       fetchProject()
     } catch (err) {
@@ -107,33 +119,6 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
     }
   }
 
-  // Claim Task 
-  const claimTask = async (taskId: number) => {
-    try {
-      await fetch(`${API_URL}/tasks/${taskId}/claim`, { method: "POST" })
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, assignedTo: currentUser.name, status: "assigned" } : t))
-      )
-    } catch (err) {
-      console.error("Claim failed:", err)
-    }
-  }
-
-  //  Update Task Status 
-  const updateTaskStatus = async (taskId: number, status: TaskStatus) => {
-    try {
-      await fetch(`${API_URL}/tasks/${taskId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      })
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)))
-    } catch (err) {
-      console.error("Update status failed:", err)
-    }
-  }
-
-  //  Filters 
   const filteredTasks: Task[] = useMemo(() => {
     return tasks.filter((task) => {
       if (taskFilter === "all") return true
@@ -195,15 +180,12 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
         </div>
 
         <div className="project-main-content">
-          {/* Left Column */}
           <div className="content-column-left">
-            {/* About */}
             <div className="content-card">
               <h2 className="card-title">About This Project</h2>
               <p className="project-description">{project.description}</p>
             </div>
 
-            {/* Roles Needed */}
             {!isCollaborator && (
               <div className="content-card">
                 <h2 className="card-title">Roles Needed</h2>
@@ -224,89 +206,6 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* Tasks */}
-            {isCollaborator && (
-              <div className="content-card">
-                <h2 className="card-title">Tasks ({tasks.length})</h2>
-                <div className="task-filters">
-                  <button
-                    className={`filter-chip ${taskFilter === "all" ? "active" : ""}`}
-                    onClick={() => setTaskFilter("all")}
-                  >
-                    All ({tasks.length})
-                  </button>
-                  <button
-                    className={`filter-chip ${taskFilter === "my-tasks" ? "active" : ""}`}
-                    onClick={() => setTaskFilter("my-tasks")}
-                  >
-                    My Tasks ({myTasksCount})
-                  </button>
-                  <button
-                    className={`filter-chip ${taskFilter === "unassigned" ? "active" : ""}`}
-                    onClick={() => setTaskFilter("unassigned")}
-                  >
-                    Unassigned
-                  </button>
-                </div>
-
-                <div className="tasks-grid">
-                  {filteredTasks.length > 0 ? (
-                    filteredTasks.map((task) => (
-                      <div key={task.id} className="task-card">
-                        <div className="task-header">
-                          <h3 className="task-title">{task.title}</h3>
-                          <span
-                            className="task-status-badge"
-                            style={{
-                              backgroundColor: getStatusColor(task.status) + "20",
-                              color: getStatusColor(task.status),
-                            }}
-                          >
-                            {getStatusLabel(task.status)}
-                          </span>
-                        </div>
-
-                        <div className="task-meta">
-                          <span>👤 {task.assignedTo || "Unassigned"}</span>
-                        </div>
-
-                        <div className="task-actions">
-                          {task.status === "unassigned" && (
-                            <button className="btn-action btn-claim" onClick={() => claimTask(task.id)}>
-                              Claim
-                            </button>
-                          )}
-
-                          {task.assignedTo === currentUser.name && task.status !== "completed" && (
-                            <>
-                              {task.status === "assigned" && (
-                                <button
-                                  className="btn-action btn-start"
-                                  onClick={() => updateTaskStatus(task.id, "in-progress")}
-                                >
-                                  Start
-                                </button>
-                              )}
-                              {task.status === "in-progress" && (
-                                <button
-                                  className="btn-action btn-complete"
-                                  onClick={() => updateTaskStatus(task.id, "completed")}
-                                >
-                                  Complete
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="empty-state">No tasks found</div>
-                  )}
                 </div>
               </div>
             )}
@@ -362,7 +261,6 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
               </div>
             )}
 
-            {/* Collaborators */}
             <div className="content-card">
               <h2 className="card-title">Team ({project.collaborators.length})</h2>
               <div className="collaborators-list">
@@ -380,7 +278,6 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
           </div>
         </div>
 
-        {/* Join Modal */}
         {showJoinModal && (
           <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>

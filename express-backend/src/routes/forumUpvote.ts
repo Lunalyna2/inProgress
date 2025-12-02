@@ -4,7 +4,6 @@ import { authMiddleware, AuthenticatedRequest } from "../shared";
 
 const router = Router();
 
-// response format 
 interface UpvoteResponse {
   success: boolean;
   projectId: number;
@@ -12,7 +11,7 @@ interface UpvoteResponse {
   hasUpvoted: boolean;
 }
 
-// return current upvote count
+// GET upvote count and user's upvote status
 router.get(
   "/:projectId/upvotes",
   authMiddleware,
@@ -24,30 +23,32 @@ router.get(
       return res.status(400).json({ success: false, error: "Invalid project ID" });
     }
 
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
     try {
-      const result = await pool.query(
-        `SELECT 
-           p.upvote_count,
-           EXISTS (
-             SELECT 1 FROM project_upvote 
-             WHERE project_id = $1 AND user_id = $2
-           ) AS has_upvoted
-         FROM projects p 
-         WHERE p.id = $1`,
-        [projectId, userId ?? null]
+      const projectResult = await pool.query<{ upvote_count: number }>(
+        "SELECT upvote_count FROM projects WHERE id = $1",
+        [projectId]
       );
 
-      if (result.rows.length === 0) {
+      if (!projectResult.rows.length) {
         return res.status(404).json({ success: false, error: "Project not found" });
       }
 
-      const { upvote_count, has_upvoted } = result.rows[0];
+      const checkUserResult = await pool.query<{ exists: boolean }>(
+        "SELECT EXISTS(SELECT 1 FROM project_upvote WHERE project_id = $1 AND user_id = $2) AS exists",
+        [projectId, userId]
+      );
+
+      const hasUpvoted = checkUserResult.rows[0]?.exists ?? false;
 
       res.json({
         success: true,
         projectId,
-        upvotes: Number(upvote_count),
-        hasUpvoted: Boolean(has_upvoted),
+        upvotes: Number(projectResult.rows[0].upvote_count),
+        hasUpvoted,
       });
     } catch (err) {
       console.error("Error fetching upvote status:", err);
@@ -56,54 +57,52 @@ router.get(
   }
 );
 
-// add upvote for a project
+// POST add upvote
 router.post(
   "/:projectId/upvotes",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response<UpvoteResponse | { success: false; error: string }>) => {
     const projectId = Number(req.params.projectId);
-    const userId = req.userId!;
+    const userId = req.userId;
 
     if (!projectId || isNaN(projectId)) {
       return res.status(400).json({ success: false, error: "Invalid project ID" });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
 
-      const insertRes = await client.query(
+      const insertResult = await client.query(
         `INSERT INTO project_upvote (project_id, user_id)
          VALUES ($1, $2)
-         ON CONFLICT (user_id, project_id) DO NOTHING
+         ON CONFLICT (project_id, user_id) DO NOTHING
          RETURNING project_id`,
         [projectId, userId]
       );
 
-      const wasInserted = insertRes.rowCount === 1;
-
-      if (wasInserted) {
+      if (insertResult.rowCount === 1) {
         await client.query(
-          `UPDATE projects 
-           SET upvote_count = upvote_count + 1 
-           WHERE id = $1`,
+          "UPDATE projects SET upvote_count = upvote_count + 1 WHERE id = $1",
           [projectId]
         );
       }
 
-      // Get fresh count while still in transaction
-      const countRes = await client.query(
+      const countResult = await client.query<{ upvote_count: number }>(
         "SELECT upvote_count FROM projects WHERE id = $1",
         [projectId]
       );
-      const updatedCount = Number(countRes.rows[0].upvote_count);
 
       await client.query("COMMIT");
 
       res.json({
         success: true,
         projectId,
-        upvotes: updatedCount,
+        upvotes: Number(countResult.rows[0].upvote_count),
         hasUpvoted: true,
       });
     } catch (err) {
@@ -116,53 +115,51 @@ router.post(
   }
 );
 
-// remove upvote - when clicked again by user
+// DELETE remove upvote
 router.delete(
   "/:projectId/upvotes",
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response<UpvoteResponse | { success: false; error: string }>) => {
     const projectId = Number(req.params.projectId);
-    const userId = req.userId!;
+    const userId = req.userId;
 
     if (!projectId || isNaN(projectId)) {
       return res.status(400).json({ success: false, error: "Invalid project ID" });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
 
-      const deleteRes = await client.query(
-        `DELETE FROM project_upvote 
+      const deleteResult = await client.query(
+        `DELETE FROM project_upvote
          WHERE project_id = $1 AND user_id = $2
          RETURNING project_id`,
         [projectId, userId]
       );
 
-      const wasDeleted = deleteRes.rowCount === 1;
-
-      if (wasDeleted) {
+      if (deleteResult.rowCount === 1) {
         await client.query(
-          `UPDATE projects 
-           SET upvote_count = GREATEST(upvote_count - 1, 0)
-           WHERE id = $1`,
+          "UPDATE projects SET upvote_count = GREATEST(upvote_count - 1, 0) WHERE id = $1",
           [projectId]
         );
       }
 
-      // Get fresh count before releasing client
-      const countRes = await client.query(
+      const countResult = await client.query<{ upvote_count: number }>(
         "SELECT upvote_count FROM projects WHERE id = $1",
         [projectId]
       );
-      const updatedCount = countRes.rows.length > 0 ? Number(countRes.rows[0].upvote_count) : 0;
 
       await client.query("COMMIT");
 
       res.json({
         success: true,
         projectId,
-        upvotes: updatedCount,
+        upvotes: countResult.rows.length ? Number(countResult.rows[0].upvote_count) : 0,
         hasUpvoted: false,
       });
     } catch (err) {

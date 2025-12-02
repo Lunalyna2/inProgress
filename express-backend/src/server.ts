@@ -38,7 +38,7 @@ app.use(
 
 
 
-app.use("/profile", authMiddleware, profileRoutes);
+app.use("/api/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
 app.use("/api/projects", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);

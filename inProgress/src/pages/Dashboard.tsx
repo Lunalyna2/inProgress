@@ -14,11 +14,11 @@ interface Project {
   description?: string;
   course?: string;
   upvote_count?: number;
+  isCollaborator?: boolean;
 }
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [selectedProjectIdForComments, setSelectedProjectIdForComments] = useState<number | null>(null);
@@ -119,7 +119,6 @@ const Dashboard: React.FC = () => {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
-
       await loadProjectMeta();
     } catch (err) {
       console.error(err);

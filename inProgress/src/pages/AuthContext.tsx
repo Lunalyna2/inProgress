@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface User {
   id: number;
@@ -21,18 +20,48 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUserState(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Failed to parse stored user:", err);
+        setUserState(null);
+      }
+    } else {
+      const token = localStorage.getItem("userToken");
+      if (token) {
+        try {
+          const payload = token.split(".")[1];
+          if (payload) {
+            const decoded = JSON.parse(atob(payload));
+            setUserState({
+              id: decoded.id,
+              name: decoded.name,
+              avatar: decoded.avatar,
+              email: decoded.email,
+            });
+          }
+        } catch (err) {
+          console.error("Failed to decode token:", err);
+          setUserState(null);
+        }
+      }
     }
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, setUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const setUser = (newUser: User | null) => {
+    setUserState(newUser);
+    if (newUser) {
+      localStorage.setItem("currentUser", JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userToken");
+    }
+  };
+
+  return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
 };

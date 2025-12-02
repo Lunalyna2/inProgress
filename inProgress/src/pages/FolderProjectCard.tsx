@@ -7,6 +7,7 @@ interface Project {
   id: number;
   title: string;
   course?: string;
+  isCollaborator?: boolean;
 }
 
 interface Props {
@@ -38,24 +39,29 @@ const FolderProjectCard: React.FC<Props> = ({
       return;
     }
 
+    if (project.isCollaborator) {
+      navigate(`/joinedprojectsfolder/${project.id}`);
+      return;
+    }
+
     switch (viewType) {
       case "created":
         navigate(`/projectownerfolder/${project.id}`);
         break;
       case "dashboard":
-        navigate(`/joinedprojectsfolder/${project.id}`); // updated for picked projects
+        navigate(`/joinedprojectsfolder/${project.id}`);
         break;
       case "joined":
         navigate(`/joinedprojectsfolder/${project.id}`);
         break;
       default:
-        console.warn("Unknown viewType in FolderProjectCard");
+        navigate(`/joinedprojectsfolder/${project.id}`);
         break;
     }
   };
 
   return (
-    <div className="folder-card" onClick={handleCardClick}>
+    <div className={`folder-card ${project.isCollaborator ? "joined" : ""}`} onClick={handleCardClick}>
       <div className="folder-flap"></div>
       <div className="folder-box">
         <div className="folder-title">{project.title}</div>
