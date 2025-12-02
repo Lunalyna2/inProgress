@@ -23,28 +23,39 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 const app = express();
 
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "https://inprogress-upts.onrender.com",
-  "https://inprogress-d22sccx08-yna-venegas-projects.vercel.app",
-];
-
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
 
-    console.log("❌ CORS BLOCKED:", origin);
+    if (origin.endsWith(".vercel.app")) {
+      console.log("✅ Allowed Vercel origin:", origin);
+      return callback(null, true);
+    }
+
+    if (origin === "https://inprogress-upts.onrender.com") {
+      return callback(null, true);
+    }
+
+    if (
+      origin === "http://localhost:3000" ||
+      origin === "http://localhost:3001"
+    ) {
+      console.log("✅ Allowed localhost:", origin);
+      return callback(null, true);
+    }
+
+    console.log("❌ BLOCKED ORIGIN:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
+
 
 app.use(express.json());
 
