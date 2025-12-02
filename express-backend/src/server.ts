@@ -29,27 +29,18 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://inprogress-upts.onrender.com",
+  "https://inprogress-d22sccx08-yna-venegas-projects.vercel.app",
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); 
-
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.match(/^https:\/\/.*\.vercel\.app$/)
-    ) {
-      return callback(null, true);
-    }
-
+    if (allowedOrigins.includes(origin)) return callback(null, true);
     console.log("❌ CORS BLOCKED:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
-
-
-
 
 
 app.use("/profile", authMiddleware, profileRoutes);
