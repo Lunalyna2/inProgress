@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
-console.log("API_URL used:", API_URL);
+console.log("API_URL used:", process.env.REACT_APP_API_URL);
 
 
 interface SignUpPageProps {
