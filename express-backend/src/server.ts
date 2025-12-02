@@ -23,6 +23,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -33,13 +37,17 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); 
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+
     console.log("❌ CORS BLOCKED:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
+
+app.use(express.json());
+
 
 
 
