@@ -42,6 +42,9 @@ app.use(cors({
   credentials: true,
 }));
 
+app.options('/:path(*)', cors());
+
+
 
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
