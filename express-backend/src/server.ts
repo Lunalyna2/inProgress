@@ -31,30 +31,18 @@ app.use((req, res, next) => {
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); 
 
-    if (origin.endsWith(".vercel.app")) {
-      console.log("✅ Allowed Vercel origin:", origin);
-      return callback(null, true);
-    }
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+    if (origin === "https://inprogress-upts.onrender.com") return callback(null, true);
+    if (origin === "https://inprogressfinal.netlify.app") return callback(null, true); // <- ADD THIS
+    if (origin === "http://localhost:3000" || origin === "http://localhost:3001") return callback(null, true);
 
-    if (origin === "https://inprogress-upts.onrender.com") {
-      return callback(null, true);
-    }
-
-    if (
-      origin === "http://localhost:3000" ||
-      origin === "http://localhost:3001"
-    ) {
-      console.log("✅ Allowed localhost:", origin);
-      return callback(null, true);
-    }
-
-    console.log("❌ BLOCKED ORIGIN:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
+
 
 
 app.use(express.json());
