@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react"
 import "./JoinedProjectFolder.css"
 import FolderBackground from "../layouts/FolderBackground"
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 interface Role {
   id: number

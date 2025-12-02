@@ -5,7 +5,7 @@ import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./projectInterface.css";
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 // --- INTERFACES ---
 

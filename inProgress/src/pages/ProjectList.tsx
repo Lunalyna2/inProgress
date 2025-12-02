@@ -9,7 +9,7 @@ interface Project {
   commentCount: number;
 }
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 const ProjectList: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);

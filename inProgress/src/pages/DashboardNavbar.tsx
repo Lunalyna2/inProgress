@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import './DashboardNavbar.css';
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 interface NavbarProps {
   onProfileClick?: () => void;

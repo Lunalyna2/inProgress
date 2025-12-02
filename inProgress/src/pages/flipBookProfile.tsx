@@ -3,7 +3,7 @@ import type { ChangeEvent, FC, ReactNode, CSSProperties } from "react";
 import "./flipBookProfile.css";
 import DashNavbar from "./DashboardNavbar"; 
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 interface PaperProps {
   id: string

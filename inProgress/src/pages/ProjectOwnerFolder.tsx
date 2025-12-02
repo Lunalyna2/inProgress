@@ -26,7 +26,8 @@ const departments = [
   "College of Law",
   "College of Medicine",
 ];
-const API_URL = process.env.REACT_APP_API_URL
+
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
   children,

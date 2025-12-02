@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./AcceptOrDecline.css";
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL || "https://inprogress-upts.onrender.com/api";
 
 type Collaborator = {
   id: string;
