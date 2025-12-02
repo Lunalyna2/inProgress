@@ -164,6 +164,7 @@ const ProjectOwnerFolder: React.FC = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -184,6 +185,7 @@ const ProjectOwnerFolder: React.FC = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          credentials: "include",
         });
 
         if (tasksRes.ok) {
@@ -306,6 +308,7 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToAdd: [],
           collaboratorsToRemove: [],
         }),
+        credentials: "include",
       });
       if (res.ok) {
         setRoleInput("");
@@ -349,6 +352,7 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToAdd: [],
           collaboratorsToRemove: [],
         }),
+        credentials: "include",
       });
       if (res.ok) {
         setMessage({ text: "Role removed successfully!", type: "success" });
@@ -392,6 +396,7 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToAdd: [],
           collaboratorsToRemove: [],
         }),
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -448,6 +453,7 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToAdd: [],
           collaboratorsToRemove: [],
         }),
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -502,6 +508,7 @@ const ProjectOwnerFolder: React.FC = () => {
           label: title,
           createdAt: new Date().toISOString(),
         }),
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -558,6 +565,7 @@ const ProjectOwnerFolder: React.FC = () => {
           newStatus: newStatus,
           in_progress: inProgressStatusToSend,
         }),
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -608,6 +616,7 @@ const ProjectOwnerFolder: React.FC = () => {
           collaboratorsToAdd: [],
           collaboratorsToRemove: [userIdToRemove],
         }),
+        credentials: "include",
       });
       if (res.ok) {
         setMessage({

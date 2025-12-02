@@ -20,6 +20,7 @@ export const getComments = (projectId: number): Promise<Comment[]> => {
   return fetch(`${API_URL}/projects/${projectId}/comments`, {
     method: "GET",
     headers: getAuthHeader(),
+    credentials: "include",
   }).then(async (res) => {
     if (!res.ok) {
       const text = await res.text();
@@ -34,6 +35,7 @@ export const postComment = (projectId: number, text: string): Promise<Comment> =
   return fetch(`${API_URL}/projects/${projectId}/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    credentials: "include",
     body: JSON.stringify({ text }),
   }).then(async (res) => {
     if (!res.ok) {
@@ -49,6 +51,7 @@ export const editComment = (commentId: number, text: string): Promise<Comment> =
   return fetch(`${API_URL}/comments/${commentId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    credentials: "include",
     body: JSON.stringify({ text }),
   }).then(async (res) => {
     if (!res.ok) {
@@ -64,6 +67,7 @@ export const deleteComment = (commentId: number): Promise<boolean> => {
   return fetch(`${API_URL}/comments/${commentId}`, {
     method: "DELETE",
     headers: getAuthHeader(),
+    credentials: "include",
   }).then(async (res) => {
     if (!res.ok) {
       const text = await res.text();

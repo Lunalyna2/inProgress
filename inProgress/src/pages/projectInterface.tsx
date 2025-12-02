@@ -94,10 +94,11 @@ export default function ProjectInterface() {
 
         try {
             const res = await fetch(`${API_URL}/projects/${projectId}`, {
-                headers: {
+                headers: {  
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
+                  credentials: "include",
             });
 
             const data = await res.json();
@@ -142,6 +143,7 @@ export default function ProjectInterface() {
                     collaboratorsToAdd: [],
                     collaboratorsToRemove: [],
                 }),
+                credentials: "include",
             });
 
             if (res.ok) {
@@ -170,6 +172,7 @@ export default function ProjectInterface() {
                     collaboratorsToAdd: [],
                     collaboratorsToRemove: [],
                 }),
+                credentials: "include",
             });
 
             if (res.ok) {
@@ -207,7 +210,8 @@ export default function ProjectInterface() {
                     removedRoleIds: [],
                     collaboratorsToAdd: [],
                     collaboratorsToRemove: [],
-                })
+                }),
+                credentials: "include",
             });
 
             const data = await res.json();
@@ -235,6 +239,7 @@ export default function ProjectInterface() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ label: label.trim() }),
+                credentials: "include",
             });
 
             if (res.ok) {
@@ -261,6 +266,7 @@ export default function ProjectInterface() {
                 method: 'PUT', 
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ done: doneStatus }),
+                credentials: "include",
             });
 
             if (!res.ok) {
@@ -300,6 +306,7 @@ export default function ProjectInterface() {
                     collaboratorsToAdd: [userIdToAdd],
                     collaboratorsToRemove: [],
                 }),
+                credentials: "include",
             });
 
             if (res.ok) {
@@ -329,6 +336,7 @@ export default function ProjectInterface() {
                     collaboratorsToAdd: [],
                     collaboratorsToRemove: [userIdToRemove],
                 }),
+                credentials: "include",
             });
 
             if (res.ok) {

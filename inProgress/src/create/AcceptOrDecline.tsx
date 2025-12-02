@@ -35,6 +35,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
 
         const res = await fetch(`${API_URL}/collaborators/pending/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         });
 
         if (!res.ok) throw new Error("Failed to fetch collaborators");
@@ -64,6 +65,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
       const res = await fetch(`${API_URL}/collaborators/${id}/accept`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Failed to accept collaborator");
@@ -86,6 +88,7 @@ const AcceptOrDecline: React.FC<AcceptOrDeclineProps> = ({ projectId }) => {
       const res = await fetch(`${API_URL}/collaborators/${id}/decline`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Failed to decline collaborator");

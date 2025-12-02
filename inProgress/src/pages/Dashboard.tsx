@@ -49,6 +49,7 @@ const Dashboard: React.FC = () => {
       if (!token) return;
       const res = await fetch(`${API_URL}/projects/picked`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch picked projects");
       const data = await res.json();
@@ -64,6 +65,7 @@ const Dashboard: React.FC = () => {
       if (!token) return;
       const res = await fetch(`${API_URL}/projects/joined`, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch joined projects");
       const data = await res.json();
@@ -86,6 +88,7 @@ const Dashboard: React.FC = () => {
         try {
           const upvoteRes = await fetch(`${API_URL}/projects/${project.id}/upvotes`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            credentials: "include",
           });
           if (upvoteRes.ok) {
             const upvoteData = await upvoteRes.json();
@@ -94,6 +97,7 @@ const Dashboard: React.FC = () => {
           }
           const commentRes = await fetch(`${API_URL}/projects/${project.id}/comments`, {
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            credentials: "include",
           });
           if (commentRes.ok) {
             const commentData = await commentRes.json();
@@ -118,6 +122,7 @@ const Dashboard: React.FC = () => {
       await fetch(`${API_URL}/projects/${projectId}/upvotes`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       await loadProjectMeta();
     } catch (err) {

@@ -19,6 +19,7 @@ export const getUpvotes = async (projectId: number): Promise<UpvoteResponse> => 
       "Content-Type": "application/json",
       ...getAuthHeader(),
     },
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -36,6 +37,7 @@ export const addUpvote = async (projectId: number): Promise<UpvoteResponse> => {
       "Content-Type": "application/json",
       ...getAuthHeader(),
     },
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -53,6 +55,7 @@ export const removeUpvote = async (projectId: number): Promise<UpvoteResponse> =
       "Content-Type": "application/json",
       ...getAuthHeader(),
     },
+    credentials: "include",
   });
 
   if (!res.ok) {

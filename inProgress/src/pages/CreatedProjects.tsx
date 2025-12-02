@@ -29,6 +29,7 @@ const CreatedProjects: React.FC = () => {
 
         const res = await fetch(`${API_URL}/projects/created`, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          credentials: "include",
         });
 
         if (!res.ok) {
@@ -57,6 +58,7 @@ const CreatedProjects: React.FC = () => {
           try {
             const res = await fetch(`${API_URL}/projects/${p.id}/comments`, {
               headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              credentials: "include",
             });
             if (!res.ok) {
               counts[p.id] = 0;
@@ -84,6 +86,7 @@ const CreatedProjects: React.FC = () => {
       const res = await fetch(`${API_URL}/projects/${projectId}/upvote`, {
         method,
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Upvote failed");

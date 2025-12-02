@@ -20,6 +20,7 @@ const ProjectList: React.FC = () => {
     try {
       const res = await fetch(`${API_URL}/projects/created`, {
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Failed to fetch created projects");

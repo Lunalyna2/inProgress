@@ -99,6 +99,7 @@ const JoinedProjectFolder: React.FC<{ projectId: number; currentUser: CurrentUse
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: selectedRole }),
+        credentials: "include",
       })
       setIsCollaborator(true)
       setShowJoinModal(false)

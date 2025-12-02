@@ -26,6 +26,7 @@ function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ cpuEmail: email }), // match backend
+        credentials: "include",
       });
 
       const data: { message?: string; resetToken?: string } = await response.json();

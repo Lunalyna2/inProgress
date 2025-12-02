@@ -70,6 +70,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ switchToSignup }) => {
           identifier: formData.identifier.trim(), 
           password: formData.password 
         }),
+        credentials: "include",
       });
 
       const data = await response.json();

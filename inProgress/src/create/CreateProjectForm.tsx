@@ -96,6 +96,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onProjectCreated 
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(projectData),
+        credentials: "include",
       });
 
       if (!response.ok) {

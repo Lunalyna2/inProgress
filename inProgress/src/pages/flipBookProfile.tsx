@@ -127,6 +127,7 @@ const FlipBookProfile: FC = () => {
           "Authorization": `Bearer ${token}`,  
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -212,6 +213,7 @@ const FlipBookProfile: FC = () => {
           contact_no: profileInfo.contactNo,
           skill: profileInfo.skill,
         }),
+        credentials: "include",
       });
 
       const data = await res.json();

@@ -142,6 +142,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ switchToLogin }) => {
           password: formData.password,
           rePassword: formData.rePassword.trim(),
         }),
+        credentials: "include",
       });
 
       const data = await response.json();

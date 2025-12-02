@@ -25,6 +25,7 @@ const DashNavbar: React.FC<NavbarProps> = ({ onProfileClick, onHomeClick }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
+        credentials: "include",
       });
     } catch (err) {
       console.error("Logout request failed:", err);
