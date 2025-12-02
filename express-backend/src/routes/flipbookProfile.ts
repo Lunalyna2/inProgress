@@ -4,17 +4,14 @@ import type { Request, Response } from "express";
 
 const router = Router();
 
-// Get user profile
 router.get("/:userId", async (req: Request, res: Response) => {
   try {
-    const userId = req.params.userId; // what is params for?
+    const userId = req.params.userId;
 
-    // Validate userId is a number
-    if (!userId || isNaN(Number(userId))) { // i dont understand this. why wrap for another isNan and why check if the id is a number
+    if (!userId || isNaN(Number(userId))) { 
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    // Get user's full name
     const userResult = await pool.query(
       "SELECT fullname FROM users WHERE id = $1",
       [userId]
@@ -24,7 +21,6 @@ router.get("/:userId", async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Get profile data (may not exist yet)
     const profileResult = await pool.query(
       `SELECT 
           avatar,
@@ -32,13 +28,12 @@ router.get("/:userId", async (req: Request, res: Response) => {
           course,
           contact_no AS "contactNo",
           skill
-       FROM userprofile 
-       WHERE user_id = $1`,
+        FROM userprofile 
+        WHERE user_id = $1`,
       [userId]
     );
 
-    const profile = profileResult.rows[0] || {}; //what is this for?
-
+    const profile = profileResult.rows[0] || {}; 
     res.json({
       name: userResult.rows[0].fullname,
       ...profile,
@@ -74,11 +69,10 @@ router.put("/:userId", async (req: Request, res: Response) => {
     );
 
     if (check.rows.length === 0) {
-      // INSERT — fixed: no created_at!
       await pool.query(
         `INSERT INTO userprofile 
-           (user_id, avatar, description, course, contact_no, skill, updated_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+            (user_id, avatar, description, course, contact_no, skill, updated_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
         [
           userId,
           avatar || null,
@@ -89,7 +83,6 @@ router.put("/:userId", async (req: Request, res: Response) => {
         ]
       );
     } else {
-      // UPDATE — unchanged
       await pool.query(
         `UPDATE userprofile
          SET avatar = $1,

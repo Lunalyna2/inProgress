@@ -2,8 +2,7 @@ import React, { useState, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreateProjectForm.css";
 
-const API_URL = "http://localhost:5000/api"
-
+const API_URL = process.env.REACT_APP_API_URL
 interface Role {
   name: string;
   count: number;
@@ -90,8 +89,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({ onProjectCreated 
     const projectData: ProjectData = { title, description, roles };
 
     try {
-      const createProjectUrl = `${API_URL}/projects/create`;
-      const response = await fetch(createProjectUrl, {
+      const response = await fetch(`${API_URL}/projects/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

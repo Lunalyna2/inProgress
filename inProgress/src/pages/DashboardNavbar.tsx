@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import './DashboardNavbar.css';
 
-const API_URL = "http://localhost:5000/api"
+const API_URL = process.env.REACT_APP_API_URL
 
 interface NavbarProps {
   onProfileClick?: () => void;

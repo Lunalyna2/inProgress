@@ -5,7 +5,7 @@ import FolderBackground from "../layouts/FolderBackground";
 import AcceptOrDecline from "../create/AcceptOrDecline";
 import "./projectInterface.css";
 
-const API_URL = "http://localhost:5000/api"
+const API_URL = process.env.REACT_APP_API_URL
 
 // --- INTERFACES ---
 

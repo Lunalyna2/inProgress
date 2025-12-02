@@ -2,10 +2,10 @@
 import { Router } from "express";
 import crypto from "crypto";
 import transporter from "../utils/mailer";
-import pool from "../pool"; // adjust import path if different
+import pool from "../pool";
 const router = Router();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 router.post("/forgot-password", async (req, res) => {
     try {

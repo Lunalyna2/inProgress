@@ -3,8 +3,7 @@ import type { ChangeEvent, FormEvent, FocusEvent } from "react";
 import "./signup.css";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api"
-
+const API_URL = process.env.REACT_APP_API_URL
 interface SignUpPageProps {
   switchToLogin: () => void;
 }

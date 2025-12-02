@@ -26,7 +26,7 @@ const departments = [
   "College of Law",
   "College of Medicine",
 ];
-const API_URL = "http://localhost:5000/api"
+const API_URL = process.env.REACT_APP_API_URL
 
 const FolderBackground: React.FC<{ children: React.ReactNode }> = ({
   children,

@@ -19,7 +19,7 @@ import { validatePassword } from "./validatePassword";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND_URL = [process.env.FRONTEND_URL, "http://localhost:3000"];
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 const app = express();
@@ -38,7 +38,7 @@ app.use(
 
 
 
-app.use("/api/profile", authMiddleware, profileRoutes);
+app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
 app.use("/api/projects", forumUpvoteRoutes);
 app.use("/api/projects", projectRoutes);
