@@ -23,7 +23,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 const app = express();
 
-app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -42,9 +41,10 @@ app.use(cors({
   credentials: true,
 }));
 
-app.options('/:path(*)', cors());
 
 
+
+app.use(express.json());
 
 app.use("/profile", authMiddleware, profileRoutes);
 app.use("/api/collaborators", collaboratorRoutes);
