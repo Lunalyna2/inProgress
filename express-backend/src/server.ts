@@ -28,22 +28,31 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app", 
+  "https://inprogress-a6xfz07jz-yna-venegas-projects.vercel.app",
+  "https://inprogress-a7dct9vyg-yna-venegas-projects.vercel.app",
 ];
-
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      console.log("CORS BLOCKED:", origin);
-      callback(new Error("Not allowed by CORS"));
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow ANY vercel preview deployment of this project
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      console.log("❌ CORS BLOCKED:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
 );
+
 
 
 
